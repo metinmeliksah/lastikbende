@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+packages/
+
+# Build outputs
+dist/
+build/
+*.dll
+*.exe
+*.pdb
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional: Database files (if applicable)
+*.db
+*.sqlite 

@@ -100,7 +100,7 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-dark-100">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 Lastik Bende. Tüm hakları saklıdır.
+              © 2025 Lastik Bende. Tüm hakları saklıdır.
             </p>
             <div className="mt-4 md:mt-0">
               <Link href="/gizlilik" className="text-gray-400 hover:text-primary text-sm mx-3">
