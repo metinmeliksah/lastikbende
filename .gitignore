@@ -29,4 +29,18 @@ yarn-error.log*
 
 # Optional: Database files (if applicable)
 *.db
-*.sqlite 
+*.sqlite
+
+# Next.js specific
+.next/
+out/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+coverage/
+
+# Misc
+.DS_Store
+*.pem 
