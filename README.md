@@ -1,10 +1,10 @@
-# LastikBende
+# Lastik Bende
 
-LastikBende - Lastik Satışı ve Analizi
+Lastik Bende - Lastik Satışı ve Analizi
 
 ## Proje Açıklaması
 
-LastikBende, kullanıcıların lastik satın alabileceği ve lastik analizleri yapabileceği bir platformdur. Bu proje, TypeScript kullanılarak geliştirilmiştir ve modern web teknolojilerini kullanır.
+Lastik Bende, kullanıcıların lastik satın alabileceği ve lastik analizleri yapabileceği bir platformdur. Bu proje, TypeScript kullanılarak geliştirilmiştir ve modern web teknolojilerini kullanır.
 
 ## Kullanılan Teknolojiler
 
@@ -52,7 +52,7 @@ Katkıda bulunmak isterseniz, lütfen önce bir konu açın ve neyi değiştirme
 
 MIT Lisansı
 
-Telif Hakkı (c) 2025 LastikBende Projesi Sahipleri
+Telif Hakkı (c) 2025 Lastik Bende Projesi Sahipleri
 
 İşbu belgeyle, bu yazılımın ve ilgili dokümantasyon dosyalarının (bundan böyle "Yazılım" olarak anılacaktır) bir kopyasını edinmiş olan kişilere, Yazılım'ı sınırlama olmaksızın kullanma, kopyalama, değiştirme, birleştirme, yayınlama, dağıtma, alt lisanslama ve/veya Yazılım'ın kopyalarını satma izni ücretsiz olarak verilmektedir ve bu kişilere aşağıdaki koşullara tabi olarak Yazılım'ın sağlandığı kişilere aynı izni verme izni verilmektedir:
 
