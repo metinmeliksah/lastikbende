@@ -14,10 +14,15 @@ Bu modül, LastikBende platformunun lastik analiz işlevselliğini sağlayan bil
   - Profesyonel ve detaylı analiz çıktıları 
   - Özelleştirilmiş tasarım ve görsel unsurlar
 
-- **Uzman Asistan(Yaplılacak)**
+- **Akıllı Lastik Uzmanı Chat**
   - GPT-4o tabanlı lastik uzmanı asistanı
-  - Kişiselleştirilmiş öneri ve tavsiyeler
-  - Analiz sonuçlarını açıklama yeteneği
+  - Gerçek zamanlı mesajlaşma ve yanıt alma
+  - Analiz sonuçlarını otomatik değerlendirme
+  - Markdown formatında zengin metin desteği
+  - Animasyonlu yazma efektleri
+  - 50 mesaja kadar sohbet geçmişi
+  - Kişiselleştirilmiş bakım önerileri
+  - Analiz raporlarını paylaşma ve yorumlama
 
 ## 📁 Dosya Yapısı
 
@@ -26,6 +31,7 @@ analiz/
 ├── api/              # API endpoint'leri
 │   ├── analyze/      # Lastik analizi API
 │   ├── export/       # Rapor oluşturma API'leri (PDF, Excel, Word)
+│   ├── chat/         # Chat API endpoint'i
 │   └── validate/     # Form doğrulama API'si
 │
 ├── components/       # UI bileşenleri
@@ -39,18 +45,23 @@ analiz/
 │   ├── SorunlarSection.tsx          # Tespit edilen sorunlar listesi
 │   ├── ExportAnalysisSection.tsx    # Rapor oluşturma bölümü
 │   ├── PdfExporter.tsx              # PDF ihraç bileşeni
+│   ├── TireExpertChat.tsx           # Lastik uzmanı chat bileşeni
+│   ├── ChatWindow.tsx               # Chat penceresi UI
+│   ├── ChatIcon.tsx                 # Chat simgesi
 │   └── StatusTracker.tsx            # İşlem durum izleyicisi
 │
 ├── services/         # Servis modülleri
 │   ├── azure-vision.ts    # Azure Görüntü Tanıma servisi
 │   ├── chatgpt.ts         # OpenAI GPT entegrasyonu
+│   ├── chatService.ts     # Chat mesajlaşma servisi
 │   ├── validationService.ts  # Form doğrulama servisi
-│   └── chatService.ts     # Mesajlaşma servisi
+│   └── reportService.ts   # Rapor oluşturma servisi
 │
 ├── config/           # Yapılandırma dosyaları
 │   └── api.ts        # API yapılandırması
 │
 ├── lib/              # Yardımcı fonksiyonlar
+│   └── cacheAdapter.ts    # Önbellekleme adaptörü
 │
 ├── translations/     # Çeviri dosyaları
 │
@@ -107,9 +118,109 @@ Analiz verilerini detaylı çalışma sayfalarıyla Excel formatında sunar.
 
 Lastik analiz verilerinden zengin metin içerikli Word raporu üretir.
 
-### 3. Doğrulama API `/analiz/api/validate`
+### 3. Chat API `/analiz/api/chat`
+
+Lastik uzmanı chatbot ile iletişim sağlayan endpoint.
+
+**İstek (POST):**
+```json
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "Sistem talimatları"
+    },
+    {
+      "role": "user",
+      "content": "Kullanıcı mesajı"
+    }
+  ]
+}
+```
+
+**Yanıt:**
+```json
+{
+  "success": true,
+  "message": "GPT-4o'nun yanıtı"
+}
+```
+
+**Özellikler:**
+- GPT-4o modeli kullanımı
+- 1000 token limit
+- 0.7 sıcaklık değeri
+- Markdown formatında yanıtlar
+- Hata yönetimi ve loglama
+
+### 4. Doğrulama API `/analiz/api/validate`
 
 Form alanlarını doğrular ve düzeltme önerileri sunar.
+
+## 🤖 Chat Modülü Detayları
+
+### Bileşenler
+
+1. **TireExpertChat.tsx**
+   - Ana chat bileşeni
+   - Durum yönetimi
+   - Mesaj gönderme/alma
+   - Yazma animasyonları
+   - Analiz paylaşımı
+
+2. **ChatWindow.tsx**
+   - Sohbet arayüzü
+   - Mesaj listesi görünümü
+   - Giriş alanı
+
+3. **ChatIcon.tsx**
+   - Kayan chat butonu
+   - Açma/kapama kontrolü
+
+### Özellikler
+
+1. **Mesajlaşma**
+   - Gerçek zamanlı iletişim
+   - Maksimum 50 mesaj geçmişi
+   - Otomatik kaydırma
+   - Yazma göstergesi
+
+2. **Analiz Entegrasyonu**
+   - Analiz sonuçlarını paylaşma
+   - Otomatik değerlendirme
+   - Özelleştirilmiş öneriler
+   - Güvenlik tavsiyeleri
+
+3. **Kullanıcı Deneyimi**
+   - Markdown desteği
+   - Animasyonlu yazma efekti
+   - Otomatik odaklanma
+   - Duyarlı tasarım
+
+4. **Sistem Mesajları**
+   - Özelleştirilmiş uzman talimatları
+   - Türkçe dil desteği
+   - Profesyonel iletişim tonu
+   - Bağlam duyarlı yanıtlar
+
+### Kullanım
+
+```typescript
+import { TireExpertChat } from '../components/TireExpertChat';
+
+// Chat bileşenini kullanma
+<TireExpertChat
+  analysisResults={results}
+  formData={formData}
+/>
+```
+
+### Performans İyileştirmeleri
+
+- Mesaj geçmişi sınırlandırma
+- Gereksiz yeniden render önleme
+- Debounced scroll işlemleri
+- Önbelleklenmiş API yanıtları
 
 ## 🧰 Kurulum ve Kullanım
 
