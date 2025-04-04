@@ -1,0 +1,147 @@
+.upload-area {
+  border: 2px dashed #4b5563;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  background-color: #1f2937;
+}
+
+.upload-area:hover {
+  border-color: #3b82f6;
+  background-color: #374151;
+}
+
+.progress-bar {
+  height: 0.625rem;
+  background-color: #374151;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #3b82f6;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.analysis-card {
+  background-color: #1f2937;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.analysis-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 1rem;
+}
+
+.analysis-subtitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+}
+
+.analysis-text {
+  font-size: 0.875rem;
+  color: #d1d5db;
+  line-height: 1.5;
+}
+
+.analysis-list {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+.analysis-list-item {
+  font-size: 0.875rem;
+  color: #d1d5db;
+  margin-bottom: 0.5rem;
+}
+
+/* Mobil uyumluluk iyileştirmeleri */
+@media (max-width: 768px) {
+  .analiz-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .analiz-section {
+    padding: 1.25rem;
+  }
+  
+  .summary-info {
+    flex-direction: column;
+  }
+  
+  .summary-box {
+    min-width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .action-buttons button {
+    width: 100%;
+  }
+}
+
+/* İyileştirilmiş odaklanma stilleri */
+:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Yükleme durumları için gelişmiş görsel geri bildirim */
+.loading-pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+/* Gelişmiş geçiş animasyonları */
+.smooth-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Form giriş alanları için iyileştirilmiş görsel geri bildirim */
+.input-field:focus-within {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* Dokunma hedefi büyüklüğü - mobil kullanım için */
+@media (max-width: 768px) {
+  button, 
+  .clickable-element,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .form-label {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+} 
