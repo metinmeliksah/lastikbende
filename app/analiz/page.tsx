@@ -16,6 +16,7 @@ import ImageUploadSection from './components/ImageUploadSection';
 import AnalysisResultsSection from './components/AnalysisResultsSection';
 import ExportAnalysisSection from './components/ExportAnalysisSection';
 import AiAnalysisSection from './components/AiAnalysisSection';
+import TireExpertChat from './components/TireExpertChat';
 
 export default function AnalizPage() {
   const [imageUrl, setImageUrl] = useState<string>('');
@@ -794,6 +795,9 @@ export default function AnalizPage() {
               />
             </>
           )}
+
+          {/* Lastik Uzmanı Sohbet Bileşeni */}
+          {results && <TireExpertChat analysisResults={results} formData={formData} />}
         </motion.div>
       </div>
     </main>
