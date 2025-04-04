@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #FF4444;
+  --secondary: #1E1E1E;
+}
+
+body {
+  @apply bg-dark-400 text-gray-100;
+}
+
+/* Çerçeveleri Kaldır */
+a, button {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+a:focus, button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Datalist Stilleri */
+input::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dark-300;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-red-600;
+}
+
+/* Custom Selection */
+::selection {
+  @apply bg-primary text-white;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+} 
