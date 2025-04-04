@@ -1,7 +1,5 @@
-import { API_CONFIG } from '../config/api';
-
 export interface ChatMessage {
-  role: 'system' | 'user';
+  role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
@@ -15,9 +13,11 @@ export const sendChatMessage = async (
   messages: ChatMessage[]
 ): Promise<ChatResponse> => {
   try {
-    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CHAT}`, {
+    const response = await fetch('/analiz/api/chat', {
       method: 'POST',
-      headers: API_CONFIG.HEADERS,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ messages })
     });
 
@@ -28,9 +28,10 @@ export const sendChatMessage = async (
     const data = await response.json();
     return data;
   } catch (error) {
+    console.error('Chat service error:', error);
     return {
       success: false,
-      message: 'An error occurred during chat'
+      message: 'Sohbet sırasında bir hata oluştu. Lütfen tekrar deneyiniz.'
     };
   }
 }; 
