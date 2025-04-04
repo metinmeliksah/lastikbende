@@ -13,9 +13,11 @@ build/
 .env
 .env.local
 .env.*.local
+
 .env.development.local
 .env.test.local
 .env.production.local
+
 
 # IDE and editor files
 .vscode/
@@ -56,3 +58,4 @@ coverage/
 **/*.secret.ts
 **/secret.*.js
 **/secret.*.ts 
+

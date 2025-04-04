@@ -54,9 +54,9 @@ export default function Hero() {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
-              KEEP YOUR
+              ARACINI
               <br />
-              <span className="text-primary">AUTO MOVING</span>
+              <span className="text-primary">HAREKETLI TUT</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
               Aracınız için akıllı lastik analizi ve kaliteli lastik satış hizmetleri. Profesyonel ekibimizle 
@@ -68,7 +68,7 @@ export default function Hero() {
               whileTap={!isTransitioning ? { scale: 0.95 } : {}}
               className={`
                 bg-primary text-white px-8 py-3 rounded-lg text-lg font-medium 
-                transition-all duration-300
+                transition-all duration-300 focus:outline-none focus-visible:outline-none
                 ${isTransitioning 
                   ? 'opacity-50 cursor-not-allowed' 
                   : 'hover:bg-red-600 hover:shadow-lg'
@@ -85,5 +85,6 @@ export default function Hero() {
         </div>
       </section>
     </>
+
   )
 } 

@@ -16,13 +16,13 @@ export default function Footer() {
               Akıllı lastik analizi ve kaliteli lastik satışında Türkiye'nin güvenilir adresi.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-primary">
+              <a href="#" className="text-gray-400 hover:text-primary focus:outline-none focus-visible:outline-none">
                 <i className="fab fa-facebook-f"></i>
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary">
+              <a href="#" className="text-gray-400 hover:text-primary focus:outline-none focus-visible:outline-none">
                 <i className="fab fa-twitter"></i>
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary">
+              <a href="#" className="text-gray-400 hover:text-primary focus:outline-none focus-visible:outline-none">
                 <i className="fab fa-instagram"></i>
               </a>
             </div>
@@ -33,22 +33,22 @@ export default function Footer() {
             <h3 className="text-lg font-semibold text-white mb-4">Hızlı Linkler</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/hakkimizda" className="hover:text-primary">
+                <Link href="/hakkimizda" className="hover:text-primary focus:outline-none focus-visible:outline-none">
                   Hakkımızda
                 </Link>
               </li>
               <li>
-                <Link href="/lastikler" className="hover:text-primary">
+                <Link href="/lastikler" className="hover:text-primary focus:outline-none focus-visible:outline-none">
                   Lastikler
                 </Link>
               </li>
               <li>
-                <Link href="/analiz" className="hover:text-primary">
+                <Link href="/analiz" className="hover:text-primary focus:outline-none focus-visible:outline-none">
                   Analiz Et
                 </Link>
               </li>
               <li>
-                <Link href="/iletisim" className="hover:text-primary">
+                <Link href="/iletisim" className="hover:text-primary focus:outline-none focus-visible:outline-none">
                   İletişim
                 </Link>
               </li>
@@ -88,7 +88,7 @@ export default function Footer() {
               />
               <button
                 type="submit"
-                className="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-red-600 transition-colors"
+                className="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-red-600 transition-colors focus:outline-none focus-visible:outline-none"
               >
                 Abone Ol
               </button>
@@ -103,10 +103,10 @@ export default function Footer() {
               © 2025 Lastik Bende. Tüm hakları saklıdır.
             </p>
             <div className="mt-4 md:mt-0">
-              <Link href="/gizlilik" className="text-gray-400 hover:text-primary text-sm mx-3">
+              <Link href="/gizlilik" className="text-gray-400 hover:text-primary text-sm mx-3 focus:outline-none focus-visible:outline-none">
                 Gizlilik Politikası
               </Link>
-              <Link href="/kosullar" className="text-gray-400 hover:text-primary text-sm mx-3">
+              <Link href="/kosullar" className="text-gray-400 hover:text-primary text-sm mx-3 focus:outline-none focus-visible:outline-none">
                 Kullanım Koşulları
               </Link>
             </div>

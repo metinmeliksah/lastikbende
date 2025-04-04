@@ -68,7 +68,6 @@ export default function AnalizPage() {
     // Önbelleği temizle
     const clearCache = async () => {
       await cacheAdapter.clearAll();
-      console.log('Cache cleared on page load/refresh');
     };
     clearCache();
     
@@ -107,7 +106,6 @@ export default function AnalizPage() {
     // Sayfa kapatılırken de önbelleği temizle
     window.addEventListener('beforeunload', async () => {
       await cacheAdapter.clearAll();
-      console.log('Cache cleared on page unload');
     });
     
     // Cleanup fonksiyonu: event listener'ı kaldır

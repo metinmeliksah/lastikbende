@@ -28,7 +28,6 @@ export const sendChatMessage = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Chat error:', error);
     return {
       success: false,
       message: 'An error occurred during chat'

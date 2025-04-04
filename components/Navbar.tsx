@@ -14,7 +14,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold text-primary border-0 outline-none">
+            <Link href="/" className="text-2xl font-bold text-primary border-0 outline-none focus:outline-none focus-visible:outline-none">
               Lastik Bende
             </Link>
           </div>
@@ -22,19 +22,19 @@ export default function Navbar() {
           {/* Desktop Menu */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              <Link href="/" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200">
+              <Link href="/" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
                 Ana Sayfa
               </Link>
-              <Link href="/lastikler" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200">
+              <Link href="/lastikler" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
                 Lastikler
               </Link>
-              <Link href="/analiz" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200">
+              <Link href="/analiz" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
                 Analiz Et
               </Link>
-              <Link href="/hakkimizda" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200">
+              <Link href="/hakkimizda" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
                 Hakkımızda
               </Link>
-              <Link href="/iletisim" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200">
+              <Link href="/iletisim" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
                 İletişim
               </Link>
             </div>
@@ -42,13 +42,13 @@ export default function Navbar() {
 
           {/* Icons */}
           <div className="hidden md:flex items-center">
-            <button className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200">
+            <button className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200 focus:outline-none focus-visible:outline-none">
               <MagnifyingGlassIcon className="h-6 w-6" />
             </button>
-            <Link href="/sepet" className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200">
+            <Link href="/sepet" className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200 focus:outline-none focus-visible:outline-none">
               <ShoppingCartIcon className="h-6 w-6" />
             </Link>
-            <Link href="/giris" className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200">
+            <Link href="/giris" className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200 focus:outline-none focus-visible:outline-none">
               <UserIcon className="h-6 w-6" />
             </Link>
           </div>
@@ -57,7 +57,7 @@ export default function Navbar() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200"
+              className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200 focus:outline-none focus-visible:outline-none"
             >
               {isMenuOpen ? (
                 <XMarkIcon className="h-6 w-6" />
@@ -68,7 +68,6 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-
       {/* Mobile menu */}
       <motion.div
         initial={{ opacity: 0, y: -100 }}
@@ -77,22 +76,22 @@ export default function Navbar() {
         className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'} bg-dark-200`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <Link href="/" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200">
+          <Link href="/" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
             Ana Sayfa
           </Link>
-          <Link href="/lastikler" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200">
+          <Link href="/lastikler" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
             Lastikler
           </Link>
-          <Link href="/analiz" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200">
+          <Link href="/analiz" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
             Analiz Et
           </Link>
-          <Link href="/hakkimizda" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200">
+          <Link href="/hakkimizda" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
             Hakkımızda
           </Link>
-          <Link href="/iletisim" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200">
+          <Link href="/iletisim" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
             İletişim
           </Link>
-          <Link href="/giris" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200">
+          <Link href="/giris" className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
             Giriş Yap
           </Link>
         </div>

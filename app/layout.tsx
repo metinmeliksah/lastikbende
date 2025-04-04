@@ -9,8 +9,8 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Lastik Bende - Akıllı Lastik Analizi ve Kaliteli Lastik Satışı',
-  description: 'Akıllı lastik analizi ve kaliteli lastik satışında Türkiye\'nin güvenilir adresi',
+  title: 'Lastik Demo - Premium Lastik ve Jant Mağazası',
+  description: 'En kaliteli lastik ve jantlar için doğru adres',
 }
 
 export default function RootLayout({

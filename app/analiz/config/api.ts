@@ -10,7 +10,7 @@ export const API_CONFIG = {
   },
   maxFileSize: 5 * 1024 * 1024, // 5MB
   yearRange: {
-    min: 2000,
+    min: 1900,
     max: new Date().getFullYear()
   }
 }
