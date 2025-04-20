@@ -18,6 +18,7 @@
     - [2.5. API Entegrasyonları](#25-api-entegrasyonları)
     - [2.6. Hata Yönetimi](#26-hata-yönetimi)
     - [2.7. Test Gereksinimleri](#27-test-gereksinimleri)
+    - [2.8. Chatbot Sistemi](#28-chatbot-sistemi)
   - [3. Gelecek Modüller](#3-gelecek-modüller)
 
 ## 1. Genel Gereksinimler
@@ -202,6 +203,49 @@ LastikBende, yapay zeka destekli lastik analizi ve online lastik satışı yapan
   - Kullanıcı deneyimi testleri
   - A/B testleri
   - Beta testleri
+
+### 2.8. Chatbot Sistemi
+- **Temel Özellikler**
+  - Lastik uzmanı chatbot arayüzü
+  - Gerçek zamanlı sohbet deneyimi
+  - Analiz sonuçları hakkında detaylı bilgi
+  - Lastik bakımı ve güvenliği konusunda öneriler
+  - Kullanıcı sorularına anlık yanıtlar
+  
+- **Teknik Özellikler**
+  - OpenAI GPT-4o entegrasyonu
+  - Sohbet geçmişi yönetimi
+  - Mesaj limiti kontrolü
+  - Yazma animasyonu
+  - Otomatik kaydırma
+  - Mesaj formatlaması
+  
+- **İçerik Özellikleri**
+  - Lastik analiz sonuçları hakkında açıklamalar
+  - Güvenlik değerlendirmesi hakkında bilgiler
+  - Bakım ihtiyaçları ve öneriler
+  - Tahmini ömür hesaplamaları
+  - Sorun tespiti ve çözüm önerileri
+  - Lastik değişim zamanı önerileri
+  
+- **Kullanıcı Deneyimi**
+  - Kolay erişilebilir sohbet arayüzü
+  - Sürükle-bırak ile açılabilen sohbet penceresi
+  - Mobil uyumlu tasarım
+  - Klavye kısayolları
+  - Sesli komut desteği (gelecekte)
+  
+- **Entegrasyon**
+  - Analiz sonuçları ile entegrasyon
+  - Form verileri ile entegrasyon
+  - Raporlama sistemi ile entegrasyon
+  - PDF dışa aktarma ile entegrasyon
+  
+- **Güvenlik ve Gizlilik**
+  - Kullanıcı verilerinin korunması
+  - Sohbet geçmişinin güvenli saklanması
+  - KVKK ve GDPR uyumluluğu
+  - Hassas bilgilerin filtrelenmesi
 
 ## 3. Gelecek Modüller
 
