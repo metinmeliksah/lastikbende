@@ -70,7 +70,7 @@ export default function FeaturedProducts() {
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-white mb-2">{product.name}</h3>
                 <p className="text-primary font-bold mb-4">{product.price}</p>
-                <button className="w-full bg-dark-200 hover:bg-primary text-white py-2 px-4 rounded-md flex items-center justify-center gap-2 transition-colors">
+                <button className="w-full bg-dark-200 hover:bg-primary text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
                   <ShoppingCartIcon className="h-5 w-5" />
                   Sepete Ekle
                 </button>

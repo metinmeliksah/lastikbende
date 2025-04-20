@@ -1,0 +1,377 @@
+.upload-area {
+  border: 2px dashed #4b5563;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  background-color: #1f2937;
+}
+
+.upload-area:hover {
+  border-color: #3b82f6;
+  background-color: #374151;
+}
+
+.progress-bar {
+  height: 0.625rem;
+  background-color: #374151;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #3b82f6;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.analysis-card {
+  background-color: #1f2937;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.analysis-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 1rem;
+}
+
+.analysis-subtitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+}
+
+.analysis-text {
+  font-size: 0.875rem;
+  color: #d1d5db;
+  line-height: 1.5;
+}
+
+.analysis-list {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+.analysis-list-item {
+  font-size: 0.875rem;
+  color: #d1d5db;
+  margin-bottom: 0.5rem;
+}
+
+/* Mobil uyumluluk iyileştirmeleri */
+@media (max-width: 768px) {
+  .analiz-form-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 1rem;
+  }
+  
+  .analiz-section {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .summary-info {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .summary-box {
+    min-width: 100%;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .result-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+  
+  .action-buttons button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+
+  /* Improved tooltip behavior for mobile */
+  .group:hover .group-hover\:block {
+    display: none;
+  }
+
+  .group:active .group-hover\:block {
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 300px;
+    background-color: var(--dark-100);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+  }
+
+  /* Enhanced touch interactions */
+  .clickable-element,
+  button,
+  select,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 48px;
+    min-width: 48px;
+    touch-action: manipulation;
+  }
+
+  /* Improved form spacing */
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-label {
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+  }
+
+  /* Better input field spacing */
+  input, select, textarea {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* İyileştirilmiş odaklanma stilleri */
+:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Yükleme durumları için gelişmiş görsel geri bildirim */
+.loading-pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+/* Gelişmiş geçiş animasyonları */
+.smooth-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Form giriş alanları için iyileştirilmiş görsel geri bildirim */
+.input-field:focus-within {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* Additional Small Screen Improvements */
+@media (max-width: 480px) {
+  .analysis-card {
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .analysis-title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .analysis-subtitle {
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .upload-area {
+    padding: 1.25rem;
+    margin: 1rem 0;
+  }
+
+  .analysis-list {
+    padding-left: 1.25rem;
+  }
+
+  /* Improved button spacing */
+  .button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 0;
+  }
+
+  /* Better form field spacing */
+  .input-field {
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* Improve scrolling on mobile */
+@media (max-width: 768px) {
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    max-height: 80vh;
+  }
+
+  /* Prevent horizontal scroll */
+  .container {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+}
+
+/* Information icon and tooltip improvements */
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-left: 0.5rem;
+}
+
+.info-icon svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.info-icon:hover svg {
+  opacity: 1;
+}
+
+.info-tooltip {
+  visibility: hidden;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.5rem;
+  padding: 0.75rem;
+  background-color: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: #d1d5db;
+  white-space: nowrap;
+  z-index: 50;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  width: max-content;
+  max-width: 200px;
+}
+
+@media (max-width: 768px) {
+  .form-field {
+    margin-bottom: 2rem;
+  }
+
+  .form-label {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .info-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .info-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .info-tooltip {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    padding: 1rem;
+    width: 90%;
+    max-width: 300px;
+    white-space: normal;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    background-color: #1f2937;
+    border: 1px solid #374151;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  input, select {
+    height: 48px;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  input::placeholder,
+  select::placeholder {
+    font-size: 0.875rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .info-icon:hover .info-tooltip {
+    visibility: visible;
+  }
+}
+
+@media (max-width: 768px) {
+  .info-icon:active .info-tooltip {
+    visibility: visible;
+  }
+}
+
+/* Form field improvements */
+.form-field {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: #d1d5db;
+}
+
+/* Mobile form adjustments */
+@media (max-width: 768px) {
+  .form-field {
+    margin-bottom: 1.25rem;
+  }
+
+  input, select {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 0.75rem;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+  }
+} 

@@ -1,6 +1,15 @@
+/* postcss-ignore-next-line */
 @tailwind base;
+/* postcss-ignore-next-line */
 @tailwind components;
+/* postcss-ignore-next-line */
 @tailwind utilities;
+
+/* Tüm elementlerin outline'ını kaldır */
+a:focus, button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
 
 :root {
   --primary: #FF4444;
@@ -8,7 +17,15 @@
 }
 
 body {
-  @apply bg-dark-400 text-gray-100;
+  /* postcss-ignore-next-line */
+  @apply bg-dark-400 text-gray-100 p-0 m-0;
+}
+
+/* Remove any default padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* Custom Scrollbar */
@@ -17,23 +34,42 @@ body {
 }
 
 ::-webkit-scrollbar-track {
+  /* postcss-ignore-next-line */
   @apply bg-dark-300;
 }
 
 ::-webkit-scrollbar-thumb {
+  /* postcss-ignore-next-line */
   @apply bg-primary rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
+  /* postcss-ignore-next-line */
   @apply bg-red-600;
 }
 
 /* Custom Selection */
 ::selection {
+  /* postcss-ignore-next-line */
   @apply bg-primary text-white;
 }
 
 /* Smooth Scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+/* Media Queries for Mobile Responsiveness */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 12px;
+    padding: 0;
+  }
 } 
