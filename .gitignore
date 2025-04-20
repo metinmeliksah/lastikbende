@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+packages/
+
+# Build outputs
+dist/
+build/
+*.dll
+*.exe
+*.pdb
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+.env.development.local
+.env.test.local
+.env.production.local
+
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional: Database files (if applicable)
+*.db
+*.sqlite
+
+# Next.js specific
+.next/
+out/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+coverage/
+
+# Misc
+.DS_Store
+*.pem
+
+# Sensitive data and keys
+**/credentials.json
+**/api-keys.json
+**/*.private.json
+**/*.secret.js
+**/*.secret.ts
+**/secret.*.js
+**/secret.*.ts 
+

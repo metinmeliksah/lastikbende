@@ -1,0 +1,37 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+{
+  "backend": {
+    "language": "en",  // Backend verisi her zaman İngilizce olacak
+    "response-format": "json",  // API yanıtları JSON formatında olacak
+    "comment-style": "English"  // Yorumlar İngilizce olacak
+  },
+  "frontend": {
+    "language": "tr",  // Frontend verisi Türkçe olacak
+    "display-message": "dynamic-translation",  // Dinamik çeviri yapılacak
+    "translate": true  // Herhangi bir metin veya mesaj Türkçeye çevrilecek
+  },
+  "api": {
+    "endpoint": "/welcome",  // API endpoint
+    "params": {
+      "lang": "en"  // Backend tarafında İngilizce olarak kalacak
+    },
+    "response": {
+      "message": "Hello, welcome to our site!"  // Backend mesajı İngilizce olacak
+    }
+  },
+  "i18n": {
+    "languages": ["en", "tr"],  // Desteklenen diller
+    "default-language": "tr",  // Varsayılan dil Türkçe olacak
+    "fallback-language": "en",  // Türkçe çevirisi yoksa İngilizceye düşer
+    "messages": {
+      "welcome": {
+        "en": "Hello, welcome to our site!",
+        "tr": "Merhaba, sitemize hoş geldiniz!"
+      }
+    }
+  }
+}
