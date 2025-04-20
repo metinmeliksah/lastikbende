@@ -2,6 +2,14 @@
 
 Bu modül, LastikBende platformunun lastik analiz işlevselliğini sağlayan bileşenleri içermektedir. Yapay zeka destekli lastik analizi, çeşitli raporlama seçenekleri ve kullanıcı dostu arayüz bileşenlerini kapsar.
 
+> 📚 Detaylı dokümantasyon için:
+> - Teknik gereksinimler: [REQUIREMENTS.md](../docs/REQUIREMENTS.md)
+> - API dokümantasyonu: [API.md](../docs/API.md)
+> - Mimari detaylar: [ARCHITECTURE.md](../docs/ARCHITECTURE.md)
+> - Deployment kılavuzu: [DEPLOYMENT.md](../docs/DEPLOYMENT.md)
+> - Test stratejisi: [TESTING.md](../docs/TESTING.md)
+> - Güvenlik politikaları: [SECURITY.md](../docs/SECURITY.md)
+
 ## 🔍 Özellikler
 
 - **Gelişmiş Lastik Analizi**

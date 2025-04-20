@@ -56,7 +56,174 @@ Lastik görüntüsünü analiz eder.
 }
 ```
 
-### 2. Form Doğrulama
+### 2. E-Ticaret API'leri
+
+#### GET /products
+Lastik ürünlerini listeler.
+
+**Query Parameters:**
+```
+page: number (default: 1)
+limit: number (default: 20)
+sort: string (options: price_asc, price_desc, name_asc, name_desc)
+filter[brand]: string
+filter[model]: string
+filter[size]: string
+filter[season]: string
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "string",
+        "name": "string",
+        "brand": "string",
+        "model": "string",
+        "size": "string",
+        "season": "string",
+        "price": "number",
+        "discountedPrice": "number",
+        "stock": "number",
+        "images": ["string"],
+        "specifications": {
+          "width": "number",
+          "height": "number",
+          "diameter": "number",
+          "loadIndex": "number",
+          "speedIndex": "string"
+        }
+      }
+    ],
+    "total": "number",
+    "page": "number",
+    "limit": "number"
+  }
+}
+```
+
+#### POST /cart
+Sepete ürün ekler.
+
+**Request Body:**
+```json
+{
+  "productId": "string",
+  "quantity": "number"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "cartId": "string",
+    "items": [
+      {
+        "productId": "string",
+        "quantity": "number",
+        "price": "number",
+        "total": "number"
+      }
+    ],
+    "subtotal": "number",
+    "shipping": "number",
+    "total": "number"
+  }
+}
+```
+
+#### POST /orders
+Sipariş oluşturur.
+
+**Request Body:**
+```json
+{
+  "cartId": "string",
+  "shippingAddress": {
+    "firstName": "string",
+    "lastName": "string",
+    "phone": "string",
+    "address": "string",
+    "city": "string",
+    "district": "string",
+    "postalCode": "string"
+  },
+  "billingAddress": {
+    "firstName": "string",
+    "lastName": "string",
+    "phone": "string",
+    "address": "string",
+    "city": "string",
+    "district": "string",
+    "postalCode": "string"
+  },
+  "paymentMethod": "string",
+  "installment": "number"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "orderId": "string",
+    "status": "string",
+    "paymentUrl": "string",
+    "total": "number"
+  }
+}
+```
+
+### 3. Kullanıcı API'leri
+
+#### POST /auth/register
+Yeni kullanıcı kaydı oluşturur.
+
+**Request Body:**
+```json
+{
+  "email": "string",
+  "password": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "phone": "string"
+}
+```
+
+#### POST /auth/login
+Kullanıcı girişi yapar.
+
+**Request Body:**
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "token": "string",
+    "user": {
+      "id": "string",
+      "email": "string",
+      "firstName": "string",
+      "lastName": "string"
+    }
+  }
+}
+```
+
+### 4. Form Doğrulama
 
 #### POST /validate
 Form alanlarını doğrular.
@@ -83,25 +250,6 @@ Form alanlarını doğrular.
 }
 ```
 
-### 3. Marka ve Model Listesi
-
-#### GET /brands
-Marka listesini getirir.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "string",
-      "name": "string",
-      "models": ["string"]
-    }
-  ]
-}
-```
-
 ## WebSocket Endpoint'leri
 
 ### WebSocket Bağlantısı
@@ -123,26 +271,24 @@ wss://api.lastikbende.com/v1/ws
 }
 ```
 
-#### 2. Analiz Tamamlandı
+#### 2. Stok Güncellemesi
 ```json
 {
-  "event": "analysis:complete",
+  "event": "stock:update",
   "data": {
-    "analysisId": "string",
-    "result": {
-      // Analiz sonuçları
-    }
+    "productId": "string",
+    "stock": "number"
   }
 }
 ```
 
-#### 3. Hata Oluştu
+#### 3. Sipariş Durumu
 ```json
 {
-  "event": "error:occurred",
+  "event": "order:status",
   "data": {
-    "code": "string",
-    "message": "string",
+    "orderId": "string",
+    "status": "string",
     "details": "string"
   }
 }
@@ -176,12 +322,13 @@ wss://api.lastikbende.com/v1/ws
 
 - Her IP için dakikada maksimum 60 istek
 - Her kullanıcı için dakikada maksimum 100 istek
+- Analiz API'si için günlük maksimum 1000 istek
 
 ## Versiyonlama
 
 API versiyonları URL'de belirtilir:
 - v1: Mevcut versiyon
-- v2: Geliştirme aşamasında
+- v2: Geliştirme aşamasında (E-ticaret özellikleri)
 
 ## Örnek Kullanımlar
 
