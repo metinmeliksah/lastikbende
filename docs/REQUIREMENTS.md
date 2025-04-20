@@ -1,190 +1,208 @@
-# Lastik Analiz Sistemi Gereksinimleri Analizi
+# LastikBende Gereksinim Analizi
 
 ## İçindekiler
 
-1. [Genel Bakış](#1-genel-bakış)
+- [LastikBende Gereksinim Analizi](#lastikbende-gereksinim-analizi)
+  - [İçindekiler](#i̇çindekiler)
+  - [1. Genel Gereksinimler](#1-genel-gereksinimler)
+    - [1.1. Proje Kapsamı](#11-proje-kapsamı)
+    - [1.2. Teknik Altyapı](#12-teknik-altyapı)
+    - [1.3. Güvenlik Gereksinimleri](#13-güvenlik-gereksinimleri)
+    - [1.4. Performans Gereksinimleri](#14-performans-gereksinimleri)
+    - [1.5. Kullanıcı Arayüzü Gereksinimleri](#15-kullanıcı-arayüzü-gereksinimleri)
+  - [2. Analiz Modülü Gereksinimleri](#2-analiz-modülü-gereksinimleri)
+    - [2.1. Form Bileşenleri](#21-form-bileşenleri)
+    - [2.2. Görüntü İşleme Sistemi](#22-görüntü-i̇şleme-sistemi)
+    - [2.3. Analiz Sistemi](#23-analiz-sistemi)
+    - [2.4. Raporlama Sistemi](#24-raporlama-sistemi)
+    - [2.5. API Entegrasyonları](#25-api-entegrasyonları)
+    - [2.6. Hata Yönetimi](#26-hata-yönetimi)
+    - [2.7. Test Gereksinimleri](#27-test-gereksinimleri)
+  - [3. Gelecek Modüller](#3-gelecek-modüller)
 
-2. [Temel Bileşenler](#2-temel-bileşenler)
-   - 2.1. [Form Bileşenleri](#21-form-bileşenleri)
-   - 2.2. [Görüntü İşleme Sistemi](#22-görüntü-işleme-sistemi)
-   - 2.3. [Analiz Sistemi](#23-analiz-sistemi)
+## 1. Genel Gereksinimler
 
-3. [Teknik Gereksinimler](#3-teknik-gereksinimler)
-   - 3.1. [Performans Gereksinimleri](#31-performans-gereksinimleri)
-   - 3.2. [Güvenlik Gereksinimleri](#32-güvenlik-gereksinimleri)
-   - 3.3. [Kullanıcı Arayüzü Gereksinimleri](#33-kullanıcı-arayüzü-gereksinimleri)
+### 1.1. Proje Kapsamı
+LastikBende, yapay zeka destekli lastik analizi ve online lastik satışı yapan kapsamlı bir e-ticaret platformudur. Bu doküman, projenin genel gereksinimlerini ve analiz modülünün detaylı gereksinimlerini içermektedir.
 
-4. [Veri Yönetimi](#4-veri-yönetimi)
-   - 4.1. [Form Veri Yönetimi](#41-form-veri-yönetimi)
-   - 4.2. [Önbellek Yönetimi](#42-önbellek-yönetimi)
+### 1.2. Teknik Altyapı
+- **Frontend**: Next.js, React, TailwindCSS
+- **Backend**: Node.js, Express
+- **Veritabanı**: PostgreSQL
+- **Önbellek**: Redis
+- **AI Servisleri**: Azure Computer Vision, OpenAI GPT-4o
+- **Ödeme Sistemleri**: Iyzico
+- **Deployment**: Docker, Kubernetes
 
-5. [Hata Yönetimi](#5-hata-yönetimi)
-   - 5.1. [Kullanıcı Hataları](#51-kullanıcı-hataları)
-   - 5.2. [Sistem Hataları](#52-sistem-hataları)
+### 1.3. Güvenlik Gereksinimleri
+- KVKK ve GDPR uyumluluğu
+- SSL/TLS şifreleme
+- JWT tabanlı kimlik doğrulama
+- API güvenliği ve rate limiting
+- Veri şifreleme ve güvenli depolama
+- Düzenli güvenlik denetimleri
 
-6. [API Entegrasyonları](#6-api-entegrasyonları)
-   - 6.1. [Analiz API'si](#61-analiz-apisi)
-   - 6.2. [Doğrulama API'si](#62-doğrulama-apisi)
+### 1.4. Performans Gereksinimleri
+- Sayfa yüklenme süresi: maksimum 2 saniye
+- API yanıt süresi: maksimum 500ms
+- Eşzamanlı kullanıcı desteği: minimum 1000
+- Uptime: %99.9
+- CDN kullanımı
+- Önbellek stratejisi
 
-7. [Çıktılar](#7-çıktılar)
-   - 7.1. [Analiz Raporu](#71-analiz-raporu)
-   - 7.2. [Görsel Rapor](#72-görsel-rapor)
+### 1.5. Kullanıcı Arayüzü Gereksinimleri
+- Responsive tasarım (mobil, tablet, masaüstü)
+- Modern ve kullanıcı dostu arayüz
+- Türkçe dil desteği (gelecekte çoklu dil desteği)
+- Erişilebilirlik standartlarına uygunluk
+- Yükleme göstergeleri ve geri bildirimler
+- Hata mesajları ve kullanıcı yönlendirmeleri
 
-8. [Sistem Kısıtlamaları](#8-sistem-kısıtlamaları)
-
-9. [Gelecek Geliştirmeler](#9-gelecek-geliştirmeler)
-
-10. [Test Gereksinimleri](#10-test-gereksinimleri)
-    - 10.1. [Birim Testleri](#101-birim-testleri)
-    - 10.2. [Kullanıcı Testleri](#102-kullanıcı-testleri)
-
-## 1. Genel Bakış
-
-Bu doküman, lastik analiz sisteminin teknik gereksinimlerini ve özelliklerini detaylandırmaktadır. Sistem, kullanıcıların lastik fotoğraflarını yükleyip analiz etmelerine olanak sağlayan web tabanlı bir uygulamadır.
-
-## 2. Temel Bileşenler
+## 2. Analiz Modülü Gereksinimleri
 
 ### 2.1. Form Bileşenleri
 - **Lastik Tipi Seçimi**
   - Zorunlu alan
   - Önceden tanımlanmış lastik tipleri arasından seçim
+  - Otomatik tamamlama özelliği
+  - Geçersiz tip kontrolü
   
 - **Marka Bilgisi**
   - Zorunlu alan
   - Otomatik doğrulama sistemi
   - Marka önerileri
+  - Marka veritabanı entegrasyonu
+  - Yeni marka ekleme özelliği
   
 - **Model Bilgisi**
   - Opsiyonel alan
   - Seçilen markaya göre filtreleme
+  - Model geçmişi
+  - Model önerileri
+  - Yeni model ekleme özelliği
   
 - **Ebat Bilgisi**
   - Standart lastik ebat formatında giriş
   - Format doğrulama
+  - Ebat veritabanı kontrolü
+  - Otomatik ebat önerileri
+  - Özel ebat girişi desteği
   
 - **Üretim Yılı**
   - Zorunlu alan
   - 1900 ile günümüz yılı arasında değer kontrolü
   - Gelecek yıl lastikleri için +1 yıl tolerans
+  - DOT kod kontrolü
   
 - **Kilometre Bilgisi**
   - Opsiyonel alan
   - Sayısal değer kontrolü
+  - Ortalama kullanım hesaplama
+  - Kilometre bazlı öneriler
 
 ### 2.2. Görüntü İşleme Sistemi
 - **Dosya Yükleme Özellikleri**
-  - Desteklenen formatlar: Resim dosyaları
-  - Maksimum dosya boyutu kontrolü
+  - Desteklenen formatlar: JPG, PNG, WEBP
+  - Maksimum dosya boyutu: 10MB
   - Önizleme özelliği
+  - Sürükle-bırak desteği
+  - Otomatik sıkıştırma
+  - Görüntü kalitesi optimizasyonu
   
 - **Lastik Tespit Sistemi**
   - Otomatik lastik tanıma
   - Görüntüde lastik varlığı kontrolü
   - Hatalı görüntü reddi
+  - Lastik yönü tespiti
+  - Lastik bölgesi izolasyonu
+  - Görüntü düzeltme ve iyileştirme
 
 ### 2.3. Analiz Sistemi
 - **Yapay Zeka Analizi**
   - Lastik durumu değerlendirmesi
-  - Aşınma tespiti
-  - Hasar analizi
+  - Aşınma tespiti ve ölçümü
+  - Hasar analizi ve sınıflandırma
+  - Diş derinliği ölçümü
+  - Lastik yaşı tespiti
+  - DOT kod analizi
+  - Lastik tipi doğrulama
+  - Marka/model doğrulama
   
-- **Sonuç Raporlama**
-  - Detaylı analiz raporu
-  - Sorun tespiti ve sınıflandırma
-  - Öneriler ve uyarılar
+- **Sonuç Değerlendirmesi**
+  - Güvenlik skoru hesaplama
+  - Kullanım önerileri
+  - Değişim gerekliliği değerlendirmesi
+  - Maliyet tahmini
+  - Karşılaştırmalı analiz
+  - Risk değerlendirmesi
+  - Yasal uygunluk kontrolü
 
-## 3. Teknik Gereksinimler
+### 2.4. Raporlama Sistemi
+- **Analiz Raporu**
+  - Lastik durumu özeti
+  - Tespit edilen sorunlar ve seviyeleri
+  - Detaylı öneriler
+  - Güvenlik uyarıları
+  - Teknik detaylar
+  - Kullanım önerileri
+  - Yasal uyarılar
+  
+- **Görsel Rapor**
+  - PDF ve görsel formatında dışa aktarma
 
-### 3.1. Performans Gereksinimleri
-- Görüntü yükleme: maksimum 5 saniye
-- Analiz süresi: maksimum 10 saniye
-- Eşzamanlı kullanıcı desteği
-- Önbellek yönetimi
+### 2.5. API Entegrasyonları
+- **Analiz API'si**
+  - Görüntü analizi
+  - Lastik tespiti
+  - Sonuç değerlendirmesi
+  - Batch analiz desteği
+  - Gerçek zamanlı analiz
+  - Asenkron analiz
+  - Webhook desteği
+  
+- **Doğrulama API'si**
+  - Marka doğrulama
+  - Model doğrulama
+  - Ebat doğrulama
+  - DOT kod doğrulama
+  - Lastik tipi doğrulama
+  - Veritabanı senkronizasyonu
 
-### 3.2. Güvenlik Gereksinimleri
-- Dosya tipi kontrolü
-- Boyut sınırlamaları
-- Veri doğrulama
-- API güvenliği
+### 2.6. Hata Yönetimi
+- **Kullanıcı Hataları**
+  - Form doğrulama hataları
+  - Dosya yükleme hataları
+  - Eksik alan uyarıları
+  - Geçersiz veri uyarıları
+  - Kullanıcı yönlendirmeleri
+  - Hata düzeltme önerileri
+  
+- **Sistem Hataları**
+  - Bağlantı hataları
+  - Sunucu hataları
+  - Analiz hataları
+  - Hata loglama ve izleme
+  - Otomatik hata raporlama
+  - Hata kurtarma mekanizmaları
+  - Yedek sistem entegrasyonu
 
-### 3.3. Kullanıcı Arayüzü Gereksinimleri
-- Responsive tasarım
-- Yükleme göstergeleri
-- Hata mesajları
-- İlerleme durumu gösterimi
-- Türkçe dil desteği
+### 2.7. Test Gereksinimleri
+- **Birim Testleri**
+  - Form doğrulama testleri
+  - Görüntü işleme testleri
+  - API entegrasyon testleri
+  - Analiz algoritması testleri
+  - Hata yönetimi testleri
+  - Performans testleri
+  
+- **Kullanıcı Testleri**
+  - Arayüz kullanılabilirlik testleri
+  - Performans testleri
+  - Yük testleri
+  - Kullanıcı deneyimi testleri
+  - A/B testleri
+  - Beta testleri
 
-## 4. Veri Yönetimi
+## 3. Gelecek Modüller
 
-### 4.1. Form Veri Yönetimi
-- Anlık veri doğrulama
-- Otomatik düzeltme önerileri
-- Geçersiz veri kontrolü
-
-### 4.2. Önbellek Yönetimi
-- Sayfa yenilemelerinde veri temizleme
-- Analiz sonuçları önbellekleme
-- Oturum yönetimi
-
-## 5. Hata Yönetimi
-
-### 5.1. Kullanıcı Hataları
-- Form doğrulama hataları
-- Dosya yükleme hataları
-- Eksik alan uyarıları
-
-### 5.2. Sistem Hataları
-- Bağlantı hataları
-- Sunucu hataları
-- Analiz hataları
-
-## 6. API Entegrasyonları
-
-### 6.1. Analiz API'si
-- Görüntü analizi
-- Lastik tespiti
-- Sonuç değerlendirmesi
-
-### 6.2. Doğrulama API'si
-- Marka doğrulama
-- Model doğrulama
-- Ebat doğrulama
-
-## 7. Çıktılar
-
-### 7.1. Analiz Raporu
-- Lastik durumu özeti
-- Tespit edilen sorunlar
-- Kullanım önerileri
-- Güvenlik uyarıları
-
-### 7.2. Görsel Rapor
-- İşaretlenmiş görüntüler
-- Sorun bölgeleri
-- Karşılaştırma grafikleri
-
-## 8. Sistem Kısıtlamaları
-
-- Maksimum dosya boyutu
-- Desteklenen görüntü formatları
-- Analiz süresi limitleri
-- Eşzamanlı işlem limitleri
-
-## 9. Gelecek Geliştirmeler
-
-- Çoklu dil desteği
-- Batch analiz özelliği
-- Gelişmiş raporlama
-- Mobil uygulama entegrasyonu
-
-## 10. Test Gereksinimleri
-
-### 10.1. Birim Testleri
-- Form doğrulama testleri
-- Görüntü işleme testleri
-- API entegrasyon testleri
-
-### 10.2. Kullanıcı Testleri
-- Arayüz kullanılabilirlik testleri
-- Performans testleri
-- Yük testleri 
+Modüller geliştirme aşamasındadır ve gereksinimleri ileride eklenecektir
