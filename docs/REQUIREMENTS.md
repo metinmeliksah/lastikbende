@@ -18,7 +18,7 @@
     - [2.5. API Entegrasyonları](#25-api-entegrasyonları)
     - [2.6. Hata Yönetimi](#26-hata-yönetimi)
     - [2.7. Test Gereksinimleri](#27-test-gereksinimleri)
-    - [2.8. Chatbot Sistemi](#28-chatbot-sistemi)
+    - [2.8. Lastik Uzmanı Asistanı](#28-lastik-uzmanı-asistanı)
   - [3. Gelecek Modüller](#3-gelecek-modüller)
 
 ## 1. Genel Gereksinimler
@@ -204,9 +204,9 @@ LastikBende, yapay zeka destekli lastik analizi ve online lastik satışı yapan
   - A/B testleri
   - Beta testleri
 
-### 2.8. Chatbot Sistemi
+### 2.8. Lastik Uzmanı Asistanı
 - **Temel Özellikler**
-  - Lastik uzmanı chatbot arayüzü
+  - Lastik uzmanı asistan arayüzü
   - Gerçek zamanlı sohbet deneyimi
   - Analiz sonuçları hakkında detaylı bilgi
   - Lastik bakımı ve güvenliği konusunda öneriler
@@ -214,11 +214,11 @@ LastikBende, yapay zeka destekli lastik analizi ve online lastik satışı yapan
   
 - **Teknik Özellikler**
   - OpenAI GPT-4o entegrasyonu
-  - Sohbet geçmişi yönetimi
-  - Mesaj limiti kontrolü
-  - Yazma animasyonu
-  - Otomatik kaydırma
-  - Mesaj formatlaması
+  - Sohbet geçmişi yönetimi (maksimum 50 mesaj)
+  - Yazma animasyonu ve otomatik kaydırma
+  - Mesaj formatlaması ve görselleştirme
+  - Sürükle-bırak ile açılabilen sohbet penceresi
+  - Mobil uyumlu tasarım
   
 - **İçerik Özellikleri**
   - Lastik analiz sonuçları hakkında açıklamalar
@@ -227,13 +227,7 @@ LastikBende, yapay zeka destekli lastik analizi ve online lastik satışı yapan
   - Tahmini ömür hesaplamaları
   - Sorun tespiti ve çözüm önerileri
   - Lastik değişim zamanı önerileri
-  
-- **Kullanıcı Deneyimi**
-  - Kolay erişilebilir sohbet arayüzü
-  - Sürükle-bırak ile açılabilen sohbet penceresi
-  - Mobil uyumlu tasarım
-  - Klavye kısayolları
-  - Sesli komut desteği (gelecekte)
+  - Analiz raporu paylaşımı
   
 - **Entegrasyon**
   - Analiz sonuçları ile entegrasyon
