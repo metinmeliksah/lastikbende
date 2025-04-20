@@ -190,7 +190,7 @@ export default function AnalizPage() {
         } finally {
           setValidating(false);
         }
-      }, 600); // 1 saniye yerine 600ms bekle
+      }, 1200); // 600ms yerine 1200ms bekle - kullanıcı deneyimini iyileştirmek için daha uzun bekleme süresi
 
     return timeoutId;
   }, [formData, t.errors]);
@@ -528,7 +528,7 @@ export default function AnalizPage() {
 
   return (
     <main className="min-h-screen bg-dark-400 pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

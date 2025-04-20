@@ -235,4 +235,119 @@
 .message-content ul li,
 .message-content ol li {
   margin-bottom: 4px;
+}
+
+/* Mobile Responsiveness Improvements */
+@media (max-width: 768px) {
+  .chat-icon {
+    bottom: 16px;
+    right: 16px;
+    width: 56px;
+    height: 56px;
+  }
+  
+  .chat-window {
+    bottom: 80px;
+    right: 16px;
+    width: calc(100% - 32px);
+    max-width: 350px;
+    height: 60vh;
+    max-height: 500px;
+  }
+  
+  .message-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+  }
+  
+  .input-area {
+    padding: 10px 12px;
+  }
+  
+  .message-input {
+    padding: 10px 14px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .send-button {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .share-analysis-button {
+    padding: 10px 16px;
+    margin: 0 12px 10px;
+  }
+}
+
+/* Small screen improvements */
+@media (max-width: 480px) {
+  .chat-window {
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 70vh;
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .chat-icon {
+    bottom: 12px;
+    right: 12px;
+    width: 48px;
+    height: 48px;
+  }
+  
+  .message-list {
+    padding: 12px;
+  }
+  
+  .message {
+    margin-bottom: 12px;
+  }
+  
+  .message-bubble {
+    max-width: 90%;
+    padding: 8px 12px;
+  }
+  
+  .message-content {
+    font-size: 14px;
+  }
+  
+  .message-content ul,
+  .message-content ol {
+    padding-left: 20px;
+  }
+}
+
+/* Accessibility improvements */
+.chat-icon:focus,
+.send-button:focus,
+.share-analysis-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.message-input:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Touch interaction improvements */
+@media (hover: none) {
+  .chat-icon:active {
+    transform: scale(0.95);
+  }
+  
+  .send-button:active {
+    background-color: #1d4ed8;
+  }
+  
+  .share-analysis-button:active {
+    background-color: #047857;
+  }
+  
+  .message-bubble {
+    touch-action: manipulation;
+  }
 } 

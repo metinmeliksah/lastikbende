@@ -18,9 +18,15 @@ a:focus, button:focus {
 
 body {
   /* postcss-ignore-next-line */
-  @apply bg-dark-400 text-gray-100;
+  @apply bg-dark-400 text-gray-100 p-0 m-0;
 }
 
+/* Remove any default padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
@@ -51,4 +57,19 @@ body {
 /* Smooth Scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+/* Media Queries for Mobile Responsiveness */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 12px;
+    padding: 0;
+  }
 } 
