@@ -13,13 +13,6 @@ Bu modül, LastikBende platformunun lastik analiz işlevselliğini sağlayan bil
 > - [Test Stratejisi](../docs/TESTING.md) - Test yaklaşımları ve senaryoları
 > - [Güvenlik Politikaları](../docs/SECURITY.md) - Güvenlik önlemleri ve standartları
 > - [Katkıda Bulunma Rehberi](../docs/CONTRIBUTING.md) - Geliştirme süreçleri ve kuralları
-> 
-> **Modül Bileşenleri:**
-> - [Form Bileşenleri](#form-bileşenleri) - Analiz formu ve doğrulama
-> - [Görüntü İşleme](#görüntü-işleme) - Lastik görüntü analizi
-> - [Analiz Sistemi](#analiz-sistemi) - Yapay zeka analizi ve değerlendirme
-> - [Raporlama](#raporlama) - PDF, Excel ve Word raporları
-> - [Lastik Uzmanı Asistanı](#lastik-uzmanı-asistanı) - GPT-4o tabanlı uzman asistanı
 
 ## 🔍 Özellikler
 
