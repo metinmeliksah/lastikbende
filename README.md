@@ -1,129 +1,86 @@
-# Lastik Bende
+# LastikBende
 
-Lastik Bende - Lastik Satışı ve Analizi
-
-## Proje Açıklaması
-
-Lastik Bende, kullanıcıların lastik satın alabileceği ve lastik analizleri yapabileceği bir platformdur. Bu proje, TypeScript kullanılarak geliştirilmiştir ve modern web teknolojilerini kullanır.
-
-## Kullanılan Teknolojiler
-
-- **Next.js**: React tabanlı bir framework.
-- **React**: Kullanıcı arayüzleri oluşturmak için kullanılan bir kütüphane.
-- **TailwindCSS**: Yardımcı sınıflar kullanarak stil oluşturmayı sağlayan bir CSS framework.
-- **Framer Motion**: Animasyonlar ve geçişler oluşturmak için kullanılan bir kütüphane.
-- **TypeScript**: JavaScript'in üst kümesi olan ve statik tip kontrolü sağlayan bir dil.
-- **OpenAI GPT-4**: Akıllı lastik uzmanı chatbot için kullanılan AI modeli.
+LastikBende, lastik analizi ve yönetimi için geliştirilmiş modern bir web uygulamasıdır. Azure Computer Vision API kullanarak lastik görüntülerini analiz eder ve detaylı raporlar sunar.
 
 ## Özellikler
 
-- Lastik satışı
-- Lastik analizi
-- Kullanıcı dostu arayüz
-- **Akıllı Lastik Uzmanı Chat**:
-  - GPT-4 tabanlı uzman asistan
-  - Lastik analiz sonuçlarını değerlendirme
-  - Kişiselleştirilmiş bakım önerileri
-  - Markdown formatında zengin metin desteği
-  - Gerçek zamanlı yazma animasyonları
-  - Sınırsız sohbet geçmişi
-  - Analiz raporlarını paylaşma ve yorumlama
+- 🖼️ Lastik görüntü analizi
+- 📊 Detaylı analiz raporları
+- 🌐 Çoklu dil desteği
+- 📱 Responsive tasarım
+- 🔒 Güvenli form validasyonu
+- ⚡ Gerçek zamanlı analiz takibi
 
-## Kurulum
+## Teknolojiler
 
-Projeyi yerel ortamınıza klonladıktan sonra, gerekli bağımlılıkları yüklemek için aşağıdaki adımları izleyin:
+- Next.js 14
+- React
+- TypeScript
+- Tailwind CSS
+- Azure Computer Vision API
+- WebSocket
+- i18n
 
+## Başlangıç
+
+### Gereksinimler
+
+- Node.js (v18 veya üzeri)
+- npm veya yarn
+- Azure Computer Vision API anahtarı
+
+### Kurulum
+
+1. Repoyu klonlayın:
 ```bash
-git clone https://github.com/metinmeliksah/lastikbende.git
+git clone https://github.com/your-username/lastikbende.git
 cd lastikbende
+```
+
+2. Bağımlılıkları yükleyin:
+```bash
 npm install
 ```
 
-### Çevre Değişkenleri
-
-Projenin çalışması için aşağıdaki çevre değişkenlerini `.env.local` dosyasında tanımlamanız gerekmektedir:
-
+3. `.env.local` dosyasını oluşturun:
 ```env
-OPENAI_API_KEY=your_openai_api_key
-AZURE_VISION_KEY=your_azure_vision_api_key
-AZURE_VISION_ENDPOINT=your_azure_vision_endpoint
+AZURE_VISION_KEY=your_api_key
+AZURE_VISION_ENDPOINT=your_endpoint
 ```
 
-## Kullanım
-
-Projeyi çalıştırmak için aşağıdaki komutu kullanın:
-
-```bash
-npm start
-```
-
-Geliştirme ortamında çalıştırmak için:
-
+4. Geliştirme sunucusunu başlatın:
 ```bash
 npm run dev
 ```
 
-## Modüller
+## Proje Yapısı
 
-### 1. Chat Modülü
-
-Chat modülü, kullanıcılara akıllı bir lastik uzmanı asistanı sunar. Özellikler:
-
-- **Gerçek Zamanlı İletişim**: Anlık mesajlaşma ve yanıt alma
-- **Analiz Entegrasyonu**: Lastik analiz sonuçlarını paylaşma ve yorumlama
-- **Akıllı Öneriler**: GPT-4 tabanlı kişiselleştirilmiş bakım tavsiyeleri
-- **Zengin Metin Desteği**: Markdown formatında formatlanmış yanıtlar
-- **Animasyonlar**: Gerçekçi yazma animasyonları
-- **Oturum Yönetimi**: 50 mesaja kadar sohbet geçmişi desteği
-
-### 2. Analiz Modülü
-
-Analiz modülü, lastiklerin yapay zeka destekli analizini ve raporlamasını sağlar. Özellikler:
-
-- **Gelişmiş Lastik Analizi**:
-  - Görüntü tabanlı lastik durumu değerlendirmesi
-  - Azure Computer Vision ile yapay zeka destekli sorun tespiti
-  - Güvenlik skoru hesaplama
-  - Lastik ömür tahmini
-  - Detaylı bakım ihtiyaçları analizi
-
-- **Çoklu Format Raporlama**:
-  - PDF formatında profesyonel raporlar (Puppeteer)
-  - Excel formatında detaylı analiz tabloları (ExcelJS)
-  - Word formatında özelleştirilmiş raporlar (Docx)
-  - Özelleştirilmiş tasarım şablonları
-
-- **Modüler Bileşen Yapısı**:
-  - Form ve veri girişi bileşenleri
-  - Görüntü yükleme ve önizleme
-  - Analiz sonuçları görüntüleme
-  - Güvenlik değerlendirme paneli
-  - Bakım tavsiyeleri bölümü
-  - Rapor oluşturma arayüzü
-
-- **API Servisleri**:
-  - `/analiz/api/analyze`: Lastik analizi endpoint'i
-  - `/analiz/api/export/*`: PDF, Excel ve Word rapor oluşturma
-  - `/analiz/api/validate`: Form doğrulama servisi
-
-- **Performans Optimizasyonları**:
-  - Görüntü optimizasyonu
-  - API önbellekleme
-  - Asenkron rapor oluşturma
-  - Kademeli yükleme desteği
+```
+lastikbende/
+├── app/                    # Next.js app router
+│   ├── analiz/            # Lastik analiz sayfası
+│   ├── i18n/              # i18n yapılandırması
+│   ├── globals.css        # Global stiller
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Ana sayfa
+├── components/            # React bileşenleri
+│   ├── ui/               # UI bileşenleri
+│   ├── forms/            # Form bileşenleri
+│   └── layout/           # Layout bileşenleri
+├── lib/                  # Yardımcı fonksiyonlar
+├── public/              # Statik dosyalar
+└── docs/               # Dokümantasyon
+```
 
 ## Katkıda Bulunma
 
-Katkıda bulunmak isterseniz, lütfen önce bir konu açın ve neyi değiştirmek veya eklemek istediğinizi açıklayın. Daha sonra bir pull request oluşturabilirsiniz.
+Katkıda bulunmak için [CONTRIBUTING.md](docs/CONTRIBUTING.md) dosyasını inceleyin.
 
 ## Lisans
 
-MIT Lisansı
+Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasını inceleyin.
 
-Telif Hakkı (c) 2025 Lastik Bende Projesi Sahipleri
+## İletişim
 
-İşbu belgeyle, bu yazılımın ve ilgili dokümantasyon dosyalarının (bundan böyle "Yazılım" olarak anılacaktır) bir kopyasını edinmiş olan kişilere, Yazılım'ı sınırlama olmaksızın kullanma, kopyalama, değiştirme, birleştirme, yayınlama, dağıtma, alt lisanslama ve/veya Yazılım'ın kopyalarını satma izni ücretsiz olarak verilmektedir ve bu kişilere aşağıdaki koşullara tabi olarak Yazılım'ın sağlandığı kişilere aynı izni verme izni verilmektedir:
-
-Yukarıdaki telif hakkı bildirimi ve bu izin bildirimi, Yazılım'ın tüm kopyalarına veya önemli bölümlerine dahil edilecektir.
-
-YAZILIM, "OLDUĞU GİBİ", HERHANGİ BİR GARANTİ OLMAKSIZIN SAĞLANMAKTADIR; AÇIK VEYA ZIMNİ HERHANGİ BİR GARANTİ DAHİL OLMAKSIZIN, ANCAK BUNLARLA SINIRLI OLMAMAK ÜZERE TİCARİ ELVERİŞLİLİK, BELİRLİ BİR AMACA UYGUNLUK VE İHLAL ETMEME GARANTİLERİ DAHİL OLMAK ÜZERE. HİÇBİR DURUMDA YAZARLAR VEYA TELİF HAKKI SAHİPLERİ, YAZILIM İLE İLGİLİ OLARAK VEYA YAZILIM'IN KULLANIMI VEYA DİĞER İLGİLİ İŞLEMLERDEN DOĞAN HERHANGİ BİR İDDİA, HASAR VEYA DİĞER YÜKÜMLÜLÜKLERDEN SORUMLU DEĞİLDİR.
+- GitHub Issues: [Issues](https://github.com/your-username/lastikbende/issues)
+- E-posta: your-email@example.com

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       
       // Benzerlik kontrolü
       const closest = findClosestMatch(value, modelList);
-      if (closest && closest !== value && similarity(closest, value) > 0.6) {
+      if (closest && closest !== value && similarity(closest, value) > 0.75) {
         return NextResponse.json({
           success: true,
           message: `Corrected value: "${closest}"`
