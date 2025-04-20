@@ -6,7 +6,7 @@
 
 2. [Temel Bileşenler](#2-temel-bileşenler)
    - 2.1. [Form Bileşenleri](#21-form-bileşenleri)
-   - 2.2. [Görüntü İşleme Sistemi](#22-görüntü-i̇şleme-sistemi)
+   - 2.2. [Görüntü İşleme Sistemi](#22-görüntü-işleme-sistemi)
    - 2.3. [Analiz Sistemi](#23-analiz-sistemi)
 
 3. [Teknik Gereksinimler](#3-teknik-gereksinimler)
@@ -187,4 +187,4 @@ Bu doküman, lastik analiz sisteminin teknik gereksinimlerini ve özelliklerini 
 ### 10.2. Kullanıcı Testleri
 - Arayüz kullanılabilirlik testleri
 - Performans testleri
-- Yük testleri
+- Yük testleri 
