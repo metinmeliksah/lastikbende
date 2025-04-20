@@ -6,13 +6,13 @@ Bu modül, LastikBende platformunun lastik analiz işlevselliğini sağlayan bil
 > 
 > Bu modül hakkında daha fazla bilgi için aşağıdaki belgelere göz atın:
 > 
-> - [Gereksinim Analizi](../docs/REQUIREMENTS.md) - Modülün tüm gereksinimleri ve özellikleri
-> - [API Dokümantasyonu](../docs/API.md) - Tüm API endpoint'leri ve kullanımları
-> - [Mimari Detaylar](../docs/ARCHITECTURE.md) - Sistem mimarisi ve bileşen ilişkileri
-> - [Deployment Kılavuzu](../docs/DEPLOYMENT.md) - Kurulum ve dağıtım adımları
-> - [Test Stratejisi](../docs/TESTING.md) - Test yaklaşımları ve senaryoları
-> - [Güvenlik Politikaları](../docs/SECURITY.md) - Güvenlik önlemleri ve standartları
-> - [Katkıda Bulunma Rehberi](../docs/CONTRIBUTING.md) - Geliştirme süreçleri ve kuralları
+> - [Gereksinim Analizi](/docs/REQUIREMENTS.md) - Modülün tüm gereksinimleri ve özellikleri
+> - [API Dokümantasyonu](/docs/API.md) - Tüm API endpoint'leri ve kullanımları
+> - [Mimari Detaylar](/docs/ARCHITECTURE.md) - Sistem mimarisi ve bileşen ilişkileri
+> - [Deployment Kılavuzu](/docs/DEPLOYMENT.md) - Kurulum ve dağıtım adımları
+> - [Test Stratejisi](/docs/TESTING.md) - Test yaklaşımları ve senaryoları
+> - [Güvenlik Politikaları](/docs/SECURITY.md) - Güvenlik önlemleri ve standartları
+> - [Katkıda Bulunma Rehberi](/docs/CONTRIBUTING.md) - Geliştirme süreçleri ve kuralları
 
 ## 🔍 Özellikler
 
