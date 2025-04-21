@@ -761,6 +761,7 @@ export default function AnalizPage() {
                 results={results}
                 filteredSorunlar={filteredSorunlar}
                 setFilteredSorunlar={setFilteredSorunlar}
+                formData={formData}
                 t={t}
               />
               
