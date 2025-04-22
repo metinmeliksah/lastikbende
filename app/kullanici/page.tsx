@@ -5,13 +5,15 @@ import UserProfile from './components/UserProfile';
 import OrderList from './components/OrderList';
 import SettingsForm from './components/SettingsForm';
 import DashboardTabs from './components/DashboardTabs';
+import SupportTickets from './components/SupportTickets';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('orders');
   const [userData, setUserData] = useState({
-    name: 'Ahmet Yılmaz',
-    email: 'ahmet@example.com',
-    phone: '+90 5XX XXX XXXX',
+    name: 'Metin',
+    surname: 'Melikşah',
+    email: 'mmdermencioglu@gmail.com',
+    phone: '+90 555 555 5555',
     orders: 5,
     memberSince: '2024'
   });
@@ -47,7 +49,7 @@ export default function Dashboard() {
     }
   ];
 
-  const handleSaveSettings = (data: { name: string; email: string; phone: string }) => {
+  const handleSaveSettings = (data: { name: string; surname: string; email: string; phone: string }) => {
     setUserData({...userData, ...data});
   };
 
@@ -55,36 +57,27 @@ export default function Dashboard() {
     <div className="min-h-screen pt-20 bg-dark-400">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-dark-300 rounded-lg shadow-lg p-6 border border-dark-100">
-          <UserProfile name={userData.name} email={userData.email} />
+          <UserProfile 
+            name={userData.name}
+            surname={userData.surname}
+            email={userData.email}
+          />
           <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           <div className="space-y-6">
-            {activeTab === 'profile' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {activeTab === 'orders' && (
+              <div className="space-y-4">
                 <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
-                  <h3 className="font-semibold mb-2 text-gray-100">Üyelik Bilgileri</h3>
-                  <p className="text-gray-400">Üyelik Başlangıcı: {userData.memberSince}</p>
-                  <p className="text-gray-400">Toplam Sipariş: {userData.orders}</p>
-                </div>
-                <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
-                  <h3 className="font-semibold mb-2 text-gray-100">İletişim Tercihleri</h3>
-                  <div className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
-                      id="emailNotif" 
-                      className="rounded bg-dark-100 border-dark-100 text-primary focus:ring-primary" 
-                    />
-                    <label htmlFor="emailNotif" className="text-gray-400">E-posta bildirimleri</label>
-                  </div>
+                  <h3 className="font-semibold mb-4 text-gray-100">Siparişlerim</h3>
+                  <OrderList orders={orders} />
                 </div>
               </div>
             )}
 
-            {activeTab === 'orders' && (
+            {activeTab === 'support' && (
               <div className="space-y-4">
                 <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
-                  <h3 className="font-semibold mb-4 text-gray-100">Son Siparişler</h3>
-                  <OrderList orders={orders} />
+                  <SupportTickets />
                 </div>
               </div>
             )}
@@ -96,6 +89,7 @@ export default function Dashboard() {
                   <SettingsForm 
                     initialData={{
                       name: userData.name,
+                      surname: userData.surname,
                       email: userData.email,
                       phone: userData.phone
                     }}
