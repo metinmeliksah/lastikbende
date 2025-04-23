@@ -17,6 +17,7 @@ import AnalysisResultsSection from './components/AnalysisResultsSection';
 import ExportAnalysisSection from './components/ExportAnalysisSection';
 import AiAnalysisSection from './components/AiAnalysisSection';
 import TireExpertChat from './components/TireExpertChat';
+import AiOnerisiSection from './components/AiOnerisiSection';
 
 export default function AnalizPage() {
   const [imageUrl, setImageUrl] = useState<string>('');
@@ -769,6 +770,12 @@ export default function AnalizPage() {
               <AiAnalysisSection 
                 detayliAnaliz={results?.detayliAnaliz}
                 isLoading={isLoading} 
+                t={t}
+              />
+
+              {/* AI Lastik Önerisi */}
+              <AiOnerisiSection 
+                formData={formData}
                 t={t}
               />
               

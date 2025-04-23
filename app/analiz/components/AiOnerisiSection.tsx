@@ -343,9 +343,9 @@ const AiOnerisiSection: React.FC<AiOnerisiSectionProps> = ({ formData, t }) => {
   };
 
   return (
-    <div className="w-full bg-dark-200 p-6 rounded-xl">
+    <div className="bg-dark-200 p-4 sm:p-8 rounded-xl border border-gray-700 shadow-lg mt-8">
       <h2 className="text-2xl font-semibold text-white mb-6">
-        Aracınız için özel seçilmiş lastikler
+        AI Lastik Önerisi
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {oneriler.map((lastik) => (
@@ -380,25 +380,25 @@ const AiOnerisiSection: React.FC<AiOnerisiSectionProps> = ({ formData, t }) => {
                 </div>
               </div>
             </div>
-            <div className="space-y-2 mb-4">
-              <p className="text-gray-400 text-sm">{lastik.ebat}</p>
-              <div className="flex flex-wrap gap-2">
-                {lastik.ozellikler.map((ozellik, index) => (
-                  <span
-                    key={index}
-                    className="text-xs bg-dark-500 text-gray-300 px-2 py-1 rounded"
-                  >
-                    {ozellik}
-                  </span>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {lastik.ozellikler.map((ozellik, index) => (
+                <span
+                  key={index}
+                  className="text-xs bg-primary/10 text-primary px-2 py-1 rounded"
+                >
+                  {ozellik}
+                </span>
+              ))}
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xl font-bold text-white">
                 {formatFiyat(lastik.fiyat)}
               </span>
-              <button className="flex items-center bg-primary hover:bg-primary/80 text-white px-3 py-2 rounded transition-all duration-300">
-                <ShoppingCart className="w-5 h-5" />
+              <button
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-3 py-1.5 rounded transition-colors"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                <span>Satın Al</span>
               </button>
             </div>
           </motion.div>
