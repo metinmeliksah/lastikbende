@@ -772,12 +772,6 @@ export default function AnalizPage() {
                 isLoading={isLoading} 
                 t={t}
               />
-
-              {/* AI Lastik Önerisi */}
-              <AiOnerisiSection 
-                formData={formData}
-                t={t}
-              />
               
               {/* Dışa Aktarma Bölümü */}
               <ExportAnalysisSection
