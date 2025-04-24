@@ -1,0 +1,50 @@
+{
+  "agreement": {
+    "title": "Membership Agreement",
+    "download": "Download PDF",
+    "downloading": "Downloading...",
+    "contact": "Contact us for questions about the agreement",
+    "sections": {
+      "1": {
+        "title": "1. Parties",
+        "content": "This membership agreement ('Agreement') has been accepted digitally and entered into force between LastikBende (hereinafter referred to as 'Platform') and the user applying for membership ('Member')."
+      },
+      "2": {
+        "title": "2. Subject",
+        "content": "This agreement regulates the conditions for benefiting from tire analysis, comparison, and purchasing services provided through the Platform, and the rights and obligations of the parties."
+      },
+      "3": {
+        "title": "3. Membership Conditions",
+        "content": "For membership; being at least 18 years old, applying with accurate and current information, and accepting the terms of the agreement are required. The Platform reserves the right to reject membership applications without showing cause. The Member guarantees the accuracy of the information provided during application."
+      },
+      "4": {
+        "title": "4. User Obligations",
+        "content": "The Member agrees not to use the Platform in a manner contrary to law and morality, not to share account information with others, and not to engage in activities that threaten the security of services. Additionally, the Member commits to act in accordance with legal regulations in all transactions made through the Platform."
+      },
+      "5": {
+        "title": "5. Platform Rights",
+        "content": "The Platform reserves the right to update service content, membership conditions, and the agreement at any time, and to suspend the service by informing users. The Platform does not guarantee that its services will be uninterrupted and error-free, and may temporarily suspend services when deemed necessary."
+      },
+      "6": {
+        "title": "6. Duration and Termination of Agreement",
+        "content": "This agreement is valid as long as the user membership continues. The Member can terminate their membership at any time. The Platform may suspend or terminate membership in case of violation of agreement terms. In case of termination, member data is stored for the legal period."
+      },
+      "7": {
+        "title": "7. Privacy and Personal Data",
+        "content": "The Platform processes member's personal data within the scope of Personal Data Protection Law No. 6698 ('KVKK'). Collected data includes name-surname, contact information, vehicle information, and usage data. Our privacy policy can be accessed on our website."
+      },
+      "8": {
+        "title": "8. Acceptance Record",
+        "content": "The agreement enters into force when the Member approves it electronically. The approval time is securely recorded in the system along with user IP information. The Platform stores these records for the legal period."
+      },
+      "9": {
+        "title": "9. Dispute Resolution",
+        "content": "Istanbul (Anatolian) Courts and Enforcement Offices have jurisdiction in any disputes arising from this agreement. The parties agree to prefer mutual negotiation as the primary method for resolving disputes."
+      },
+      "10": {
+        "title": "10. Contact",
+        "content": "For questions about the agreement, you can contact us through the contact form on our website or via email at support@lastikbende.com."
+      }
+    }
+  }
+} 
