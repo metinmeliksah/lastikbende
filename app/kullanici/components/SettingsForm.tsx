@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import PersonalInfoForm from './PersonalInfoForm';
 import PasswordChangeForm from './PasswordChangeForm';
 import CommunicationPreferencesForm from './CommunicationPreferencesForm';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface UserData {
   name: string;
   surname: string;
   email: string;
   phone: string;
+  profileImage?: string;
 }
 
 interface SettingsFormProps {
@@ -43,6 +45,7 @@ export default function SettingsForm({ initialData, onSave, onCancel }: Settings
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     setLastSavedData(initialData);
@@ -144,7 +147,7 @@ export default function SettingsForm({ initialData, onSave, onCancel }: Settings
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -152,9 +155,42 @@ export default function SettingsForm({ initialData, onSave, onCancel }: Settings
       return;
     }
 
-    onSave(userData);
-    setLastSavedData(userData);
-    setHasChanges(false);
+    try {
+      // Şifre değişikliği varsa
+      if (passwords.new) {
+        const { error: passwordError } = await supabase.auth.updateUser({
+          password: passwords.new
+        });
+
+        if (passwordError) throw passwordError;
+      }
+
+      // Profil güncelleme
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          first_name: userData.name,
+          last_name: userData.surname,
+          phone: userData.phone
+        })
+        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+
+      if (profileError) throw profileError;
+
+      // Tercihleri güncelle
+      const { error: preferencesError } = await supabase
+        .from('user_preferences')
+        .update(preferences)
+        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+
+      if (preferencesError) throw preferencesError;
+
+      onSave(userData);
+      setLastSavedData(userData);
+      setHasChanges(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Bir hata oluştu');
+    }
   };
 
   const handleCancel = () => {
@@ -184,15 +220,54 @@ export default function SettingsForm({ initialData, onSave, onCancel }: Settings
     input.value = '';
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setProfileImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Preview için URL oluştur
+    const previewUrl = URL.createObjectURL(file);
+    setPreviewImage(previewUrl);
+
+    try {
+      // Dosya boyutu kontrolü (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('Dosya boyutu 5MB\'dan küçük olmalıdır');
+      }
+
+      // Dosya tipi kontrolü
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Sadece resim dosyaları yüklenebilir');
+      }
+
+      // Supabase storage'a yükle
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `profile-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Public URL al
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Profili güncelle
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ profile_image: publicUrl })
+        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+
+      if (updateError) throw updateError;
+
+      setUserData(prev => ({ ...prev, profileImage: publicUrl }));
+      setHasChanges(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Resim yüklenirken bir hata oluştu');
+      setPreviewImage(null);
     }
   };
 

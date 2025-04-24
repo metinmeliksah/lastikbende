@@ -9,6 +9,8 @@ import { validateField } from './services/validationService';
 import { sendChatMessage } from './services/chatService';
 import './styles.css';
 import { cacheAdapter } from './lib/cacheAdapter';
+import { saveAnalysis } from './services/analysisService';
+import { toast } from 'react-hot-toast';
 
 import { FormData, FieldStatus, AnalysisResult } from './types';
 import FormSection from './components/FormSection';
@@ -412,10 +414,7 @@ export default function AnalizPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Yeni analiz öncesi mevcut verileri temizle
-    await clearMemoryData();
-    
+    setError(null);
     setLoading(true);
     setAnalyzing(true);
 
@@ -441,60 +440,74 @@ export default function AnalizPage() {
       // Üretim yılı doğrulaması
       const currentYear = new Date().getFullYear();
       const year = parseInt(formData.uretimYili);
-      if (isNaN(year) || year < 1900 || year > currentYear + 1) { // +1 eklendi, gelecek yıl lastikleri için
+      if (isNaN(year) || year < 1900 || year > currentYear + 1) {
         throw new Error(t.errors.invalidYear.replace('{maxYear}', (currentYear + 1).toString()));
       }
 
       // Analiz API'sine istek gönder
-      try {
-        console.log('Lastik analiz ediliyor...');
-        const apiUrl = `/analiz/api/analyze`;
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            imageUrl,
-            formData,
-            detectOnly: false // Tam analiz yap
-          }),
-        });
+      console.log('Lastik analiz ediliyor...');
+      const apiUrl = `/analiz/api/analyze`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageUrl,
+          formData,
+          detectOnly: false
+        }),
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || t.errors.analysisError);
-        }
-
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.error || t.errors.analysisError);
-        }
-
-        if (!data.data) {
-          throw new Error(t.errors.analysisError);
-        }
-
-        // Analiz sonuçlarını ayarla
-        setResults(data.data);
-        setError(null);
-        
-        // Analize başarılı bir şekilde tamamlandı mesajı göster
-        // Bu kısım isteğe bağlıdır ve sitenizin tasarımına göre değişebilir.
-        // toast.success('Lastik analizi başarıyla tamamlandı!');
-        
-        // Sayfayı sonuç bölümüne kaydır (isteğe bağlı)
-        // window.scrollTo({ top: resultsRef.current?.offsetTop || 0, behavior: 'smooth' });
-        
-      } catch (analysisError: any) {
-        console.error('Lastik analiz hatası:', analysisError);
-        throw new Error(analysisError.message || t.errors.analysisError);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || t.errors.analysisError);
       }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || t.errors.analysisError);
+      }
+
+      if (!data.data) {
+        throw new Error(t.errors.analysisError);
+      }
+
+      // Analiz sonuçlarını ayarla
+      setResults(data.data);
+      setError(null);
+
+      try {
+        // Supabase'e kaydetmeyi dene
+        await saveAnalysis(formData, data.data, imageUrl);
+        toast.success('Analiz başarıyla kaydedildi');
+      } catch (saveError: any) {
+        // Kullanıcı giriş yapmamışsa, analizi kaydetmeden devam et
+        if (saveError.message === 'Kullanıcı girişi gerekli') {
+          toast('Analiz sonuçlarınızı kaydetmek için lütfen giriş yapın', {
+            icon: 'ℹ️',
+            duration: 4000,
+          });
+        } else {
+          console.error('Analiz kaydetme hatası:', saveError);
+          toast.error('Analiz kaydedilirken bir hata oluştu');
+        }
+      }
+
+      // Sorunları filtrele
+      if (data.data.sorunlar) {
+        const filteredIssues = data.data.sorunlar.filter((issue: { severity: string }) => 
+          issue.severity === 'high' || issue.severity === 'medium'
+        );
+        setFilteredSorunlar(filteredIssues);
+      }
+
     } catch (error: any) {
       console.error('Form gönderim hatası:', error);
       setError(error.message || t.errors.genericError);
-      setResults(null); // Hatada sonuçları temizle
+      setResults(null);
+      toast.error('Analiz sırasında bir hata oluştu');
     } finally {
       setAnalyzing(false);
       setLoading(false);
