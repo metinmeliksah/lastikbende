@@ -52,7 +52,7 @@ export default function Navbar() {
             <Link href="/sepet" className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200 focus:outline-none focus-visible:outline-none">
               <ShoppingCartIcon className="h-6 w-6" />
             </Link>
-            <Link href="/giris" className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200 focus:outline-none focus-visible:outline-none">
+            <Link href="/kullanici/giris" className="text-gray-300 hover:text-primary p-2 outline-none border-0 transition-colors duration-200 focus:outline-none focus-visible:outline-none">
               <UserIcon className="h-6 w-6" />
             </Link>
           </div>
