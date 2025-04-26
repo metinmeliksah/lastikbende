@@ -95,7 +95,7 @@ lastikbende/
 - **Kurulum**
   ```bash
   # Repoyu klonlayın
-  git clone https://github.com/your-username/lastikbende.git
+  git clone https://github.com/metinmeliksah/lastikbende.git
   cd lastikbende
 
   # Bağımlılıkları yükleyin
