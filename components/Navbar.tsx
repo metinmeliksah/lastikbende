@@ -29,9 +29,6 @@ export default function Navbar() {
               <Link href="/" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
                 Ana Sayfa
               </Link>
-              <Link href="/urunler" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
-                Ürünler
-              </Link>
               <Link href="/lastikler" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
                 Lastikler
               </Link>
@@ -89,13 +86,6 @@ export default function Navbar() {
             onClick={handleLinkClick}
           >
             Ana Sayfa
-          </Link>
-          <Link 
-            href="/urunler" 
-            className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none"
-            onClick={handleLinkClick}
-          >
-            Ürünler
           </Link>
           <Link 
             href="/lastikler" 
