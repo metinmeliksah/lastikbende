@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 interface ProductSpecs {
   "Ebat": string;
@@ -769,6 +769,9 @@ interface SearchFilters {
 export default function UrunlerPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const searchPanelRef = useRef<HTMLDivElement>(null);
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
     brand: '',
     size: '',
@@ -778,7 +781,31 @@ export default function UrunlerPage() {
     speedIndex: ''
   });
 
+  // Add click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isSearchOpen && searchPanelRef.current && !searchPanelRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSearchOpen]);
+
   const productsPerPage = 9;
+
+  const handleProductSelect = (productId: number) => {
+    if (selectedProducts.includes(productId)) {
+      setSelectedProducts(selectedProducts.filter(id => id !== productId));
+    } else {
+      if (selectedProducts.length < 3) {
+        setSelectedProducts([...selectedProducts, productId]);
+      }
+    }
+  };
 
   const filteredProducts = products.filter(product => {
     if (searchFilters.brand && product.brand !== searchFilters.brand) return false;
@@ -818,6 +845,7 @@ export default function UrunlerPage() {
       <AnimatePresence>
         {isSearchOpen && (
           <motion.div
+            ref={searchPanelRef}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -828,7 +856,7 @@ export default function UrunlerPage() {
               <h2 className="text-xl font-bold text-white">Filtrele</h2>
               <button
                 onClick={() => setIsSearchOpen(false)}
-                className="bg-primary text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200"
+                className="bg-primary text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200 absolute -left-12 top-4"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -965,13 +993,111 @@ export default function UrunlerPage() {
                   ))}
                 </div>
 
-                <button className="mt-4 w-full bg-primary text-white py-2 rounded-md hover:bg-red-600 transition-colors">
-                  Sepete Ekle
-                </button>
+                <div className="mt-4 flex gap-2">
+                  <button className="flex-1 bg-primary text-white py-2 rounded-md hover:bg-red-600 transition-colors">
+                    Sepete Ekle
+                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => handleProductSelect(product.id)}
+                      className={`p-2 rounded-md transition-colors ${
+                        selectedProducts.includes(product.id)
+                          ? 'bg-primary text-white'
+                          : 'bg-dark-200 text-gray-400 hover:bg-dark-100'
+                      }`}
+                      disabled={selectedProducts.length >= 3 && !selectedProducts.includes(product.id)}
+                    >
+                      <CheckIcon className="h-5 w-5" />
+                    </button>
+                    {selectedProducts.length >= 3 && !selectedProducts.includes(product.id) && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-dark-200 text-white text-sm rounded-md whitespace-nowrap">
+                        En fazla 3 ürün karşılaştırabilirsiniz
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
+
+        {/* Compare Button */}
+        {selectedProducts.length > 0 && (
+          <div className="fixed bottom-8 right-8">
+            <button
+              onClick={() => setIsCompareModalOpen(true)}
+              className="bg-primary text-white px-6 py-3 rounded-lg shadow-lg hover:bg-red-600 transition-colors flex items-center gap-2"
+            >
+              <span>Karşılaştır ({selectedProducts.length})</span>
+            </button>
+          </div>
+        )}
+
+        {/* Comparison Modal */}
+        <AnimatePresence>
+          {isCompareModalOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-dark-300 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto"
+              >
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-white">Ürün Karşılaştırma</h2>
+                    <button
+                      onClick={() => {
+                        setIsCompareModalOpen(false);
+                        setSelectedProducts([]);
+                      }}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {selectedProducts.map(productId => {
+                      const product = products.find(p => p.id === productId);
+                      if (!product) return null;
+                      
+                      return (
+                        <div key={product.id} className="bg-dark-400 rounded-lg p-4">
+                          <div className="relative h-48 mb-4">
+                            <Image
+                              src={product.image}
+                              alt={product.name}
+                              fill
+                              className="object-cover rounded-lg"
+                            />
+                          </div>
+                          <h3 className="text-lg font-semibold text-white mb-2">{product.name}</h3>
+                          <p className="text-gray-400 mb-2">{product.brand}</p>
+                          <p className="text-primary text-xl font-bold mb-4">{product.price}</p>
+                          
+                          <div className="space-y-2">
+                            {Object.entries(product.specs).map(([key, value]) => (
+                              <div key={key} className="flex justify-between text-sm">
+                                <span className="text-gray-500">{key}:</span>
+                                <span className="text-white">{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Sayfalama */}
         <div className="flex justify-center gap-2">
