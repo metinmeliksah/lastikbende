@@ -26,10 +26,11 @@ interface Product {
 
 // Örnek ürün verileri
 const products: Product[] = [
+  // Michelin Lastikleri
   {
     id: 1,
     name: "Michelin Primacy 4",
-    price: "2500",
+    price: "2500 TL",
     image: "https://placehold.co/600x400/2563eb/ffffff?text=Michelin+Primacy+4",
     brand: "Michelin",
     category: "Lastik",
@@ -37,15 +38,48 @@ const products: Product[] = [
       "Ebat": "205/55 R16",
       "Yük İndeksi": "91",
       "Hız Sembolü": "V",
-      "Dış Gürültü": "71 dB",
+      "Dış Gürültü": "70 dB",
       "Yakıt Verimliliği": "B",
       "Islak Tutuş": "A"
     }
   },
   {
     id: 2,
+    name: "Michelin Primacy 4",
+    price: "2800 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Michelin+Primacy+4",
+    brand: "Michelin",
+    category: "Lastik",
+    specs: {
+      "Ebat": "215/55 R17",
+      "Yük İndeksi": "94",
+      "Hız Sembolü": "V",
+      "Dış Gürültü": "71 dB",
+      "Yakıt Verimliliği": "B",
+      "Islak Tutuş": "A"
+    }
+  },
+  {
+    id: 3,
+    name: "Michelin Primacy 4",
+    price: "3200 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Michelin+Primacy+4",
+    brand: "Michelin",
+    category: "Lastik",
+    specs: {
+      "Ebat": "225/45 R18",
+      "Yük İndeksi": "95",
+      "Hız Sembolü": "W",
+      "Dış Gürültü": "72 dB",
+      "Yakıt Verimliliği": "B",
+      "Islak Tutuş": "A"
+    }
+  },
+  // Goodyear Lastikleri
+  {
+    id: 4,
     name: "Goodyear EfficientGrip",
-    price: "2200",
+    price: "2200 TL",
     image: "https://placehold.co/600x400/2563eb/ffffff?text=Goodyear+EfficientGrip",
     brand: "Goodyear",
     category: "Lastik",
@@ -53,15 +87,32 @@ const products: Product[] = [
       "Ebat": "215/65 R17",
       "Yük İndeksi": "99",
       "Hız Sembolü": "H",
-      "Dış Gürültü": "70 dB",
-      "Yakıt Verimliliği": "B",
-      "Islak Tutuş": "A"
+      "Dış Gürültü": "71 dB",
+      "Yakıt Verimliliği": "A",
+      "Islak Tutuş": "B"
     }
   },
   {
-    id: 3,
+    id: 5,
+    name: "Goodyear EfficientGrip",
+    price: "2400 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Goodyear+EfficientGrip",
+    brand: "Goodyear",
+    category: "Lastik",
+    specs: {
+      "Ebat": "225/55 R17",
+      "Yük İndeksi": "97",
+      "Hız Sembolü": "V",
+      "Dış Gürültü": "70 dB",
+      "Yakıt Verimliliği": "A",
+      "Islak Tutuş": "B"
+    }
+  },
+  // Continental Lastikleri
+  {
+    id: 6,
     name: "Continental PremiumContact",
-    price: "2300",
+    price: "2300 TL",
     image: "https://placehold.co/600x400/2563eb/ffffff?text=Continental+PremiumContact",
     brand: "Continental",
     category: "Lastik",
@@ -70,14 +121,31 @@ const products: Product[] = [
       "Yük İndeksi": "95",
       "Hız Sembolü": "W",
       "Dış Gürültü": "69 dB",
-      "Yakıt Verimliliği": "B",
+      "Yakıt Verimliliği": "A",
       "Islak Tutuş": "A"
     }
   },
   {
-    id: 4,
+    id: 7,
+    name: "Continental PremiumContact",
+    price: "2600 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Continental+PremiumContact",
+    brand: "Continental",
+    category: "Lastik",
+    specs: {
+      "Ebat": "235/45 R18",
+      "Yük İndeksi": "98",
+      "Hız Sembolü": "W",
+      "Dış Gürültü": "70 dB",
+      "Yakıt Verimliliği": "A",
+      "Islak Tutuş": "A"
+    }
+  },
+  // Pirelli Lastikleri
+  {
+    id: 8,
     name: "Pirelli Cinturato",
-    price: "2400",
+    price: "2400 TL",
     image: "https://placehold.co/600x400/2563eb/ffffff?text=Pirelli+Cinturato",
     brand: "Pirelli",
     category: "Lastik",
@@ -85,15 +153,32 @@ const products: Product[] = [
       "Ebat": "235/55 R19",
       "Yük İndeksi": "101",
       "Hız Sembolü": "V",
-      "Dış Gürültü": "70 dB",
+      "Dış Gürültü": "72 dB",
       "Yakıt Verimliliği": "B",
       "Islak Tutuş": "A"
     }
   },
   {
-    id: 5,
+    id: 9,
+    name: "Pirelli Cinturato",
+    price: "2700 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Pirelli+Cinturato",
+    brand: "Pirelli",
+    category: "Lastik",
+    specs: {
+      "Ebat": "245/45 R19",
+      "Yük İndeksi": "102",
+      "Hız Sembolü": "W",
+      "Dış Gürültü": "73 dB",
+      "Yakıt Verimliliği": "B",
+      "Islak Tutuş": "A"
+    }
+  },
+  // Bridgestone Lastikleri
+  {
+    id: 10,
     name: "Bridgestone Turanza",
-    price: "2100",
+    price: "2600 TL",
     image: "https://placehold.co/600x400/2563eb/ffffff?text=Bridgestone+Turanza",
     brand: "Bridgestone",
     category: "Lastik",
@@ -107,25 +192,59 @@ const products: Product[] = [
     }
   },
   {
-    id: 6,
+    id: 11,
+    name: "Bridgestone Turanza",
+    price: "2900 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Bridgestone+Turanza",
+    brand: "Bridgestone",
+    category: "Lastik",
+    specs: {
+      "Ebat": "255/40 R20",
+      "Yük İndeksi": "101",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "72 dB",
+      "Yakıt Verimliliği": "B",
+      "Islak Tutuş": "A"
+    }
+  },
+  // Dunlop Lastikleri
+  {
+    id: 12,
     name: "Dunlop Sport",
-    price: "2000",
+    price: "2100 TL",
     image: "https://placehold.co/600x400/2563eb/ffffff?text=Dunlop+Sport",
     brand: "Dunlop",
     category: "Lastik",
     specs: {
       "Ebat": "255/35 R21",
       "Yük İndeksi": "98",
-      "Hız Sembolü": "Y",
-      "Dış Gürültü": "72 dB",
+      "Hız Sembolü": "W",
+      "Dış Gürültü": "73 dB",
       "Yakıt Verimliliği": "C",
-      "Islak Tutuş": "A"
+      "Islak Tutuş": "B"
     }
   },
   {
-    id: 7,
+    id: 13,
+    name: "Dunlop Sport",
+    price: "2400 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Dunlop+Sport",
+    brand: "Dunlop",
+    category: "Lastik",
+    specs: {
+      "Ebat": "265/35 R21",
+      "Yük İndeksi": "99",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "74 dB",
+      "Yakıt Verimliliği": "C",
+      "Islak Tutuş": "B"
+    }
+  },
+  // Hankook Lastikleri
+  {
+    id: 14,
     name: "Hankook Ventus",
-    price: "1900",
+    price: "2000 TL",
     image: "https://placehold.co/600x400/2563eb/ffffff?text=Hankook+Ventus",
     brand: "Hankook",
     category: "Lastik",
@@ -133,121 +252,507 @@ const products: Product[] = [
       "Ebat": "265/30 R22",
       "Yük İndeksi": "97",
       "Hız Sembolü": "Y",
-      "Dış Gürültü": "73 dB",
-      "Yakıt Verimliliği": "C",
-      "Islak Tutuş": "B"
+      "Dış Gürültü": "74 dB",
+      "Yakıt Verimliliği": "B",
+      "Islak Tutuş": "A"
     }
   },
   {
-    id: 8,
+    id: 15,
+    name: "Hankook Ventus",
+    price: "2300 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Hankook+Ventus",
+    brand: "Hankook",
+    category: "Lastik",
+    specs: {
+      "Ebat": "275/30 R22",
+      "Yük İndeksi": "98",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "75 dB",
+      "Yakıt Verimliliği": "B",
+      "Islak Tutuş": "A"
+    }
+  },
+  // Yokohama Lastikleri
+  {
+    id: 16,
     name: "Yokohama Advan",
-    price: "2600",
+    price: "2700 TL",
     image: "https://placehold.co/600x400/2563eb/ffffff?text=Yokohama+Advan",
     brand: "Yokohama",
     category: "Lastik",
     specs: {
       "Ebat": "275/25 R23",
-      "Yük İndeksi": "96",
+      "Yük İndeksi": "95",
       "Hız Sembolü": "Y",
-      "Dış Gürültü": "74 dB",
+      "Dış Gürültü": "75 dB",
       "Yakıt Verimliliği": "C",
       "Islak Tutuş": "B"
     }
   },
   {
-    id: 9,
-    name: 'Jant 19" Alüminyum',
-    price: '6.999 TL',
-    image: '/products/wheel3.jpg',
-    brand: 'Enkei',
-    category: 'Jant',
+    id: 17,
+    name: "Yokohama Advan",
+    price: "3000 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Yokohama+Advan",
+    brand: "Yokohama",
+    category: "Lastik",
     specs: {
-      "Ebat": "19\"",
-      "Yük İndeksi": "99",
+      "Ebat": "285/25 R23",
+      "Yük İndeksi": "96",
       "Hız Sembolü": "Y",
-      "Dış Gürültü": "71 dB",
-      "Yakıt Verimliliği": "B",
-      "Islak Tutuş": "A"
+      "Dış Gürültü": "76 dB",
+      "Yakıt Verimliliği": "C",
+      "Islak Tutuş": "B"
     }
   },
+  // Jantlar
   {
-    id: 10,
-    name: 'Yaz Lastiği 265/35 R20',
-    price: '5.499 TL',
-    image: '/products/tyre7.jpg',
-    brand: 'Bridgestone',
-    category: 'Lastik',
+    id: 18,
+    name: "BBS CH-R",
+    price: "4500 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=BBS+CH-R",
+    brand: "BBS",
+    category: "Jant",
     specs: {
-      "Ebat": "265/35 R20",
-      "Yük İndeksi": "99",
+      "Ebat": "18x8",
+      "Yük İndeksi": "1000",
       "Hız Sembolü": "Y",
-      "Dış Gürültü": "70 dB",
-      "Yakıt Verimliliği": "B",
-      "Islak Tutuş": "A"
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
     }
   },
   {
-    id: 11,
-    name: 'Kış Lastiği 275/40 R20',
-    price: '5.799 TL',
-    image: '/products/tyre8.jpg',
-    brand: 'Michelin',
-    category: 'Lastik',
+    id: 19,
+    name: "BBS CH-R",
+    price: "5200 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=BBS+CH-R",
+    brand: "BBS",
+    category: "Jant",
     specs: {
-      "Ebat": "275/40 R20",
-      "Yük İndeksi": "105",
-      "Hız Sembolü": "W",
-      "Dış Gürültü": "74 dB",
-      "Yakıt Verimliliği": "B",
-      "Islak Tutuş": "A"
-    }
-  },
-  {
-    id: 12,
-    name: 'Jant 20" Alüminyum',
-    price: '7.999 TL',
-    image: '/products/wheel4.jpg',
-    brand: 'BBS',
-    category: 'Jant',
-    specs: {
-      "Ebat": "20\"",
-      "Yük İndeksi": "105",
-      "Hız Sembolü": "W",
-      "Dış Gürültü": "72 dB",
-      "Yakıt Verimliliği": "B",
-      "Islak Tutuş": "A"
-    }
-  },
-  {
-    id: 13,
-    name: 'Yaz Lastiği 285/30 R21',
-    price: '6.299 TL',
-    image: '/products/tyre9.jpg',
-    brand: 'Goodyear',
-    category: 'Lastik',
-    specs: {
-      "Ebat": "285/30 R21",
-      "Yük İndeksi": "109",
+      "Ebat": "19x8.5",
+      "Yük İndeksi": "1000",
       "Hız Sembolü": "Y",
-      "Dış Gürültü": "69 dB",
-      "Yakıt Verimliliği": "B",
-      "Islak Tutuş": "A"
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
     }
   },
   {
-    id: 14,
-    name: 'Jant 21" Alüminyum',
-    price: '8.999 TL',
-    image: '/products/wheel5.jpg',
-    brand: 'Rota',
-    category: 'Jant',
+    id: 20,
+    name: "OZ Racing Leggera",
+    price: "3800 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=OZ+Racing+Leggera",
+    brand: "OZ Racing",
+    category: "Jant",
     specs: {
-      "Ebat": "21\"",
-      "Yük İndeksi": "109",
+      "Ebat": "18x8",
+      "Yük İndeksi": "1000",
       "Hız Sembolü": "Y",
-      "Dış Gürültü": "73 dB",
-      "Yakıt Verimliliği": "B",
-      "Islak Tutuş": "A"
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 21,
+    name: "OZ Racing Leggera",
+    price: "4500 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=OZ+Racing+Leggera",
+    brand: "OZ Racing",
+    category: "Jant",
+    specs: {
+      "Ebat": "19x8.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 22,
+    name: "Enkei RPF1",
+    price: "3500 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Enkei+RPF1",
+    brand: "Enkei",
+    category: "Jant",
+    specs: {
+      "Ebat": "17x8",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 23,
+    name: "Enkei RPF1",
+    price: "4200 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Enkei+RPF1",
+    brand: "Enkei",
+    category: "Jant",
+    specs: {
+      "Ebat": "18x8.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 24,
+    name: "Rota Grid",
+    price: "2800 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "17x8",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 25,
+    name: "Rota Grid",
+    price: "3500 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "18x8.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 26,
+    name: "Rota Grid",
+    price: "4200 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "19x9",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 27,
+    name: "Rota Grid",
+    price: "4900 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "20x9.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 28,
+    name: "Rota Grid",
+    price: "5600 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "21x10",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 29,
+    name: "Rota Grid",
+    price: "6300 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "22x10.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 30,
+    name: "Rota Grid",
+    price: "7000 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "23x11",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 31,
+    name: "Rota Grid",
+    price: "7700 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "24x11.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 32,
+    name: "Rota Grid",
+    price: "8400 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "25x12",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 33,
+    name: "Rota Grid",
+    price: "9100 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "26x12.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 34,
+    name: "Rota Grid",
+    price: "9800 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "27x13",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 35,
+    name: "Rota Grid",
+    price: "10500 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "28x13.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 36,
+    name: "Rota Grid",
+    price: "11200 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "29x14",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 37,
+    name: "Rota Grid",
+    price: "11900 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "30x14.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 38,
+    name: "Rota Grid",
+    price: "12600 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "31x15",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 39,
+    name: "Rota Grid",
+    price: "13300 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "32x15.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 40,
+    name: "Rota Grid",
+    price: "14000 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "33x16",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 41,
+    name: "Rota Grid",
+    price: "14700 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "34x16.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 42,
+    name: "Rota Grid",
+    price: "15400 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "35x17",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 43,
+    name: "Rota Grid",
+    price: "16100 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "36x17.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 44,
+    name: "Rota Grid",
+    price: "16800 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "37x18",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
+    }
+  },
+  {
+    id: 45,
+    name: "Rota Grid",
+    price: "17500 TL",
+    image: "https://placehold.co/600x400/2563eb/ffffff?text=Rota+Grid",
+    brand: "Rota",
+    category: "Jant",
+    specs: {
+      "Ebat": "38x18.5",
+      "Yük İndeksi": "1000",
+      "Hız Sembolü": "Y",
+      "Dış Gürültü": "N/A",
+      "Yakıt Verimliliği": "N/A",
+      "Islak Tutuş": "N/A"
     }
   }
 ];
