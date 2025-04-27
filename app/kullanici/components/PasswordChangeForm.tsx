@@ -1,46 +1,45 @@
-import { useState } from 'react';
+'use client';
+
+import { useState, ChangeEvent } from 'react';
 
 interface PasswordChangeFormProps {
-  onPasswordChange: (passwords: { current: string; new: string; confirm: string }) => void;
+  formData: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  };
+  errors?: {
+    currentPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+  };
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function PasswordChangeForm({ onPasswordChange }: PasswordChangeFormProps) {
+export default function PasswordChangeForm({ formData, errors = {}, onChange }: PasswordChangeFormProps) {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwords, setPasswords] = useState({
-    current: '',
-    new: '',
-    confirm: ''
-  });
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const newPasswords = { ...passwords, [name]: value };
-    setPasswords(newPasswords);
-    onPasswordChange(newPasswords);
-  };
-
-  const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    const input = e.target as HTMLInputElement;
-    input.value = '';
-  };
 
   return (
-    <div>
-      <h4 className="text-sm font-medium text-gray-400 mb-4">Şifre Değiştir</h4>
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium text-white">Şifre Değiştir</h3>
+      
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400">Mevcut Şifre</label>
+          <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-300">
+            Mevcut Şifre
+          </label>
           <div className="relative">
             <input
               type={showCurrentPassword ? "text" : "password"}
-              name="current"
-              value={passwords.current}
-              onChange={handlePasswordChange}
-              onClick={handleInputClick}
-              placeholder="Mevcut şifrenizi girin"
-              className="mt-1 block w-full rounded-md bg-dark-100 border-dark-100 text-gray-100 focus:border-primary focus:ring-primary pr-10 placeholder:text-gray-400/50"
+              id="currentPassword"
+              name="currentPassword"
+              value={formData.currentPassword}
+              onChange={onChange}
+              className={`mt-1 block w-full rounded-md bg-dark-100 border ${
+                errors.currentPassword ? 'border-red-500' : 'border-dark-200'
+              } text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm pr-10`}
             />
             <button
               type="button"
@@ -60,18 +59,25 @@ export default function PasswordChangeForm({ onPasswordChange }: PasswordChangeF
               )}
             </button>
           </div>
+          {errors.currentPassword && (
+            <p className="mt-1 text-sm text-red-500">{errors.currentPassword}</p>
+          )}
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-400">Yeni Şifre</label>
+          <label htmlFor="newPassword" className="block text-sm font-medium text-gray-300">
+            Yeni Şifre
+          </label>
           <div className="relative">
             <input
               type={showNewPassword ? "text" : "password"}
-              name="new"
-              value={passwords.new}
-              onChange={handlePasswordChange}
-              onClick={handleInputClick}
-              placeholder="Yeni şifrenizi girin"
-              className="mt-1 block w-full rounded-md bg-dark-100 border-dark-100 text-gray-100 focus:border-primary focus:ring-primary pr-10 placeholder:text-gray-400/50"
+              id="newPassword"
+              name="newPassword"
+              value={formData.newPassword}
+              onChange={onChange}
+              className={`mt-1 block w-full rounded-md bg-dark-100 border ${
+                errors.newPassword ? 'border-red-500' : 'border-dark-200'
+              } text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm pr-10`}
             />
             <button
               type="button"
@@ -91,18 +97,25 @@ export default function PasswordChangeForm({ onPasswordChange }: PasswordChangeF
               )}
             </button>
           </div>
+          {errors.newPassword && (
+            <p className="mt-1 text-sm text-red-500">{errors.newPassword}</p>
+          )}
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-400">Yeni Şifre (Tekrar)</label>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300">
+            Yeni Şifre (Tekrar)
+          </label>
           <div className="relative">
             <input
               type={showConfirmPassword ? "text" : "password"}
-              name="confirm"
-              value={passwords.confirm}
-              onChange={handlePasswordChange}
-              onClick={handleInputClick}
-              placeholder="Yeni şifrenizi tekrar girin"
-              className="mt-1 block w-full rounded-md bg-dark-100 border-dark-100 text-gray-100 focus:border-primary focus:ring-primary pr-10 placeholder:text-gray-400/50"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={onChange}
+              className={`mt-1 block w-full rounded-md bg-dark-100 border ${
+                errors.confirmPassword ? 'border-red-500' : 'border-dark-200'
+              } text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm pr-10`}
             />
             <button
               type="button"
@@ -122,6 +135,9 @@ export default function PasswordChangeForm({ onPasswordChange }: PasswordChangeF
               )}
             </button>
           </div>
+          {errors.confirmPassword && (
+            <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>
+          )}
         </div>
       </div>
     </div>

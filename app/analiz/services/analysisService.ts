@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import { AnalysisResult, FormData } from '../types';
 
 export async function saveAnalysis(
@@ -7,16 +7,17 @@ export async function saveAnalysis(
   imageUrl: string
 ) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const supabase = getSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (!user) {
+    if (!session) {
       throw new Error('Kullanıcı girişi gerekli');
     }
 
     const { data, error } = await supabase
       .from('analyses')
       .insert({
-        user_id: user.id,
+        user_id: session.user.id,
         lastik_tipi: formData.lastikTipi,
         marka: formData.marka,
         model: formData.model,

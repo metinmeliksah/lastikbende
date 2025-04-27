@@ -1,69 +1,82 @@
-import { useState } from 'react';
+'use client';
+
+import { ChangeEvent, useEffect } from 'react';
 
 interface CommunicationPreferencesFormProps {
-  onPreferencesChange: (preferences: {
-    emailNotification: boolean;
-    smsNotification: boolean;
-    phoneCall: boolean;
-  }) => void;
+  formData: {
+    emailNotifications: boolean;
+    smsNotifications: boolean;
+    marketingEmails: boolean;
+  };
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function CommunicationPreferencesForm({ onPreferencesChange }: CommunicationPreferencesFormProps) {
-  const [preferences, setPreferences] = useState({
-    emailNotification: false,
-    smsNotification: false,
-    phoneCall: false
-  });
-
-  const handlePreferenceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    const newPreferences = { ...preferences, [name]: checked };
-    setPreferences(newPreferences);
-    onPreferencesChange(newPreferences);
-  };
+export default function CommunicationPreferencesForm({ formData, onChange }: CommunicationPreferencesFormProps) {
+  // Bileşen yüklendiğinde form verilerini konsola yazdır
+  useEffect(() => {
+    console.log('CommunicationPreferencesForm yüklendi:', formData);
+  }, [formData]);
 
   return (
-    <div>
-      <h4 className="text-sm font-medium text-gray-400 mb-4">İletişim Tercihleri</h4>
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium text-white">İletişim Tercihleri</h3>
+      
       <div className="space-y-4">
-        <div className="flex items-center space-x-3">
-          <input
-            type="checkbox"
-            id="emailNotification"
-            name="emailNotification"
-            checked={preferences.emailNotification}
-            onChange={handlePreferenceChange}
-            className="rounded bg-dark-100 border-dark-100 text-primary focus:ring-primary"
-          />
-          <label htmlFor="emailNotification" className="text-sm text-gray-400">
-            E-posta bildirimleri
-          </label>
+        <div className="flex items-start">
+          <div className="flex items-center h-5">
+            <input
+              id="emailNotifications"
+              name="emailNotifications"
+              type="checkbox"
+              checked={formData.emailNotifications}
+              onChange={onChange}
+              className="h-4 w-4 text-primary border-dark-200 rounded focus:ring-primary"
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label htmlFor="emailNotifications" className="font-medium text-gray-300">
+              E-posta Bildirimleri
+            </label>
+            <p className="text-gray-400">Sipariş durumu ve önemli güncellemeler hakkında e-posta almak istiyorum</p>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <input
-            type="checkbox"
-            id="smsNotification"
-            name="smsNotification"
-            checked={preferences.smsNotification}
-            onChange={handlePreferenceChange}
-            className="rounded bg-dark-100 border-dark-100 text-primary focus:ring-primary"
-          />
-          <label htmlFor="smsNotification" className="text-sm text-gray-400">
-            SMS bildirimleri
-          </label>
+
+        <div className="flex items-start">
+          <div className="flex items-center h-5">
+            <input
+              id="smsNotifications"
+              name="smsNotifications"
+              type="checkbox"
+              checked={formData.smsNotifications}
+              onChange={onChange}
+              className="h-4 w-4 text-primary border-dark-200 rounded focus:ring-primary"
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label htmlFor="smsNotifications" className="font-medium text-gray-300">
+              SMS Bildirimleri
+            </label>
+            <p className="text-gray-400">Sipariş durumu ve önemli güncellemeler hakkında SMS almak istiyorum</p>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <input
-            type="checkbox"
-            id="phoneCall"
-            name="phoneCall"
-            checked={preferences.phoneCall}
-            onChange={handlePreferenceChange}
-            className="rounded bg-dark-100 border-dark-100 text-primary focus:ring-primary"
-          />
-          <label htmlFor="phoneCall" className="text-sm text-gray-400">
-            Telefon araması
-          </label>
+
+        <div className="flex items-start">
+          <div className="flex items-center h-5">
+            <input
+              id="marketingEmails"
+              name="marketingEmails"
+              type="checkbox"
+              checked={formData.marketingEmails}
+              onChange={onChange}
+              className="h-4 w-4 text-primary border-dark-200 rounded focus:ring-primary"
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label htmlFor="marketingEmails" className="font-medium text-gray-300">
+              Pazarlama E-postaları
+            </label>
+            <p className="text-gray-400">Kampanyalar, indirimler ve yeni ürünler hakkında e-posta almak istiyorum</p>
+          </div>
         </div>
       </div>
     </div>
