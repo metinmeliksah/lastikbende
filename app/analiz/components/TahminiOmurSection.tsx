@@ -89,7 +89,7 @@ const TahminiOmurSection: React.FC<TahminiOmurSectionProps> = ({
             'Lastiğiniz iyi durumda ve uzun süre kullanılabilir. Düzenli kontroller ile ömrünü uzatabilirsiniz.' : 
            estimatedLifespan?.months > 12 ? 
             'Lastiğinizin ömrü orta seviyede, bir süre daha kullanabilirsiniz. Yakın zamanda değişim planlamanız önerilir.' : 
-            'Lastiğinizin ömrü kritik seviyede. En kısa sürede değiştirmeniz güvenliğiniz için önemlidir.'}
+            'Lastiğinizin ömrü kritik seviyede. En kısa sürede değiştirmeniz güvenliğiniz için önemlidir. Bu nedenle aşağıdaki AI\'nin sizin için önerdikleri lastikleri inceleyebilirsiniz.'}
         </p>
       </div>
       

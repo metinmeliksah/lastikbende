@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AnalysisResult } from '../types';
+import { AnalysisResult, FormData } from '../types';
 import SorunlarSection from './SorunlarSection';
 import GuvenlikDegerlendirmesiSection from './GuvenlikDegerlendirmesiSection';
 import BakimIhtiyaclariSection from './BakimIhtiyaclariSection';
 import TahminiOmurSection from './TahminiOmurSection';
+import AiOnerisiSection from './AiOnerisiSection';
 
 interface AnalysisResultsSectionProps {
   results: AnalysisResult;
   filteredSorunlar: AnalysisResult['sorunlar'] | null;
   setFilteredSorunlar: React.Dispatch<React.SetStateAction<AnalysisResult['sorunlar'] | null>>;
+  formData: FormData;
   t: any;
 }
 
@@ -17,6 +19,7 @@ const AnalysisResultsSection: React.FC<AnalysisResultsSectionProps> = ({
   results,
   filteredSorunlar,
   setFilteredSorunlar,
+  formData,
   t
 }) => {
   return (
@@ -97,6 +100,11 @@ const AnalysisResultsSection: React.FC<AnalysisResultsSectionProps> = ({
       <div className="mt-8 sm:mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
         <BakimIhtiyaclariSection maintenanceNeeds={results.maintenanceNeeds} t={t} />
         <TahminiOmurSection estimatedLifespan={results.estimatedLifespan} t={t} />
+      </div>
+
+      {/* AI Önerisi Bölümü */}
+      <div className="mt-8 sm:mt-12">
+        <AiOnerisiSection formData={formData} t={t} />
       </div>
     </motion.div>
   );

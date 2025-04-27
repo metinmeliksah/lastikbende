@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import ErrorMessage from './ErrorMessage';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface AuthFormProps {
   isLogin: boolean;
@@ -23,6 +24,7 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
   const formatPhoneNumber = (value: string) => {
     // Sadece rakamları al
@@ -123,22 +125,28 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
     }
 
     try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          phone: formData.phone ? '+90 ' + formData.phone.replace(/\s/g, '') : ''
-        }),
-      });
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
 
-      const data = await response.json();
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              phone: formData.phone ? '+90 ' + formData.phone.replace(/\s/g, '') : '',
+              marketingAccepted: formData.marketingAccepted
+            }
+          }
+        });
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Bir hata oluştu');
+        if (error) throw error;
       }
 
       router.push('/kullanici');
