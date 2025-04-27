@@ -115,9 +115,8 @@ const MembershipAgreement = () => {
               {isLoading ? t('agreement.downloading') : t('agreement.download')}
             </button>
           </div>
-
           {/* Agreement Content */}
-          <div className="space-y-6">
+          <div></div> className="space-y-6"{'>'}
             <div>
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">1. Üyelik Koşulları</h2>
               <p className="text-gray-600">
