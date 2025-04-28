@@ -1,22 +1,32 @@
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FormData } from '../types';
 import Image from 'next/image';
-import { ShieldCheck, ShoppingCart, ThumbsUp } from 'lucide-react';
+import { ShieldCheck, ShoppingCart, ThumbsUp, AlertCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
-interface LastikOnerisi {
+interface Analysis {
   id: string;
+  created_at: string;
+  lastik_tipi: string;
   marka: string;
   model: string;
   ebat: string;
-  lastikTipi: string;
-  fiyat: number;
-  gorselUrl: string;
-  guvenirlikPuani: number;
-  ozellikler: string[];
-  uygunlukPuani: number;
-  mevsim?: 'yaz' | 'kis' | 'dortMevsim';
-  performansSeviyesi?: 'ekonomik' | 'orta' | 'premium';
+  uretim_yili: number;
+  kilometre: number;
+  yas_puani: number;
+  kullanim_puani: number;
+  mevsimsel_puan: number;
+  marka_puani: number;
+  gorsel_durum: number;
+  safety_score: number;
+  tahmini_omur_km: number;
+  tahmini_omur_ay: number;
+  sorunlar: any[];
+  bakim_ihtiyaclari: any;
+  ai_analiz: any;
+  image_url: string;
+  uygunlukPuani?: number;
 }
 
 interface AiOnerisiSectionProps {
@@ -24,158 +34,47 @@ interface AiOnerisiSectionProps {
   t?: any;
 }
 
-// Örnek lastik verileri
-const tumLastikler: LastikOnerisi[] = [
-  {
-    id: '1',
-    marka: 'Michelin',
-    model: 'Pilot Sport 4',
-    ebat: '225/45R17',
-    lastikTipi: 'yaz',
-    fiyat: 4999,
-    gorselUrl: '/images/tires/michelin-pilot.jpg',
-    guvenirlikPuani: 98,
-    ozellikler: ['Yüksek Performans', 'Islak Zeminde Üstün Tutuş'],
-    uygunlukPuani: 0,
-    mevsim: 'yaz',
-    performansSeviyesi: 'premium'
-  },
-  {
-    id: '2',
-    marka: 'Continental',
-    model: 'PremiumContact 6',
-    ebat: '225/45R17',
-    lastikTipi: 'yaz',
-    fiyat: 4599,
-    gorselUrl: '/images/tires/continental-premium.jpg',
-    guvenirlikPuani: 96,
-    ozellikler: ['Dengeli Performans', 'Düşük Yuvarlanma Direnci'],
-    uygunlukPuani: 0,
-    mevsim: 'yaz',
-    performansSeviyesi: 'premium'
-  },
-  {
-    id: '3',
-    marka: 'Bridgestone',
-    model: 'Turanza T005',
-    ebat: '225/45R17',
-    lastikTipi: 'yaz',
-    fiyat: 4299,
-    gorselUrl: '/images/tires/bridgestone-turanza.jpg',
-    guvenirlikPuani: 95,
-    ozellikler: ['Konforlu Sürüş', 'Uzun Ömür'],
-    uygunlukPuani: 0,
-    mevsim: 'yaz',
-    performansSeviyesi: 'premium'
-  },
-  {
-    id: '4',
-    marka: 'Goodyear',
-    model: 'EfficientGrip Performance 2',
-    ebat: '225/45R17',
-    lastikTipi: 'yaz',
-    fiyat: 4199,
-    gorselUrl: '/images/tires/goodyear-efficient.jpg',
-    guvenirlikPuani: 94,
-    ozellikler: ['Yakıt Tasarrufu', 'Sessiz Sürüş'],
-    uygunlukPuani: 0,
-    mevsim: 'yaz',
-    performansSeviyesi: 'premium'
-  },
-  {
-    id: '5',
-    marka: 'Pirelli',
-    model: 'Cinturato P7',
-    ebat: '225/45R17',
-    lastikTipi: 'yaz',
-    fiyat: 4399,
-    gorselUrl: '/images/tires/pirelli-cinturato.jpg',
-    guvenirlikPuani: 95,
-    ozellikler: ['Sportif Sürüş', 'Yüksek Konfor'],
-    uygunlukPuani: 0,
-    mevsim: 'yaz',
-    performansSeviyesi: 'premium'
-  },
-  // Kış lastikleri
-  {
-    id: '6',
-    marka: 'Michelin',
-    model: 'Alpin 6',
-    ebat: '225/45R17',
-    lastikTipi: 'kis',
-    fiyat: 4799,
-    gorselUrl: '/images/tires/michelin-alpin.jpg',
-    guvenirlikPuani: 97,
-    ozellikler: ['Kış Performansı', 'Kar ve Buz Tutuşu'],
-    uygunlukPuani: 0,
-    mevsim: 'kis',
-    performansSeviyesi: 'premium'
-  },
-  {
-    id: '7',
-    marka: 'Continental',
-    model: 'WinterContact TS 870',
-    ebat: '225/45R17',
-    lastikTipi: 'kis',
-    fiyat: 4599,
-    gorselUrl: '/images/tires/continental-winter.jpg',
-    guvenirlikPuani: 96,
-    ozellikler: ['Kış Güvenliği', 'Kısa Fren Mesafesi'],
-    uygunlukPuani: 0,
-    mevsim: 'kis',
-    performansSeviyesi: 'premium'
-  },
-  // 4 Mevsim lastikler
-  {
-    id: '8',
-    marka: 'Michelin',
-    model: 'CrossClimate 2',
-    ebat: '225/45R17',
-    lastikTipi: 'dortMevsim',
-    fiyat: 4899,
-    gorselUrl: '/images/tires/michelin-crossclimate.jpg',
-    guvenirlikPuani: 96,
-    ozellikler: ['Tüm Mevsim Performans', 'Çok Yönlü Kullanım'],
-    uygunlukPuani: 0,
-    mevsim: 'dortMevsim',
-    performansSeviyesi: 'premium'
-  },
-  {
-    id: '9',
-    marka: 'Goodyear',
-    model: 'Vector 4Seasons Gen-3',
-    ebat: '225/45R17',
-    lastikTipi: 'dortMevsim',
-    fiyat: 4599,
-    gorselUrl: '/images/tires/goodyear-vector.jpg',
-    guvenirlikPuani: 95,
-    ozellikler: ['Dengeli Performans', 'Her Mevsim Güvenlik'],
-    uygunlukPuani: 0,
-    mevsim: 'dortMevsim',
-    performansSeviyesi: 'premium'
-  }
-];
-
 const AiOnerisiSection: React.FC<AiOnerisiSectionProps> = ({ formData, t }) => {
-  const [oneriler, setOneriler] = useState<LastikOnerisi[]>([]);
+  const [analyses, setAnalyses] = useState<Analysis[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filteredAnalyses, setFilteredAnalyses] = useState<Analysis[]>([]);
 
-  // Lastik özelliklerini normalize etme fonksiyonu
-  const normalizeOzellik = (value: string): string => {
-    return value.toLowerCase().trim().replace(/\s+/g, '');
-  };
+  // Veri çekme fonksiyonu
+  const fetchAnalyses = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Oturum açmanız gerekiyor');
+      }
 
-  // Ebat parçalama ve normalizasyon fonksiyonu
-  const parseEbat = (ebat: string) => {
-    const [genislik, oran, cap] = ebat.split(/[\/R]/);
-    return {
-      genislik: parseInt(genislik),
-      oran: parseInt(oran),
-      cap: parseInt(cap)
-    };
-  };
+      const { data, error } = await supabase
+        .from('analyses')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAnalyses((data as unknown) as Analysis[] || []);
+    } catch (error) {
+      console.error('Analizler yüklenirken hata:', error);
+      setError('Analizler yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // İlk yüklemede verileri çek
+  useEffect(() => {
+    fetchAnalyses();
+  }, [fetchAnalyses]);
 
   // Benzerlik puanı hesaplama fonksiyonu
-  const hesaplaBenzerlikPuani = (lastik: LastikOnerisi, formData: FormData): number => {
+  const hesaplaBenzerlikPuani = useCallback((analysis: Analysis, formData: FormData): number => {
     let toplamPuan = 0;
     const maxPuan = 100;
 
@@ -200,8 +99,8 @@ const AiOnerisiSection: React.FC<AiOnerisiSectionProps> = ({ formData, t }) => {
         }
       };
 
-      const tip1 = normalizeOzellik(lastik.lastikTipi) as LastikTipi;
-      const tip2 = normalizeOzellik(formData.lastikTipi) as LastikTipi;
+      const tip1 = analysis.lastik_tipi.toLowerCase() as LastikTipi;
+      const tip2 = formData.lastikTipi.toLowerCase() as LastikTipi;
       
       return (lastikTipiEslesme[tip1]?.[tip2] || 0) * 40;
     })();
@@ -214,8 +113,8 @@ const AiOnerisiSection: React.FC<AiOnerisiSectionProps> = ({ formData, t }) => {
         'ekonomik': ['lassa', 'petlas', 'falken', 'kumho']
       };
 
-      const marka1 = normalizeOzellik(lastik.marka);
-      const marka2 = normalizeOzellik(formData.marka);
+      const marka1 = analysis.marka.toLowerCase();
+      const marka2 = formData.marka.toLowerCase();
 
       if (marka1 === marka2) return 25;
       
@@ -232,7 +131,16 @@ const AiOnerisiSection: React.FC<AiOnerisiSectionProps> = ({ formData, t }) => {
     const ebatPuan = (() => {
       if (!formData.ebat) return 0;
 
-      const ebat1 = parseEbat(lastik.ebat);
+      const parseEbat = (ebat: string) => {
+        const [genislik, oran, cap] = ebat.split(/[\/R]/);
+        return {
+          genislik: parseInt(genislik),
+          oran: parseInt(oran),
+          cap: parseInt(cap)
+        };
+      };
+
+      const ebat1 = parseEbat(analysis.ebat);
       const ebat2 = parseEbat(formData.ebat);
 
       let puan = 0;
@@ -260,8 +168,8 @@ const AiOnerisiSection: React.FC<AiOnerisiSectionProps> = ({ formData, t }) => {
     const modelPuan = (() => {
       if (!formData.model) return 0;
 
-      const model1 = normalizeOzellik(lastik.model);
-      const model2 = normalizeOzellik(formData.model);
+      const model1 = analysis.model.toLowerCase();
+      const model2 = formData.model.toLowerCase();
 
       // Model serisi benzerliği
       const modelSerileri = {
@@ -292,55 +200,134 @@ const AiOnerisiSection: React.FC<AiOnerisiSectionProps> = ({ formData, t }) => {
     toplamPuan = lastikTipiPuan + markaPuan + ebatPuan + modelPuan;
 
     // Güvenilirlik puanını da dikkate al
-    const guvenilirlikEtkisi = lastik.guvenirlikPuani / 100;
+    const guvenilirlikEtkisi = analysis.safety_score / 100;
     toplamPuan = toplamPuan * (0.8 + 0.2 * guvenilirlikEtkisi);
 
     return Math.round(toplamPuan);
-  };
+  }, []);
 
   // Önerileri güncelleme fonksiyonu
-  const guncelleOneriler = () => {
+  const guncelleOneriler = useCallback(() => {
     if (!formData.lastikTipi || !formData.marka || !formData.ebat) {
-      // Temel kriterler eksikse varsayılan önerileri göster
-      setOneriler(tumLastikler.slice(0, 4));
+      setFilteredAnalyses([]);
       return;
     }
 
-    // Tüm lastiklere benzerlik puanı hesapla
-    const puanliLastikler = tumLastikler.map(lastik => ({
-      ...lastik,
-      uygunlukPuani: hesaplaBenzerlikPuani(lastik, formData)
+    // Tüm analizlere benzerlik puanı hesapla
+    const puanliAnalizler = analyses.map(analysis => ({
+      ...analysis,
+      uygunlukPuani: hesaplaBenzerlikPuani(analysis, formData)
     }));
 
     // Puanlarına göre sırala ve en iyi 4 öneriyi al
-    const siraliOneriler = puanliLastikler
+    const siraliOneriler = puanliAnalizler
       .sort((a, b) => {
         // Önce uygunluk puanına göre sırala
         if (b.uygunlukPuani !== a.uygunlukPuani) {
           return b.uygunlukPuani - a.uygunlukPuani;
         }
-        // Uygunluk puanları eşitse güvenilirlik puanına göre sırala
-        return b.guvenirlikPuani - a.guvenirlikPuani;
+        // Uygunluk puanları eşitse güvenlik skoruna göre sırala
+        return b.safety_score - a.safety_score;
       })
       .slice(0, 4);
 
-    setOneriler(siraliOneriler);
-  };
+    setFilteredAnalyses(siraliOneriler);
+  }, [formData, analyses, hesaplaBenzerlikPuani]);
 
   // Form verisi değiştiğinde önerileri güncelle
   useEffect(() => {
     guncelleOneriler();
-  }, [formData]);
+  }, [guncelleOneriler]);
+
+  // Fiyat hesaplama fonksiyonu
+  const hesaplaFiyat = useCallback((analysis: Analysis): number => {
+    // Temel fiyat faktörleri
+    const ebatFaktoru = analysis.ebat.includes('R17') ? 1.2 : 
+                        analysis.ebat.includes('R18') ? 1.4 : 
+                        analysis.ebat.includes('R19') ? 1.6 : 1.0;
+    
+    const markaFaktoru = analysis.marka_puani / 100;
+    
+    const performansFaktoru = analysis.safety_score / 100;
+    
+    // Temel fiyat (TL)
+    const temelFiyat = 2500;
+    
+    // Hesaplanan fiyat
+    return Math.round(temelFiyat * ebatFaktoru * (1 + markaFaktoru) * (1 + performansFaktoru));
+  }, []);
 
   // Fiyat formatı
-  const formatFiyat = (fiyat: number) => {
+  const formatFiyat = useCallback((fiyat: number) => {
     return new Intl.NumberFormat('tr-TR', {
       style: 'currency',
       currency: 'TRY',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(fiyat);
-  };
+  }, []);
+
+  // Yükleme durumu
+  if (loading) {
+    return (
+      <div className="bg-dark-200 p-4 sm:p-8 rounded-xl border border-gray-700 shadow-lg mt-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-dark-300 rounded w-48"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-dark-300 rounded-lg p-4 h-80"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Hata durumu
+  if (error) {
+    return (
+      <div className="bg-dark-200 p-4 sm:p-8 rounded-xl border border-gray-700 shadow-lg mt-8">
+        <div className="flex items-center justify-center p-8 text-center">
+          <div className="bg-red-500/20 p-4 rounded-lg">
+            <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+            <p className="text-red-500 font-medium">{error}</p>
+            <button 
+              onClick={fetchAnalyses}
+              className="mt-4 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded transition-colors"
+            >
+              Tekrar Dene
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Veri yoksa
+  if (analyses.length === 0) {
+    return (
+      <div className="bg-dark-200 p-4 sm:p-8 rounded-xl border border-gray-700 shadow-lg mt-8">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-semibold text-white mb-4">AI Lastik Önerisi</h2>
+          <p className="text-gray-400 mb-4">Henüz hiç lastik analizi yapmadınız.</p>
+          <p className="text-gray-400">Lastik analizi yaparak size özel öneriler alabilirsiniz.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Öneri yoksa
+  if (filteredAnalyses.length === 0) {
+    return (
+      <div className="bg-dark-200 p-4 sm:p-8 rounded-xl border border-gray-700 shadow-lg mt-8">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-semibold text-white mb-4">AI Lastik Önerisi</h2>
+          <p className="text-gray-400 mb-4">Seçtiğiniz kriterlere uygun lastik bulunamadı.</p>
+          <p className="text-gray-400">Lütfen farklı kriterler seçerek tekrar deneyin.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-dark-200 p-4 sm:p-8 rounded-xl border border-gray-700 shadow-lg mt-8">
@@ -348,9 +335,9 @@ const AiOnerisiSection: React.FC<AiOnerisiSectionProps> = ({ formData, t }) => {
         AI Lastik Önerisi
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {oneriler.map((lastik) => (
+        {filteredAnalyses.map((analysis) => (
           <motion.div
-            key={lastik.id}
+            key={analysis.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -358,41 +345,41 @@ const AiOnerisiSection: React.FC<AiOnerisiSectionProps> = ({ formData, t }) => {
           >
             <div className="relative h-48 mb-4 rounded-lg overflow-hidden">
               <Image
-                src={lastik.gorselUrl}
-                alt={`${lastik.marka} ${lastik.model}`}
+                src={analysis.image_url || '/images/tire-placeholder.jpg'}
+                alt={`${analysis.marka} ${analysis.model}`}
                 fill
                 className="object-cover"
               />
             </div>
             <div className="flex justify-between items-start mb-2">
               <div>
-                <h3 className="text-lg font-semibold text-white">{lastik.marka}</h3>
-                <p className="text-gray-400">{lastik.model}</p>
+                <h3 className="text-lg font-semibold text-white">{analysis.marka}</h3>
+                <p className="text-gray-400">{analysis.model}</p>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center bg-green-500/20 px-2 py-1 rounded">
                   <ShieldCheck className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-green-500">%{lastik.guvenirlikPuani}</span>
+                  <span className="text-green-500">%{analysis.safety_score}</span>
                 </div>
                 <div className="flex items-center bg-blue-500/20 px-2 py-1 rounded">
                   <ThumbsUp className="w-4 h-4 text-blue-500 mr-1" />
-                  <span className="text-blue-500">%{lastik.uygunlukPuani}</span>
+                  <span className="text-blue-500">%{analysis.uygunlukPuani}</span>
                 </div>
               </div>
             </div>
             <div className="flex flex-wrap gap-2 mb-4">
-              {lastik.ozellikler.map((ozellik, index) => (
+              {analysis.ai_analiz?.oneriler?.slice(0, 3).map((oneri: string, index: number) => (
                 <span
                   key={index}
                   className="text-xs bg-primary/10 text-primary px-2 py-1 rounded"
                 >
-                  {ozellik}
+                  {oneri}
                 </span>
               ))}
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xl font-bold text-white">
-                {formatFiyat(lastik.fiyat)}
+                {formatFiyat(hesaplaFiyat(analysis))}
               </span>
               <button
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-3 py-1.5 rounded transition-colors"

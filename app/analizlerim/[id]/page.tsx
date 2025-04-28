@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { FaDownload } from 'react-icons/fa';
+import AnalysisResultsSection from '../../analiz/components/AnalysisResultsSection';
+import AiAnalysisSection from '../../analiz/components/AiAnalysisSection';
 
 interface Analysis {
   id: string;
@@ -27,11 +29,14 @@ interface Analysis {
   bakim_ihtiyaclari: any;
   ai_analiz: any;
   image_url: string;
+  oneriler?: string[];
+  ozet?: string;
 }
 
 export default function AnalysisDetailPage({ params }: { params: { id: string } }) {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAnalysisResults, setShowAnalysisResults] = useState(false);
 
   useEffect(() => {
     fetchAnalysis();
@@ -46,13 +51,36 @@ export default function AnalysisDetailPage({ params }: { params: { id: string } 
         .single();
 
       if (error) throw error;
-      setAnalysis(data);
+      setAnalysis(data as unknown as Analysis);
     } catch (error) {
       console.error('Analiz yüklenirken hata:', error);
     } finally {
       setLoading(false);
     }
   }
+
+  // AnalysisResultsSection için uygun veri dönüşümü
+  const analysisResults = useMemo(() => analysis && ({
+    yasPuani: analysis.yas_puani,
+    kullanimPuani: analysis.kullanim_puani,
+    mevsimselPuan: analysis.mevsimsel_puan,
+    markaPuani: analysis.marka_puani,
+    gorselDurum: analysis.gorsel_durum,
+    safetyScore: analysis.safety_score,
+    sorunlar: analysis.sorunlar,
+    oneriler: analysis.oneriler || [],
+    ozet: analysis.ozet || '',
+    maintenanceNeeds: analysis.bakim_ihtiyaclari || { immediate: [], soon: [], future: [] },
+    estimatedLifespan: analysis.tahmini_omur_km && analysis.tahmini_omur_ay ? { months: analysis.tahmini_omur_ay, confidence: 1 } : { months: 0, confidence: 0 },
+  }), [analysis]);
+  const formData = useMemo(() => analysis && ({
+    lastikTipi: analysis.lastik_tipi,
+    marka: analysis.marka,
+    model: analysis.model,
+    ebat: analysis.ebat,
+    uretimYili: String(analysis.uretim_yili),
+    kilometre: String(analysis.kilometre)
+  }), [analysis]);
 
   if (loading) {
     return (
@@ -169,17 +197,48 @@ export default function AnalysisDetailPage({ params }: { params: { id: string } 
                 </div>
               </div>
 
-              <button
-                onClick={() => {/* PDF export işlemi */}}
-                className="w-full flex items-center justify-center space-x-2 bg-primary text-white py-3 rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                <FaDownload />
-                <span>PDF Olarak İndir</span>
-              </button>
+              <div className="flex flex-col md:flex-row gap-2 mt-2">
+                <button
+                  onClick={() => {/* PDF export işlemi */}}
+                  className="flex-1 flex items-center justify-center space-x-2 bg-primary text-white py-3 rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  <FaDownload />
+                  <span>PDF Olarak İndir</span>
+                </button>
+                <button
+                  onClick={() => setShowAnalysisResults((v) => !v)}
+                  className="flex-1 flex items-center justify-center space-x-2 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  <span>{showAnalysisResults ? 'Analiz Sonuçlarını Gizle' : 'Analiz Sonuçlarını Burada Göster'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
       </div>
+      {showAnalysisResults && analysisResults && formData && (
+        <div className="mt-8 max-w-7xl mx-auto px-4">
+          <AnalysisResultsSection
+            results={analysisResults}
+            filteredSorunlar={analysisResults.sorunlar}
+            setFilteredSorunlar={() => {}}
+            formData={formData}
+            t={{}}
+          />
+          <div className="mb-12">
+            <AiAnalysisSection
+              detayliAnaliz={
+                analysis && analysis.ai_analiz
+                  ? (typeof analysis.ai_analiz === 'string'
+                      ? analysis.ai_analiz
+                      : JSON.stringify(analysis.ai_analiz))
+                  : undefined
+              }
+              t={{}}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 } 

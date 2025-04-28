@@ -1,7 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { FaTachometerAlt, FaTimesCircle } from 'react-icons/fa';
+import { FaTachometerAlt, FaTimesCircle, FaInfoCircle, FaCamera, FaLightbulb, FaExclamationTriangle } from 'react-icons/fa';
 
 interface ImageUploadSectionProps {
   preview: string | null;
@@ -18,6 +18,8 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   handleRemoveImage,
   t
 }) => {
+  const [showGuidelines, setShowGuidelines] = useState(true);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -27,10 +29,66 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
       role="region"
       aria-label={t?.form?.uploadButton || 'Fotoğraf Yükleme Bölümü'}
     >
-      <label className="block text-lg sm:text-xl font-medium text-white mb-4 sm:mb-6 flex items-center">
-        <FaTachometerAlt className="text-primary mr-2" aria-hidden="true" />
-        {t?.form?.uploadButton || 'Fotoğraf Yükleme'}
-      </label>
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <label className="block text-lg sm:text-xl font-medium text-white flex items-center">
+          <FaTachometerAlt className="text-primary mr-2" aria-hidden="true" />
+          {t?.form?.uploadButton || 'Fotoğraf Yükleme'}
+        </label>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowGuidelines(!showGuidelines);
+          }}
+          className="flex items-center text-primary hover:text-primary/80 transition-colors"
+          aria-label="Fotoğraf çekme kılavuzu"
+        >
+          <FaInfoCircle className="w-5 h-5 mr-1" />
+          <span className="text-sm font-medium">Kılavuz</span>
+        </button>
+      </div>
+      
+      {showGuidelines && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6 bg-dark-300 rounded-lg p-4 border border-primary/20"
+        >
+          <h3 className="text-white font-medium mb-3 flex items-center">
+            <FaLightbulb className="text-primary mr-2" />
+            Lastik Fotoğrafı Çekme Kılavuzu
+          </h3>
+          
+          <div className="space-y-3 text-gray-300 text-sm">
+            <div className="flex items-start">
+              <FaCamera className="text-primary mt-1 mr-2 flex-shrink-0" />
+              <p>Lastiği düz bir zeminde, iyi aydınlatılmış ortamda çekin.</p>
+            </div>
+            
+            <div className="flex items-start">
+              <FaCamera className="text-primary mt-1 mr-2 flex-shrink-0" />
+              <p>Lastiğin tamamını gösteren, yandan çekilmiş bir fotoğraf yükleyin.</p>
+            </div>
+            
+            <div className="flex items-start">
+              <FaCamera className="text-primary mt-1 mr-2 flex-shrink-0" />
+              <p>Lastik yanak kısmını (üzerinde ebat, marka ve model bilgilerinin olduğu kısım) net gösterin.</p>
+            </div>
+            
+            <div className="flex items-start">
+              <FaExclamationTriangle className="text-yellow-500 mt-1 mr-2 flex-shrink-0" />
+              <p>Karanlık, bulanık veya kısmi görüntüler analiz sonuçlarını olumsuz etkileyebilir.</p>
+            </div>
+            
+            <div className="flex items-start">
+              <FaExclamationTriangle className="text-yellow-500 mt-1 mr-2 flex-shrink-0" />
+              <p>Maksimum dosya boyutu: 5MB. Desteklenen formatlar: PNG, JPG, GIF</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
       
       {!preview ? (
         <div className="space-y-3 text-center">
