@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { FaExclamationTriangle, FaExclamationCircle, FaInfoCircle } from 'react-icons/fa';
 import { AnalysisResult } from '../types';
+import { Tooltip } from 'react-tooltip';
 
 type Severity = 'high' | 'medium' | 'low';
 type Urgency = 'immediate' | 'soon' | 'monitor' | 'optional';
@@ -12,12 +13,14 @@ interface Sorun {
   severity: Severity;
   urgency: Urgency;
   confidence: number;
-  recommendations: string[];
+  recommendations?: string[];
   location?: string;
   visualSigns?: string;
   problemOrigin?: string;
-  suggestedAction?: string;
-  maintenanceType?: 'replacement' | 'repair' | 'adjustment' | 'monitoring';
+  suggestedAction: string;
+  estimatedCost: 'high' | 'medium' | 'low';
+  safetyImpact: 'critical' | 'significant' | 'moderate' | 'minor';
+  maintenanceType: 'replacement' | 'repair' | 'adjustment' | 'monitoring';
 }
 
 interface SorunlarSectionProps {
@@ -50,17 +53,23 @@ const SorunlarSection = ({ sorunlar, setFilteredSorunlar, filteredSorunlar, t }:
           return severityOrder[a.severity] - severityOrder[b.severity];
         });
         break;
-      case 'urgency-immediate':
+      case 'urgency':
+        results.sort((a, b) => {
+          const urgencyOrder = { immediate: 0, soon: 1, monitor: 2, optional: 3 };
+          return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+        });
+        break;
+      case 'confidence-high-first':
+        results.sort((a, b) => b.confidence - a.confidence);
+        break;
+      case 'high-severity':
+        results = results.filter(sorun => sorun.severity === 'high');
+        break;
+      case 'immediate':
         results = results.filter(sorun => sorun.urgency === 'immediate');
         break;
-      case 'urgency-soon':
-        results = results.filter(sorun => sorun.urgency === 'soon');
-        break;
-      case 'confidence-high':
-        results = results.filter(sorun => sorun.confidence >= 0.7);
-        break;
-      case 'confidence-low':
-        results = results.filter(sorun => sorun.confidence < 0.7);
+      case 'replacement':
+        results = results.filter(sorun => sorun.maintenanceType === 'replacement');
         break;
       default:
         break;
@@ -154,11 +163,19 @@ const SorunlarSection = ({ sorunlar, setFilteredSorunlar, filteredSorunlar, t }:
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
-                <div className={`w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full ${
-                  sorun.severity === 'high' ? 'bg-red-500' :
-                  sorun.severity === 'medium' ? 'bg-yellow-500' :
-                  'bg-green-500'
-                }`} />
+                {sorun.severity ? (
+                  <span className="flex items-center justify-center">
+                    {sorun.severity === 'high' && (
+                      <FaExclamationTriangle className="text-red-500 w-4 h-4" title="Yüksek Risk" />
+                    )}
+                    {sorun.severity === 'medium' && (
+                      <FaExclamationCircle className="text-yellow-500 w-4 h-4" title="Orta Risk" />
+                    )}
+                    {sorun.severity === 'low' && (
+                      <FaInfoCircle className="text-blue-500 w-4 h-4" title="Düşük Risk" />
+                    )}
+                  </span>
+                ) : null}
                 <h4 className="text-sm sm:text-base font-medium text-white">
                   {sorun.type}
                 </h4>
@@ -234,7 +251,7 @@ const SorunlarSection = ({ sorunlar, setFilteredSorunlar, filteredSorunlar, t }:
             <div className="flex flex-wrap items-center gap-2 mt-2">
               {/* Aciliyet gösterimi */}
               <span 
-                className={`px-2 py-0.5 rounded-full text-xs cursor-help ${
+                className={`px-2 py-0.5 rounded-full text-xs cursor-help font-semibold shadow-sm transition-colors duration-200 ${
                   sorun.urgency === 'immediate' ? 'bg-red-500/10 text-red-400' :
                   sorun.urgency === 'soon' ? 'bg-yellow-500/10 text-yellow-400' :
                   sorun.urgency === 'monitor' ? 'bg-blue-500/10 text-blue-400' :
@@ -244,32 +261,32 @@ const SorunlarSection = ({ sorunlar, setFilteredSorunlar, filteredSorunlar, t }:
               >
                 {getUrgencyText(sorun.urgency)}
               </span>
-              
-              {/* Bakım tipi gösterimi - monitoring/monitor dışındakiler için */}
-              {!(sorun.maintenanceType === 'monitoring') && (
-                <span 
-                  className={`px-2 py-0.5 rounded-full text-xs cursor-help ${
-                    sorun.maintenanceType === 'replacement' ? 'bg-red-500/10 text-red-400' :
-                    sorun.maintenanceType === 'repair' ? 'bg-orange-500/10 text-orange-400' :
-                    sorun.maintenanceType === 'adjustment' ? 'bg-yellow-500/10 text-yellow-400' :
-                    'bg-blue-500/10 text-blue-400'
-                  }`}
-                  title={
-                    sorun.maintenanceType === 'replacement' 
-                      ? 'Değişim: Lastiğin yenisiyle değiştirilmesi gerekiyor'
-                      : sorun.maintenanceType === 'repair' 
-                      ? 'Tamir: Uygun bir tamir işlemi ile çözülebilir'
-                      : sorun.maintenanceType === 'adjustment' 
-                      ? 'Ayarlama: Basınç, balans veya rot ayarı gerekiyor'
-                      : 'İzleme: Düzenli kontrol edilmesi yeterli'
-                  }
-                >
-                  {sorun.maintenanceType === 'replacement' ? 'Değişim Gerekli' :
-                   sorun.maintenanceType === 'repair' ? 'Tamir Gerekli' :
-                   sorun.maintenanceType === 'adjustment' ? 'Ayarlama Gerekli' :
-                   'İzleme Gerekli'}
-                </span>
-              )}
+              {/* Bakım tipi gösterimi - her zaman göster, modern tooltip ile */}
+              <span
+                data-tooltip-id={`maintenance-tooltip-${index}`}
+                data-tooltip-content={
+                  sorun.maintenanceType === 'replacement'
+                    ? 'Değişim: Lastiğin yenisiyle değiştirilmesi gerekiyor'
+                    : sorun.maintenanceType === 'repair'
+                    ? 'Tamir: Uygun bir tamir işlemi ile çözülebilir'
+                    : sorun.maintenanceType === 'adjustment'
+                    ? 'Ayarlama: Basınç, balans veya rot ayarı gerekiyor'
+                    : 'İzleme: Düzenli kontrol edilmesi yeterli'
+                }
+                className={`px-2 py-0.5 rounded-full text-xs cursor-help font-semibold shadow-sm transition-colors duration-200 ${
+                  sorun.maintenanceType === 'replacement' ? 'bg-red-500/10 text-red-400' :
+                  sorun.maintenanceType === 'repair' ? 'bg-orange-500/10 text-orange-400' :
+                  sorun.maintenanceType === 'adjustment' ? 'bg-yellow-500/10 text-yellow-400' :
+                  sorun.maintenanceType === 'monitoring' ? 'bg-blue-500/10 text-blue-400' :
+                  'bg-blue-500/10 text-blue-400'
+                }`}
+              >
+                {sorun.maintenanceType === 'replacement' ? 'Değişim Gerekli' :
+                 sorun.maintenanceType === 'repair' ? 'Tamir Gerekli' :
+                 sorun.maintenanceType === 'adjustment' ? 'Ayarlama Gerekli' :
+                 'İzleme Gerekli'}
+                <Tooltip id={`maintenance-tooltip-${index}`} place="top" className="z-50 !text-xs !font-medium !bg-dark-400 !text-white !rounded !px-3 !py-2 !shadow-lg" />
+              </span>
               
               <div className="ml-auto flex items-center gap-1 text-xs text-gray-400">
                 <span>Güvenilirlik:</span>

@@ -52,6 +52,7 @@ function AnalizlerimContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'brand'>('date');
   const [showFilters, setShowFilters] = useState(false);
+  const [dateRange, setDateRange] = useState<{start: string, end: string} | null>(null);
 
   // React Query ile veri çekme
   const { data: analyses = [], isLoading, error, refetch } = useQuery<Analysis[], Error>({
@@ -61,11 +62,21 @@ function AnalizlerimContent() {
 
   // Filtreleme ve sıralama
   const filteredAnalyses = analyses
-    .filter((analysis: Analysis) => 
-      analysis.marka.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      analysis.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      analysis.ebat.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    .filter((analysis: Analysis) => {
+      const search = searchTerm.toLowerCase();
+      const createdAtStr = new Date(analysis.created_at).toLocaleDateString('tr-TR');
+      const matchesSearch =
+        analysis.marka.toLowerCase().includes(search) ||
+        analysis.model.toLowerCase().includes(search) ||
+        analysis.ebat.toLowerCase().includes(search) ||
+        analysis.id.toLowerCase().includes(search) ||
+        createdAtStr.includes(search);
+      const matchesDate = !dateRange || (
+        new Date(analysis.created_at) >= new Date(dateRange.start) &&
+        new Date(analysis.created_at) <= new Date(dateRange.end)
+      );
+      return matchesSearch && matchesDate;
+    })
     .sort((a: Analysis, b: Analysis) => {
       if (sortBy === 'date') {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -127,7 +138,17 @@ function AnalizlerimContent() {
                 Toplam {analyses.length} analiz bulundu
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex-1 flex flex-col md:flex-row md:items-center gap-4">
+              <div className="relative w-full md:w-80">
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Marka, model, ebat, tarih veya ID ara..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-dark-200 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className="flex items-center gap-2 px-4 py-2 bg-dark-300 text-white rounded-lg hover:bg-dark-200 transition-colors"
@@ -147,18 +168,6 @@ function AnalizlerimContent() {
                 className="bg-dark-300 rounded-lg p-4 space-y-4"
               >
                 <div className="flex flex-col md:flex-row gap-4">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Marka, model veya ebat ara..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-dark-200 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSortBy('date')}
@@ -181,6 +190,26 @@ function AnalizlerimContent() {
                     >
                       Markaya Göre
                     </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-gray-300 text-sm">Tarih Aralığı:</label>
+                    <input
+                      type="date"
+                      value={dateRange?.start || ''}
+                      onChange={e => setDateRange(r => ({ start: e.target.value, end: r?.end || '' }))}
+                      className="bg-dark-200 text-white rounded px-2 py-1 border border-dark-100"
+                    />
+                    <span className="text-gray-400">-</span>
+                    <input
+                      type="date"
+                      value={dateRange?.end || ''}
+                      onChange={e => setDateRange(r => ({ end: e.target.value, start: r?.start || '' }))}
+                      className="bg-dark-200 text-white rounded px-2 py-1 border border-dark-100"
+                    />
+                    <button
+                      onClick={() => setDateRange(null)}
+                      className="ml-2 px-2 py-1 bg-red-500/10 text-red-400 rounded hover:bg-red-500/20 text-xs"
+                    >Temizle</button>
                   </div>
                 </div>
               </motion.div>

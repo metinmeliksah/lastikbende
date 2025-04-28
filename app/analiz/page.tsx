@@ -178,7 +178,7 @@ export default function AnalizPage() {
         } finally {
           setValidating(false);
         }
-      }, 1200); // 600ms yerine 1200ms bekle - kullanıcı deneyimini iyileştirmek için daha uzun bekleme süresi
+      }, 500); // 1200ms'den 500ms'ye düşürüldü
 
     return timeoutId;
   }, [formData, t.errors]);
