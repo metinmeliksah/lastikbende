@@ -36,6 +36,18 @@ Bu modül, LastikBende platformunun lastik analiz işlevselliğini sağlayan bil
   - Kişiselleştirilmiş bakım önerileri
   - Analiz raporlarını paylaşma ve yorumlama
 
+- **Lastik Karşılaştırma Modülü**
+  - Farklı lastikleri karşılaştırarak en uygun olanı seçin
+  - Ürün özelliklerini yan yana görsel olarak karşılaştırma
+
+- **Bakım Hatırlatıcı Modülü**
+  - Lastik bakım zamanlarını planlama ve yönetme
+  - E-posta, SMS ve push bildirimleri ile hatırlatma
+
+- **Performans Analizi Modülü**
+  - Lastik performans skorları (dayanıklılık, yakıt verimliliği, ses seviyesi, tutunma)
+  - Kullanım geçmişine göre kapsamlı metrik analizleri
+
 ## 📁 Dosya Yapısı
 
 ```
@@ -168,6 +180,48 @@ Lastik uzmanı chatbot ile iletişim sağlayan endpoint.
 ### 4. Doğrulama API `/analiz/api/validate`
 
 Form alanlarını doğrular ve düzeltme önerileri sunar.
+
+### 5. Karşılaştırma API
+
+#### POST `/analiz/api/comparison/create`
+Lastik karşılaştırma listesi oluşturur.
+**Request Body:**
+```json
+{
+  "name": "string",
+  "tires": [{ "productId": "string", "quantity": number }]
+}
+```
+**Response:** kararlı karşılaştırma detayları içerir.
+
+#### GET `/analiz/api/comparison/{id}`
+Karşılaştırma listesi detaylarını getirir.
+
+### 6. Bakım Hatırlatıcı API
+
+#### POST `/analiz/api/maintenance/reminder`
+Bakım hatırlatıcısı oluşturur.
+**Request Body:**
+```json
+{
+  "tireId": "string",
+  "reminderDate": "string",
+  "reminderType": "rotation"
+}
+```
+#### GET `/analiz/api/maintenance/reminders`
+Tüm bakım hatırlatıcılarını listeler.
+
+### 7. Performans Analizi API `/analiz/api/performance/analyze`
+Lastik performans metriklerini değerlendirir.
+**Request Body:**
+```json
+{
+  "tireId": "string",
+  "usageData": { "mileage": number, "installationDate": "string" }
+}
+```
+**Response:** performans skorları ve öneriler.
 
 ## 🤖 Chat Modülü Detayları
 

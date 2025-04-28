@@ -16,7 +16,7 @@ export default function About() {
           
           <div className="flex justify-center mb-8">
             <img
-              src="/images/hakkimizda.jpg"
+              src="/locales/hakkimizda.jpeg"
               alt="LastikBende Hakkımızda"
               className="max-w-xs w-full rounded-lg shadow-md"
             />
