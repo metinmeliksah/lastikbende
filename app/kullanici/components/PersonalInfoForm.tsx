@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 
 interface UserData {
   name: string;
@@ -10,78 +10,69 @@ interface UserData {
 }
 
 interface PersonalInfoFormProps {
-  initialData: UserData;
-  onDataChange: (data: UserData) => void;
+  formData: {
+    name: string;
+    surname: string;
+    email: string;
+    phone: string;
+  };
+  errors?: {
+    name?: string;
+    surname?: string;
+    email?: string;
+    phone?: string;
+  };
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onImageChange?: (file: File) => void;
 }
 
-export default function PersonalInfoForm({ initialData, onDataChange }: PersonalInfoFormProps) {
-  const [userData, setUserData] = useState<UserData>(initialData);
-  const [lastSavedData, setLastSavedData] = useState<UserData>(initialData);
-  const [tempPhone, setTempPhone] = useState('');
+export default function PersonalInfoForm({ formData, errors = {}, onChange, onImageChange }: PersonalInfoFormProps) {
+  const [userData, setUserData] = useState<UserData>(formData);
+  const [lastSavedData, setLastSavedData] = useState<UserData>(formData);
   const [error, setError] = useState('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
-    setUserData(initialData);
-    setLastSavedData(initialData);
-    if (initialData.phone) {
-      const numbers = initialData.phone.replace(/\D/g, '');
-      if (numbers.length >= 10) {
-        setTempPhone(numbers.slice(2).replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3'));
-      }
-    }
+    setUserData(formData);
+    setLastSavedData(formData);
     setError('');
-  }, [initialData]);
+  }, [formData]);
 
   const formatPhoneNumber = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
+    // +90 prefix'ini kaldır
+    const withoutPrefix = value.replace('+90 ', '');
+    // Sadece rakamları al
+    const numbers = withoutPrefix.replace(/\D/g, '');
+    
+    // Formatlama
     if (numbers.length === 0) return '';
-    if (numbers.length === 1 && numbers[0] !== '5') {
-      setError('Telefon numarası 5 ile başlamalıdır');
-      return '';
-    }
     if (numbers.length <= 3) return numbers;
     if (numbers.length <= 6) return `${numbers.slice(0, 3)} ${numbers.slice(3)}`;
     return `${numbers.slice(0, 3)} ${numbers.slice(3, 6)} ${numbers.slice(6, 10)}`;
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
-    setError('');
-
-    if (input === '') {
-      setTempPhone('');
-      const newData = { ...userData, phone: '' };
-      setUserData(newData);
-      onDataChange(newData);
-      return;
-    }
-
-    const numbers = input.replace(/\D/g, '');
-    const limitedNumbers = numbers.slice(0, 10);
-    const formattedValue = formatPhoneNumber(limitedNumbers);
-    setTempPhone(formattedValue);
-    
-    if (formattedValue) {
-      const newData = { ...userData, phone: '+90' + formattedValue.replace(/\s/g, '') };
-      setUserData(newData);
-      onDataChange(newData);
-    }
+  const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatPhoneNumber(e.target.value);
+    const event = {
+      ...e,
+      target: {
+        ...e.target,
+        value: formattedValue
+      }
+    } as ChangeEvent<HTMLInputElement>;
+    onChange(event);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const newData = { ...userData, [name]: value };
     setUserData(newData);
-    onDataChange(newData);
+    onChange(e);
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name } = e.target;
-    if (name === 'phone' && !tempPhone) {
-      setUserData(prev => ({ ...prev, phone: lastSavedData.phone }));
-      setTempPhone(lastSavedData.phone.slice(3).replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3'));
-    } else if (name === 'name' && !userData.name) {
+    if (name === 'name' && !userData.name) {
       setUserData(prev => ({ ...prev, name: lastSavedData.name }));
     } else if (name === 'surname' && !userData.surname) {
       setUserData(prev => ({ ...prev, surname: lastSavedData.surname }));
@@ -93,7 +84,7 @@ export default function PersonalInfoForm({ initialData, onDataChange }: Personal
   const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
     const input = e.target as HTMLInputElement;
     if (input.name === 'phone') {
-      setTempPhone('');
+      setUserData(prev => ({ ...prev, phone: '' }));
     } else {
       input.value = '';
     }
@@ -102,11 +93,28 @@ export default function PersonalInfoForm({ initialData, onDataChange }: Personal
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Dosya boyutu kontrolü (2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Dosya boyutu 2MB\'dan küçük olmalıdır');
+        return;
+      }
+
+      // Dosya tipi kontrolü
+      if (!file.type.match(/^image\/(jpeg|png|gif)$/)) {
+        setError('Sadece JPG, PNG veya GIF dosyaları yükleyebilirsiniz');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Üst bileşene dosyayı ilet
+      if (onImageChange) {
+        onImageChange(file);
+      }
     }
   };
 
@@ -131,7 +139,7 @@ export default function PersonalInfoForm({ initialData, onDataChange }: Personal
               </svg>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/gif"
                 onChange={handleImageChange}
                 className="hidden"
               />
@@ -140,6 +148,7 @@ export default function PersonalInfoForm({ initialData, onDataChange }: Personal
           <div>
             <p className="text-sm text-gray-300">Profil resminizi güncelleyin</p>
             <p className="text-xs text-gray-400">PNG, JPG veya GIF (max. 2MB)</p>
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
           </div>
         </div>
       </div>
@@ -156,8 +165,11 @@ export default function PersonalInfoForm({ initialData, onDataChange }: Personal
               onBlur={handleBlur}
               onClick={handleInputClick}
               placeholder={lastSavedData.name}
-              className="block w-full px-3 py-2 rounded-md border border-dark-100 bg-dark-300 text-gray-100 placeholder:text-gray-400/50 focus:outline-none focus:ring-2 focus:ring-primary"
+              className={`block w-full px-3 py-2 rounded-md border ${
+                errors.name ? 'border-red-500' : 'border-dark-100'
+              } bg-dark-300 text-gray-100 placeholder:text-gray-400/50 focus:outline-none focus:ring-2 focus:ring-primary`}
             />
+            {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Soyad</label>
@@ -169,8 +181,11 @@ export default function PersonalInfoForm({ initialData, onDataChange }: Personal
               onBlur={handleBlur}
               onClick={handleInputClick}
               placeholder={lastSavedData.surname}
-              className="block w-full px-3 py-2 rounded-md border border-dark-100 bg-dark-300 text-gray-100 placeholder:text-gray-400/50 focus:outline-none focus:ring-2 focus:ring-primary"
+              className={`block w-full px-3 py-2 rounded-md border ${
+                errors.surname ? 'border-red-500' : 'border-dark-100'
+              } bg-dark-300 text-gray-100 placeholder:text-gray-400/50 focus:outline-none focus:ring-2 focus:ring-primary`}
             />
+            {errors.surname && <p className="mt-1 text-sm text-red-500">{errors.surname}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">E-posta Adresi</label>
@@ -178,11 +193,9 @@ export default function PersonalInfoForm({ initialData, onDataChange }: Personal
               type="email"
               name="email"
               value={userData.email}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              onClick={handleInputClick}
-              placeholder={lastSavedData.email}
-              className="block w-full px-3 py-2 rounded-md border border-dark-100 bg-dark-300 text-gray-100 placeholder:text-gray-400/50 focus:outline-none focus:ring-2 focus:ring-primary"
+              readOnly
+              disabled
+              className="block w-full px-3 py-2 rounded-md border border-dark-100 bg-dark-400 text-gray-400 cursor-not-allowed focus:outline-none"
             />
           </div>
           <div>
@@ -194,15 +207,14 @@ export default function PersonalInfoForm({ initialData, onDataChange }: Personal
               <input
                 type="tel"
                 name="phone"
-                value={tempPhone}
-                onChange={handlePhoneChange}
-                onBlur={handleBlur}
-                onClick={handleInputClick}
-                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-r-md border border-dark-100 bg-dark-300 text-gray-100 placeholder:text-gray-400/50 focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder={lastSavedData.phone ? lastSavedData.phone.slice(3).replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3') : '5XX XXX XXXX'}
+                value={formatPhoneNumber(userData.phone)}
+                readOnly
+                disabled
+                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-r-md border border-dark-100 bg-dark-400 text-gray-400 cursor-not-allowed focus:outline-none"
+                placeholder="5XX XXX XXXX"
               />
             </div>
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+            <p className="mt-1 text-xs text-primary">E-posta ve telefon bilgilerinizi değiştirmek için admin ile iletişime geçiniz</p>
           </div>
         </div>
       </div>

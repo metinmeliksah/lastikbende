@@ -15,6 +15,13 @@ const cache = new Map<string, CacheItem>();
 // Önbellek süresi varsayılanları (saniye cinsinden)
 const DEFAULT_TTL = 3600; // 1 saat
 
+// Önbellek anahtarı önekleri
+const CACHE_PREFIXES = {
+  PDF: 'pdf_',
+  ANALYSIS: 'analysis_',
+  IMAGE: 'image_'
+};
+
 /**
  * Cache Adapter
  */
@@ -71,12 +78,31 @@ export const cacheAdapter = {
   },
 
   /**
+   * Belirli bir önek ile başlayan tüm önbellek anahtarlarını temizler
+   * @param prefix Temizlenecek önbellek anahtarlarının öneki
+   */
+  async clearByPrefix(prefix: string): Promise<void> {
+    Array.from(cache.keys()).forEach(key => {
+      if (key.startsWith(prefix)) {
+        cache.delete(key);
+      }
+    });
+    console.log(`[Cache] Cleared all cache items with prefix: ${prefix}`);
+  },
+
+  /**
    * Tüm önbelleği temizlemek için
    * Sayfa yenilendiğinde veya oturum sonlandığında kullanışlı
+   * Kullanıcı oturumunu etkilemeyecek şekilde tasarlandı
    */
   async clearAll(): Promise<void> {
-    cache.clear();
-    console.log('[Cache] All cache data has been cleared.');
+    // Sadece uygulama önbelleğini temizle, oturum verilerini koru
+    Array.from(cache.keys()).forEach(key => {
+      if (Object.values(CACHE_PREFIXES).some(prefix => key.startsWith(prefix))) {
+        cache.delete(key);
+      }
+    });
+    console.log('[Cache] All application cache data has been cleared.');
   },
 
   /**
@@ -93,7 +119,10 @@ export const cacheAdapter = {
 if (typeof window !== 'undefined') {
   // Sayfa yenilenirken veya kapatılırken
   window.addEventListener('beforeunload', () => {
-    cacheAdapter.clearAll();
+    // Sadece uygulama önbelleğini temizle
+    cacheAdapter.clearByPrefix(CACHE_PREFIXES.PDF);
+    cacheAdapter.clearByPrefix(CACHE_PREFIXES.ANALYSIS);
+    cacheAdapter.clearByPrefix(CACHE_PREFIXES.IMAGE);
   });
 }
 

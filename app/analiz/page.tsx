@@ -11,6 +11,8 @@ import './styles.css';
 import { cacheAdapter } from './lib/cacheAdapter';
 import { saveAnalysis } from './services/analysisService';
 import { toast } from 'react-hot-toast';
+import Link from 'next/link';
+import { getSupabaseClient } from '@/lib/supabase';
 
 import { FormData, FieldStatus, AnalysisResult } from './types';
 import FormSection from './components/FormSection';
@@ -64,50 +66,33 @@ export default function AnalizPage() {
     kilometre: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const supabase = getSupabaseClient();
 
   const t = getTranslation();
 
-  // Sayfa yenilendiğinde tüm verileri temizle
+  // Check if user is logged in
   useEffect(() => {
-    // Önbelleği temizle
-    const clearCache = async () => {
-      await cacheAdapter.clearAll();
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsLoggedIn(!!data.session);
     };
-    clearCache();
     
-    // Form verilerini sıfırla
-    setFormData({
-      lastikTipi: '',
-      marka: '',
-      model: '',
-      ebat: '',
-      uretimYili: '',
-      kilometre: ''
+    checkSession();
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
     });
     
-    // Görsel verileri temizle
-    setImageUrl('');
-    setPreview(null);
-    setHasTire(false);
-    
-    // Analiz sonuçlarını temizle
-    setResults(null);
-    setFilteredSorunlar(null);
-    
-    // Hata mesajlarını temizle
-    setError(null);
-    
-    // Form alan durumlarını sıfırla
-    setFieldStatus({
-      lastikTipi: { success: false, message: '' },
-      marka: { success: false, message: '' },
-      model: { success: false, message: '' },
-      ebat: { success: false, message: '' },
-      uretimYili: { success: false, message: '' },
-      kilometre: { success: false, message: '' }
-    });
-    
-    // Sayfa kapatılırken de önbelleği temizle
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase.auth]);
+
+  // Sayfa kapatılırken önbelleği temizle
+  useEffect(() => {
+    // Sayfa kapatılırken önbelleği temizle
     window.addEventListener('beforeunload', async () => {
       await cacheAdapter.clearAll();
     });
@@ -485,10 +470,28 @@ export default function AnalizPage() {
       } catch (saveError: any) {
         // Kullanıcı giriş yapmamışsa, analizi kaydetmeden devam et
         if (saveError.message === 'Kullanıcı girişi gerekli') {
-          toast('Analiz sonuçlarınızı kaydetmek için lütfen giriş yapın', {
-            icon: 'ℹ️',
-            duration: 4000,
-          });
+          toast(
+            <div className="flex flex-col gap-2">
+              <p>Analiz başarıyla tamamlandı fakat kaydedilemedi.</p>
+              <p>Analiz sonuçlarınızı kaydetmek için lütfen giriş yapın.</p>
+              <Link 
+                href="/kullanici/giris" 
+                className="text-primary hover:text-primary/80 underline mt-2"
+              >
+                Giriş Yap
+              </Link>
+            </div>,
+            {
+              icon: 'ℹ️',
+              duration: 6000,
+              style: {
+                background: '#1f2937',
+                color: '#fff',
+                padding: '16px',
+                borderRadius: '8px',
+              }
+            }
+          );
         } else {
           console.error('Analiz kaydetme hatası:', saveError);
           toast.error('Analiz kaydedilirken bir hata oluştu');
