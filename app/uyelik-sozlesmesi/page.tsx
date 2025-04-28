@@ -115,8 +115,80 @@ const MembershipAgreement = () => {
               {isLoading ? t('agreement.downloading') : t('agreement.download')}
             </button>
           </div>
-
           {/* Agreement Content */}
+          <div></div> className="space-y-6"{'>'}
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">1. Üyelik Koşulları</h2>
+              <p className="text-gray-600">
+                Lastik Bende platformuna üye olarak, aşağıdaki koşulları kabul etmiş sayılırsınız:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 mt-4 space-y-2">
+                <li>18 yaşından büyük olduğunuzu</li>
+                <li>Verdiğiniz bilgilerin doğru ve güncel olduğunu</li>
+                <li>Platform kurallarına uyacağınızı</li>
+                <li>Gizlilik politikamızı kabul ettiğinizi</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">2. Üye Hakları ve Sorumlulukları</h2>
+              <p className="text-gray-600">
+                Üyelerimizin hakları ve sorumlulukları aşağıdaki gibidir:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 mt-4 space-y-2">
+                <li>Hesap bilgilerinizi güvenli tutmak</li>
+                <li>Platformu yasalara uygun kullanmak</li>
+                <li>Diğer kullanıcılara saygılı olmak</li>
+                <li>İade ve değişim politikalarına uymak</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">3. Gizlilik ve Veri Kullanımı</h2>
+              <p className="text-gray-600">
+                Kişisel verilerinizin kullanımı ve korunması hakkında:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 mt-4 space-y-2">
+                <li>Kişisel bilgileriniz güvenli bir şekilde saklanır</li>
+                <li>SSL şifreleme teknolojisi kullanılır</li>
+                <li>Verileriniz üçüncü şahıslarla paylaşılmaz</li>
+                <li>Çerez kullanımı hakkında bilgilendirilirsiniz</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">4. İade ve Değişim Politikası</h2>
+              <p className="text-gray-600">
+                Ürün iade ve değişim koşulları:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 mt-4 space-y-2">
+                <li>İade talepleri 3 iş günü içinde bildirilmelidir</li>
+                <li>Ürün orijinal durumunda olmalıdır</li>
+                <li>İkinci el lastikler için özel koşullar geçerlidir</li>
+                <li>Kargo ücretleri iade kapsamında değildir</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">5. İletişim ve Destek</h2>
+              <p className="text-gray-600">
+                Bize ulaşabileceğiniz kanallar:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 mt-4 space-y-2">
+                <li>E-posta: destek@lastikbende.com</li>
+                <li>Telefon: +90 532 123 45 67</li>
+                <li>Çalışma Saatleri: Hafta içi 09:00-18:00</li>
+                <li>Sosyal Medya: @lastikbende</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">6. Sözleşme Değişiklikleri</h2>
+              <p className="text-gray-600">
+                Lastik Bende, bu sözleşmeyi önceden haber vermeksizin değiştirme hakkını saklı tutar.
+                Değişiklikler platform üzerinden duyurulur ve yürürlüğe girdiği tarihten itibaren geçerli olur.
+              </p>
+            </div>
           <div className="prose prose-invert max-w-none">
             {Object.keys(t('agreement.sections', { returnObjects: true })).map((sectionKey) => (
               <section key={sectionKey} className="mb-8">

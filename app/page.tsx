@@ -6,11 +6,11 @@ import Services from '@/components/Services'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-dark-400">
+    <div className="min-h-screen bg-dark-400">
       <Hero />
       <Services />
       <FeaturedProducts />
       <Categories />
-    </main>
+    </div>
   )
 } 
