@@ -206,7 +206,7 @@ export default function SepetPage() {
       faturaAdresi: adresler.find(a => a.id === secilenFaturaAdresi)
     };
     localStorage.setItem('sepetVerisi', JSON.stringify(sepetVerisi));
-    router.push('/odeme');
+    router.push('/sepet/odeme');
   };
 
   return (

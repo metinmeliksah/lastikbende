@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { CreditCard, Building2, FileText, Check } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { toast } from 'react-hot-toast';
 
 type PaymentMethod = 'credit-card' | 'bank-transfer';
 type CardType = 'visa' | 'mastercard' | 'amex' | 'troy' | null;
@@ -60,7 +61,14 @@ interface SepetVerisi {
   };
 }
 
-const PaymentPage = () => {
+interface SiparisResponse {
+  success: boolean;
+  message: string;
+  siparisNo?: string;
+  error?: string;
+}
+
+const OdemePage = () => {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit-card');
   const [isAgreementAccepted, setIsAgreementAccepted] = useState(false);
@@ -183,11 +191,30 @@ const PaymentPage = () => {
     }));
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid()) return;
-    // Ödeme işlemi burada gerçekleştirilecek
-    console.log('Ödeme yapılıyor...');
+    
+    if (!isFormValid()) {
+      toast.error('Lütfen tüm alanları doğru şekilde doldurunuz.');
+      return;
+    }
+
+    if (!isAgreementAccepted) {
+      toast.error('Lütfen sözleşmeleri kabul ediniz.');
+      return;
+    }
+    
+    try {
+      // Simüle edilmiş başarılı sipariş yanıtı
+      const siparisNo = Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('siparisNo', siparisNo);
+      
+      // Başarılı sipariş durumunda onay sayfasına yönlendir
+      router.push('/sepet/odeme/onay');
+    } catch (error) {
+      toast.error('Sipariş oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
+      console.error('Sipariş oluşturma hatası:', error);
+    }
   };
 
   return (
@@ -570,7 +597,7 @@ const PaymentPage = () => {
                 </div>
               )}
 
-              {/* Sözleşme Onayı */}
+              {/* Sözleşme Onayı ve Sipariş Butonu */}
               <div className="mt-4 space-y-4">
                 <div className="flex items-start gap-2">
                   <input
@@ -593,6 +620,7 @@ const PaymentPage = () => {
                 </div>
 
                 <button
+                  type="button"
                   onClick={handlePaymentSubmit}
                   disabled={!isAgreementAccepted || !isFormValid()}
                   className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
@@ -609,4 +637,4 @@ const PaymentPage = () => {
   );
 };
 
-export default PaymentPage; 
+export default OdemePage; 
