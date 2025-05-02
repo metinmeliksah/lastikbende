@@ -441,13 +441,21 @@ const OdemePage = () => {
                   <div className="bg-dark-400 p-4 rounded-lg border border-gray-700">
                     <h3 className="text-white font-medium mb-2">Banka Hesap Bilgileri</h3>
                     <div className="space-y-2 text-gray-300">
-                      <p>Banka: Örnek Bank</p>
+                      <p>Banka: Ziraat Bankası</p>
                       <p>IBAN: TR12 3456 7890 1234 5678 9012 34</p>
                       <p>Hesap Sahibi: LastikBende A.Ş.</p>
                     </div>
                   </div>
+                  <div className="bg-dark-400 p-4 rounded-lg border border-gray-700">
+                    <h3 className="text-white font-medium mb-2">Banka Hesap Bilgileri</h3>
+                    <div className="space-y-2 text-gray-300">
+                      <p>Banka: İş Bankası</p>
+                      <p>IBAN: TR42 3456 7890 1234 5678 9012 99</p>
+                      <p>Hesap Sahibi: LastikBende A.Ş.</p>
+                    </div>
+                  </div>
                   <p className="text-sm text-gray-400">
-                    Havale/EFT işleminizi gerçekleştirdikten sonra siparişiniz onaylanacaktır.
+                    Havale/EFT işleminizi gerçekleştirdikten sonra siparişiniz onaylanacaktır. Sipariş numaranızı açıklama kısmına yazmayı unutmayınız.
                   </p>
                 </div>
               )}
