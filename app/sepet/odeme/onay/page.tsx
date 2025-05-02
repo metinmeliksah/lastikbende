@@ -42,14 +42,14 @@ const OnayPage = () => {
         title: 'Sipariş Alındı',
         description: 'Siparişiniz başarıyla oluşturuldu',
         icon: <Check className="w-6 h-6" />,
-        status: 'completed'
+        status: 'current'
       },
       {
         id: 2,
         title: 'Sipariş Onaylandı',
         description: 'Siparişiniz onaylandı ve işleme alındı',
         icon: <Package className="w-6 h-6" />,
-        status: 'current'
+        status: 'upcoming'
       }
     ];
 
