@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import ErrorMessage from './ErrorMessage';
+import { getSupabaseClient } from '@/lib/supabase';
 
 interface AuthFormProps {
   isLogin: boolean;
@@ -18,11 +19,25 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
     lastName: '',
     phone: '',
     termsAccepted: false,
-    marketingAccepted: false
+    marketingAccepted: false,
+    rememberMe: true
   });
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const supabase = getSupabaseClient();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        router.push('/kullanici');
+      }
+    };
+    
+    checkSession();
+  }, [router, supabase.auth]);
 
   const formatPhoneNumber = (value: string) => {
     // Sadece rakamları al
@@ -123,25 +138,34 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
     }
 
     try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          phone: formData.phone ? '+90 ' + formData.phone.replace(/\s/g, '') : ''
-        }),
-      });
+      if (isLogin) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        });
 
-      const data = await response.json();
+        if (error) throw error;
+        
+        // Session is automatically persisted
+        if (data.session) {
+          router.push('/kullanici');
+        }
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              phone: formData.phone ? '+90 ' + formData.phone.replace(/\s/g, '') : '',
+              marketingAccepted: formData.marketingAccepted
+            }
+          }
+        });
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Bir hata oluştu');
+        if (error) throw error;
       }
-
-      router.push('/kullanici');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Bir hata oluştu');
     }
@@ -316,6 +340,21 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
             </div>
           </div>
         )}
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="rememberMe"
+              checked={formData.rememberMe}
+              onChange={handleChange}
+              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+            />
+            <label className="ml-2 block text-sm text-gray-400">
+              Beni hatırla
+            </label>
+          </div>
+        </div>
 
         <button
           type="submit"

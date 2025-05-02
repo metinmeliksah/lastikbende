@@ -20,9 +20,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr">
-      <body className={`${inter.className} bg-dark-400 text-gray-100`}>
+      <body 
+        className={`${inter.className} bg-dark-400 text-gray-100`}
+        suppressHydrationWarning
+      >
         <Navbar />
-        {children}
+        <main className="pt-20">
+          {children}
+        </main>
         <Footer />
       </body>
     </html>

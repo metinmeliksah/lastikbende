@@ -1,253 +1,268 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import PersonalInfoForm from './PersonalInfoForm';
 import PasswordChangeForm from './PasswordChangeForm';
 import CommunicationPreferencesForm from './CommunicationPreferencesForm';
 
-interface UserData {
+interface SettingsFormProps {
+  initialData: {
+    name: string;
+    surname: string;
+    email: string;
+    phone: string;
+    emailNotifications?: boolean;
+    smsNotifications?: boolean;
+    marketingEmails?: boolean;
+  };
+  onSave: (data: {
   name: string;
   surname: string;
   email: string;
   phone: string;
-}
-
-interface SettingsFormProps {
-  initialData: UserData;
-  onSave: (data: UserData) => void;
+    emailNotifications: boolean;
+    smsNotifications: boolean;
+    marketingEmails: boolean;
+    profileImage?: File;
+    currentPassword?: string;
+    newPassword?: string;
+  }) => void;
   onCancel: () => void;
 }
 
 export default function SettingsForm({ initialData, onSave, onCancel }: SettingsFormProps) {
-  const [userData, setUserData] = useState<UserData>(initialData);
-  const [lastSavedData, setLastSavedData] = useState<UserData>(initialData);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwords, setPasswords] = useState({
-    current: '',
-    new: '',
-    confirm: ''
+  const [formData, setFormData] = useState({
+    name: initialData.name,
+    surname: initialData.surname,
+    email: initialData.email,
+    phone: initialData.phone,
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    emailNotifications: initialData.emailNotifications ?? true,
+    smsNotifications: initialData.smsNotifications ?? true,
+    marketingEmails: initialData.marketingEmails ?? false
   });
-  const [preferences, setPreferences] = useState({
-    emailNotification: false,
-    smsNotification: false,
-    phoneCall: false
-  });
-  const [error, setError] = useState('');
-  const [tempPhone, setTempPhone] = useState('');
-  const [isNameFocused, setIsNameFocused] = useState(false);
-  const [isSurnameFocused, setIsSurnameFocused] = useState(false);
-  const [isEmailFocused, setIsEmailFocused] = useState(false);
-  const [isPhoneFocused, setIsPhoneFocused] = useState(false);
+
   const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    surname?: string;
+    email?: string;
+    phone?: string;
+    currentPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+  }>({});
 
-  useEffect(() => {
-    setLastSavedData(initialData);
-    if (initialData.phone) {
-      const numbers = initialData.phone.replace(/\D/g, '');
-      if (numbers.length >= 10) {
-        setTempPhone(numbers.slice(2).replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3'));
-      }
-    }
-  }, [initialData]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const formatPhoneNumber = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length === 0) return '';
-    if (numbers.length === 1 && numbers[0] !== '5') {
-      setError('Telefon numarası 5 ile başlamalıdır');
-      return '';
-    }
-    if (numbers.length <= 3) return numbers;
-    if (numbers.length <= 6) {
-      return `${numbers.slice(0, 3)} ${numbers.slice(3)}`;
-    }
-    return `${numbers.slice(0, 3)} ${numbers.slice(3, 6)} ${numbers.slice(6, 10)}`;
-  };
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+    let isValid = true;
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
-    setError('');
-
-    if (input === '') {
-      setTempPhone('');
-      setUserData(prev => ({ ...prev, phone: '' }));
-      return;
+    // Ad ve soyad kontrolü
+    if (!formData.name.trim()) {
+      newErrors.name = 'Ad alanı zorunludur';
+      isValid = false;
     }
 
-    const numbers = input.replace(/\D/g, '');
-    const limitedNumbers = numbers.slice(0, 10);
-    const formattedValue = formatPhoneNumber(limitedNumbers);
-    setTempPhone(formattedValue);
-    setUserData(prev => ({ ...prev, phone: '+90 ' + formattedValue.replace(/\s/g, '') }));
-  };
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name } = e.target;
-    if (name === 'phone' && !tempPhone) {
-      setUserData(prev => ({ ...prev, phone: lastSavedData.phone }));
-      setTempPhone(lastSavedData.phone.slice(3).replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3'));
-    } else if (name === 'name' && !userData.name) {
-      setUserData(prev => ({ ...prev, name: lastSavedData.name }));
-    } else if (name === 'surname' && !userData.surname) {
-      setUserData(prev => ({ ...prev, surname: lastSavedData.surname }));
-    } else if (name === 'email' && !userData.email) {
-      setUserData(prev => ({ ...prev, email: lastSavedData.email }));
-    }
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPasswords(prev => ({ ...prev, [name]: value }));
-    setError('');
-  };
-
-  const validatePasswords = () => {
-    if (passwords.new !== passwords.confirm) {
-      setError('Yeni şifreler eşleşmiyor');
-      return false;
+    if (!formData.surname.trim()) {
+      newErrors.surname = 'Soyad alanı zorunludur';
+      isValid = false;
     }
 
-    if (passwords.new) {
-      const hasUpperCase = /[A-Z]/.test(passwords.new);
-      const hasNumber = /[0-9]/.test(passwords.new);
-      
-      if (!hasUpperCase) {
-        setError('Şifreniz en az 1 büyük harf içermelidir');
-        return false;
-      }
-      
-      if (!hasNumber) {
-        setError('Şifreniz en az 1 rakam içermelidir');
-        return false;
+    // Telefon kontrolü
+    const phoneRegex = /^\+?[0-9\s-()]{10,}$/;
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Telefon alanı zorunludur';
+      isValid = false;
+    } else if (!phoneRegex.test(formData.phone)) {
+      newErrors.phone = 'Geçerli bir telefon numarası giriniz';
+      isValid = false;
+    }
+
+    // Şifre değişikliği kontrolü
+    if (formData.newPassword || formData.confirmPassword || formData.currentPassword) {
+      if (!formData.currentPassword) {
+        newErrors.currentPassword = 'Mevcut şifrenizi giriniz';
+        isValid = false;
       }
 
-      if (passwords.new.length < 8) {
-        setError('Şifreniz en az 8 karakter uzunluğunda olmalıdır');
-        return false;
+      if (!formData.newPassword) {
+        newErrors.newPassword = 'Yeni şifrenizi giriniz';
+        isValid = false;
+      } else if (formData.newPassword.length < 6) {
+        newErrors.newPassword = 'Şifre en az 6 karakter olmalıdır';
+        isValid = false;
+      }
+
+      if (!formData.confirmPassword) {
+        newErrors.confirmPassword = 'Yeni şifrenizi tekrar giriniz';
+        isValid = false;
+      } else if (formData.newPassword !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Şifreler eşleşmiyor';
+        isValid = false;
       }
     }
 
-    return true;
+    setErrors(newErrors);
+    return isValid;
   };
 
-  const handleDataChange = (data: UserData) => {
-    setUserData(data);
-    setHasChanges(
-      data.name !== lastSavedData.name ||
-      data.surname !== lastSavedData.surname ||
-      data.email !== lastSavedData.email ||
-      data.phone !== lastSavedData.phone
-    );
+  const handleImageChange = (file: File) => {
+    setProfileImage(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    if (passwords.new && !validatePasswords()) {
-      return;
+    
+    if (validateForm()) {
+      setIsLoading(true);
+      setIsSuccess(false);
+      
+      try {
+        await onSave({
+          name: formData.name,
+          surname: formData.surname,
+          email: formData.email,
+          phone: formData.phone,
+          emailNotifications: formData.emailNotifications,
+          smsNotifications: formData.smsNotifications,
+          marketingEmails: formData.marketingEmails,
+          profileImage: profileImage || undefined,
+          currentPassword: formData.currentPassword || undefined,
+          newPassword: formData.newPassword || undefined
+        });
+        
+        // Şifre alanlarını temizle
+        setFormData(prev => ({
+          ...prev,
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        }));
+        
+        setIsSuccess(true);
+        setTimeout(() => setIsSuccess(false), 3000);
+      } catch (error) {
+        console.error('Ayarlar kaydedilirken hata oluştu:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
+  };
 
-    onSave(userData);
-    setLastSavedData(userData);
-    setHasChanges(false);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    
+    // Checkbox değerlerini konsola yazdır
+    if (type === 'checkbox') {
+      console.log(`Checkbox değişti: ${name}, Yeni değer: ${checked}`);
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    
+    // Hata varsa temizle
+    if (errors[name as keyof typeof errors]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: undefined
+      }));
+    }
   };
 
   const handleCancel = () => {
-    setUserData(lastSavedData);
-    setTempPhone(lastSavedData.phone ? lastSavedData.phone.slice(3).replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3') : '');
-    
-    setPasswords({
-      current: '',
-      new: '',
-      confirm: ''
+    setFormData({
+      name: initialData.name,
+      surname: initialData.surname,
+      email: initialData.email,
+      phone: initialData.phone,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      emailNotifications: initialData.emailNotifications ?? true,
+      smsNotifications: initialData.smsNotifications ?? true,
+      marketingEmails: initialData.marketingEmails ?? false
     });
-    
-    setError('');
-    
-    setHasChanges(false);
-
-    setIsNameFocused(false);
-    setIsSurnameFocused(false);
-    setIsEmailFocused(false);
-    setIsPhoneFocused(false);
-
-    onCancel();
-  };
-
-  const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    const input = e.target as HTMLInputElement;
-    input.value = '';
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setProfileImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleDeleteAccount = () => {
-    if (window.confirm('Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
-      // Hesap silme işlemi burada yapılacak
-      console.log('Hesap silme işlemi başlatıldı');
-    }
+    setProfileImage(null);
+    setErrors({});
+    setIsSuccess(false);
+    if (onCancel) onCancel();
   };
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
-      {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500 rounded text-red-500 text-sm">
-          {error}
-        </div>
-      )}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <p className="mt-1 text-sm text-gray-400">
+        Kişisel bilgilerinizi güncelleyin ve hesap tercihlerinizi yönetin.
+      </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
         <PersonalInfoForm
-          initialData={userData}
-          onDataChange={handleDataChange}
+            formData={formData}
+            errors={errors}
+            onChange={handleInputChange}
+            onImageChange={handleImageChange}
         />
+        </div>
+        
         <div className="space-y-6">
           <PasswordChangeForm
-            onPasswordChange={setPasswords}
+            formData={formData}
+            errors={errors}
+            onChange={handleInputChange}
           />
+          
+          <div className="border-t border-dark-200 pt-6">
           <CommunicationPreferencesForm
-            onPreferencesChange={setPreferences}
+              formData={formData}
+              onChange={handleInputChange}
           />
+          </div>
         </div>
       </div>
-      <div className="flex justify-between items-center pt-6 border-t border-dark-100">
-        <button
-          type="button"
-          onClick={handleDeleteAccount}
-          className="text-red-500 hover:text-red-400 text-sm font-medium"
-        >
-          Hesabı Sil
-        </button>
-        <div className="flex space-x-3">
+
+      <div className="border-t border-dark-200 pt-6">
+        <div className="flex justify-end space-x-4">
           <button
             type="button"
             onClick={handleCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-gray-300"
+            className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white bg-dark-100 hover:bg-dark-200 rounded-md transition-colors"
           >
             İptal
           </button>
           <button
             type="submit"
-            disabled={!hasChanges}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
+            className={`px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-md transition-colors ${
+              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
-            Değişiklikleri Kaydet
+            {isLoading ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Güncelleniyor...
+              </span>
+            ) : (
+              'Güncelle'
+            )}
           </button>
         </div>
+        
+        {isSuccess && (
+          <div className="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded-md">
+            <p className="text-sm text-green-400">
+              Ayarlarınız başarıyla kaydedildi.
+            </p>
+          </div>
+        )}
       </div>
     </form>
   );

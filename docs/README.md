@@ -22,7 +22,7 @@ LastikBende, yapay zeka destekli lastik analizi ve online lastik satışı yapan
 
 ## Ana Özellikler
 
-### 🔍 Lastik Analizi
+### 🔍 Lastik Analizi ve Modüller
 - Yapay zeka destekli görüntü analizi
 - Detaylı lastik durum raporu
 - Güvenlik değerlendirmesi

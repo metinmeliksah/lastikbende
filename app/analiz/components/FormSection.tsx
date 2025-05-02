@@ -82,7 +82,7 @@ const FormSection: React.FC<FormSectionProps> = ({
     const timer = setTimeout(() => {
       setDebouncedModel(formData.model);
       setIsLoadingSizes(false);
-    }, 1500); // Increased to 1500ms (1.5 seconds) delay for better user experience
+    }, 500); // 1500ms'den 500ms'ye düşürüldü
     
     return () => clearTimeout(timer);
   }, [formData.model]);
