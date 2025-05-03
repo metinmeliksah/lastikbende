@@ -88,6 +88,12 @@ body {
   color: white;
 }
 
+/* Yönetici Panel Selection */
+.yonetici-panel-active ::selection {
+  background-color: #2563EB;
+  color: white;
+}
+
 /* Smooth Scrolling */
 html {
   scroll-behavior: smooth;
@@ -105,7 +111,24 @@ html {
   padding-top: env(safe-area-inset-top);
 }
 
+/* Yönetici Panel Styles */
+.yonetici-panel-active body {
+  /* postcss-ignore-next-line */
+  @apply bg-[#F8F9FD] text-gray-800;
+}
+
+.yonetici-panel-active {
+  /* Make sure content doesn't overlap with header/footer */
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
+}
+
 .bayi-page-title {
+  /* postcss-ignore-next-line */
+  @apply text-2xl font-bold text-gray-800 mb-6;
+}
+
+.yonetici-page-title {
   /* postcss-ignore-next-line */
   @apply text-2xl font-bold text-gray-800 mb-6;
 }
@@ -115,9 +138,47 @@ html {
   @apply bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden;
 }
 
+.yonetici-card {
+  /* postcss-ignore-next-line */
+  @apply bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden;
+}
+
 .bayi-content {
   /* postcss-ignore-next-line */
   @apply pt-16 px-6 pb-16;
+}
+
+.yonetici-content {
+  /* postcss-ignore-next-line */
+  @apply pt-16 px-6 pb-16;
+}
+
+/* Yönetici Panel Custom Scrollbar */
+.yonetici-panel-active::-webkit-scrollbar,
+.yonetici-content::-webkit-scrollbar,
+.yonetici-card::-webkit-scrollbar {
+  width: 8px;
+}
+
+.yonetici-panel-active::-webkit-scrollbar-track,
+.yonetici-content::-webkit-scrollbar-track,
+.yonetici-card::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+  border-radius: 8px;
+}
+
+.yonetici-panel-active::-webkit-scrollbar-thumb,
+.yonetici-content::-webkit-scrollbar-thumb,
+.yonetici-card::-webkit-scrollbar-thumb {
+  background-color: #2563EB;
+  border-radius: 8px;
+  border: 2px solid #f1f1f1;
+}
+
+.yonetici-panel-active::-webkit-scrollbar-thumb:hover,
+.yonetici-content::-webkit-scrollbar-thumb:hover,
+.yonetici-card::-webkit-scrollbar-thumb:hover {
+  background-color: #1d4ed8;
 }
 
 /* Media Queries for Mobile Responsiveness */
@@ -131,6 +192,11 @@ html {
     /* postcss-ignore-next-line */
     @apply px-4 pt-12 pb-12;
   }
+
+  .yonetici-content {
+    /* postcss-ignore-next-line */
+    @apply px-4 pt-12 pb-12;
+  }
 }
 
 @media (max-width: 480px) {
@@ -140,6 +206,11 @@ html {
   }
   
   .bayi-page-title {
+    /* postcss-ignore-next-line */
+    @apply text-xl;
+  }
+
+  .yonetici-page-title {
     /* postcss-ignore-next-line */
     @apply text-xl;
   }
