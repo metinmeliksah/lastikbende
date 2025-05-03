@@ -48,15 +48,76 @@ body {
   @apply bg-red-600;
 }
 
+/* Bayi Panel Custom Scrollbar */
+.bayi-panel-active::-webkit-scrollbar,
+.bayi-content::-webkit-scrollbar,
+.bayi-card::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bayi-panel-active::-webkit-scrollbar-track,
+.bayi-content::-webkit-scrollbar-track,
+.bayi-card::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+  border-radius: 8px;
+}
+
+.bayi-panel-active::-webkit-scrollbar-thumb,
+.bayi-content::-webkit-scrollbar-thumb,
+.bayi-card::-webkit-scrollbar-thumb {
+  background-color: #7B68EE;
+  border-radius: 8px;
+  border: 2px solid #f1f1f1;
+}
+
+.bayi-panel-active::-webkit-scrollbar-thumb:hover,
+.bayi-content::-webkit-scrollbar-thumb:hover,
+.bayi-card::-webkit-scrollbar-thumb:hover {
+  background-color: #6355c7;
+}
+
 /* Custom Selection */
 ::selection {
   /* postcss-ignore-next-line */
   @apply bg-primary text-white;
 }
 
+/* Bayi Panel Selection */
+.bayi-panel-active ::selection {
+  background-color: #7B68EE;
+  color: white;
+}
+
 /* Smooth Scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+/* Bayi Panel Styles */
+.bayi-panel-active body {
+  /* postcss-ignore-next-line */
+  @apply bg-[#F8F9FD] text-gray-800;
+}
+
+.bayi-panel-active {
+  /* Make sure content doesn't overlap with header/footer */
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
+}
+
+.bayi-page-title {
+  /* postcss-ignore-next-line */
+  @apply text-2xl font-bold text-gray-800 mb-6;
+}
+
+.bayi-card {
+  /* postcss-ignore-next-line */
+  @apply bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden;
+}
+
+.bayi-content {
+  /* postcss-ignore-next-line */
+  @apply pt-16 px-6 pb-16;
 }
 
 /* Media Queries for Mobile Responsiveness */
@@ -65,11 +126,21 @@ html {
     font-size: 14px;
     padding: 0;
   }
+  
+  .bayi-content {
+    /* postcss-ignore-next-line */
+    @apply px-4 pt-12 pb-12;
+  }
 }
 
 @media (max-width: 480px) {
   body {
     font-size: 12px;
     padding: 0;
+  }
+  
+  .bayi-page-title {
+    /* postcss-ignore-next-line */
+    @apply text-xl;
   }
 } 
