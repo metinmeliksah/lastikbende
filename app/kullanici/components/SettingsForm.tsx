@@ -6,45 +6,25 @@ import PasswordChangeForm from './PasswordChangeForm';
 import CommunicationPreferencesForm from './CommunicationPreferencesForm';
 
 interface SettingsFormProps {
-  initialData: {
+  formData: {
     name: string;
     surname: string;
     email: string;
     phone: string;
-    emailNotifications?: boolean;
-    smsNotifications?: boolean;
-    marketingEmails?: boolean;
-  };
-  onSave: (data: {
-  name: string;
-  surname: string;
-  email: string;
-  phone: string;
     emailNotifications: boolean;
     smsNotifications: boolean;
     marketingEmails: boolean;
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
     profileImage?: File;
-    currentPassword?: string;
-    newPassword?: string;
-  }) => void;
+  };
+  onFormChange: (data: any) => void;
+  onSave: (data: any) => void;
   onCancel: () => void;
 }
 
-export default function SettingsForm({ initialData, onSave, onCancel }: SettingsFormProps) {
-  const [formData, setFormData] = useState({
-    name: initialData.name,
-    surname: initialData.surname,
-    email: initialData.email,
-    phone: initialData.phone,
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-    emailNotifications: initialData.emailNotifications ?? true,
-    smsNotifications: initialData.smsNotifications ?? true,
-    marketingEmails: initialData.marketingEmails ?? false
-  });
-
-  const [profileImage, setProfileImage] = useState<File | null>(null);
+export default function SettingsForm({ formData, onFormChange, onSave, onCancel }: SettingsFormProps) {
   const [errors, setErrors] = useState<{
     name?: string;
     surname?: string;
@@ -54,7 +34,6 @@ export default function SettingsForm({ initialData, onSave, onCancel }: Settings
     newPassword?: string;
     confirmPassword?: string;
   }>({});
-
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -112,38 +91,17 @@ export default function SettingsForm({ initialData, onSave, onCancel }: Settings
   };
 
   const handleImageChange = (file: File) => {
-    setProfileImage(file);
+    onFormChange({ ...formData, profileImage: file });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (validateForm()) {
       setIsLoading(true);
       setIsSuccess(false);
-      
       try {
-        await onSave({
-          name: formData.name,
-          surname: formData.surname,
-          email: formData.email,
-          phone: formData.phone,
-          emailNotifications: formData.emailNotifications,
-          smsNotifications: formData.smsNotifications,
-          marketingEmails: formData.marketingEmails,
-          profileImage: profileImage || undefined,
-          currentPassword: formData.currentPassword || undefined,
-          newPassword: formData.newPassword || undefined
-        });
-        
-        // Şifre alanlarını temizle
-        setFormData(prev => ({
-          ...prev,
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        }));
-        
+        await onSave(formData);
+        onFormChange({ ...formData, currentPassword: '', newPassword: '', confirmPassword: '' });
         setIsSuccess(true);
         setTimeout(() => setIsSuccess(false), 3000);
       } catch (error) {
@@ -156,43 +114,19 @@ export default function SettingsForm({ initialData, onSave, onCancel }: Settings
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    
-    // Checkbox değerlerini konsola yazdır
-    if (type === 'checkbox') {
-      console.log(`Checkbox değişti: ${name}, Yeni değer: ${checked}`);
-    }
-    
-    setFormData(prev => ({
-      ...prev,
+    onFormChange({
+      ...formData,
       [name]: type === 'checkbox' ? checked : value
-    }));
-    
-    // Hata varsa temizle
+    });
     if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: undefined
-      }));
+      setErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
 
   const handleCancel = () => {
-    setFormData({
-      name: initialData.name,
-      surname: initialData.surname,
-      email: initialData.email,
-      phone: initialData.phone,
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-      emailNotifications: initialData.emailNotifications ?? true,
-      smsNotifications: initialData.smsNotifications ?? true,
-      marketingEmails: initialData.marketingEmails ?? false
-    });
-    setProfileImage(null);
+    onCancel();
     setErrors({});
     setIsSuccess(false);
-    if (onCancel) onCancel();
   };
 
   return (
@@ -209,14 +143,12 @@ export default function SettingsForm({ initialData, onSave, onCancel }: Settings
             onImageChange={handleImageChange}
         />
         </div>
-        
         <div className="space-y-6">
           <PasswordChangeForm
             formData={formData}
             errors={errors}
             onChange={handleInputChange}
           />
-          
           <div className="border-t border-dark-200 pt-6">
           <CommunicationPreferencesForm
               formData={formData}
@@ -225,7 +157,6 @@ export default function SettingsForm({ initialData, onSave, onCancel }: Settings
           </div>
         </div>
       </div>
-
       <div className="border-t border-dark-200 pt-6">
         <div className="flex justify-end space-x-4">
           <button
@@ -255,7 +186,6 @@ export default function SettingsForm({ initialData, onSave, onCancel }: Settings
             )}
           </button>
         </div>
-        
         {isSuccess && (
           <div className="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded-md">
             <p className="text-sm text-green-400">

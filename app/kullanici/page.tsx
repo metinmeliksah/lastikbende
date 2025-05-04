@@ -9,6 +9,7 @@ import SupportTickets from './components/SupportTickets';
 import { getSupabaseClient } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { FiCheckCircle, FiAlertCircle, FiInfo } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
 
 interface UserData {
   name: string;
@@ -77,6 +78,21 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const supabase = getSupabaseClient();
   const [userId, setUserId] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const router = useRouter();
+  const [settingsFormData, setSettingsFormData] = useState({
+    name: userData.name,
+    surname: userData.surname,
+    email: userData.email,
+    phone: userData.phone,
+    emailNotifications: userData.emailNotifications,
+    smsNotifications: userData.smsNotifications,
+    marketingEmails: userData.marketingEmails,
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    profileImage: undefined
+  });
 
   // Kullanıcı verilerini yükle
   useEffect(() => {
@@ -191,6 +207,30 @@ export default function Dashboard() {
     };
     fetchUser();
   }, [supabase]);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.replace('/kullanici/giris');
+      } else {
+        setAuthChecked(true);
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('settingsFormData');
+    if (saved) {
+      setSettingsFormData(JSON.parse(saved));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('settingsFormData', JSON.stringify(settingsFormData));
+  }, [settingsFormData]);
 
   const orders = [
     {
@@ -451,6 +491,14 @@ export default function Dashboard() {
     }
   };
 
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-dark-400">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pt-20 bg-dark-400">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -470,44 +518,40 @@ export default function Dashboard() {
           <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           <div className="space-y-6">
-            {activeTab === 'orders' && (
+            <div className={activeTab === 'orders' ? '' : 'hidden'}>
               <div className="space-y-4">
                 <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
                   <h3 className="font-semibold mb-4 text-gray-100">Siparişlerim</h3>
                   <OrderList orders={orders} />
                 </div>
               </div>
-            )}
+            </div>
 
-            {activeTab === 'support' && (
+            <div className={activeTab === 'support' ? '' : 'hidden'}>
               <div className="space-y-4">
                 <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
-                      {userId ? (
-                        <SupportTickets userId={userId} />
-                      ) : (
-                        <div className="text-gray-400">Yükleniyor...</div>
-                      )}
+                  {userId ? (
+                    <SupportTickets userId={userId} />
+                  ) : (
+                    <div className="text-gray-400">Yükleniyor...</div>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
 
-            {activeTab === 'settings' && (
+            <div className={activeTab === 'settings' ? '' : 'hidden'}>
               <div className="space-y-4">
                 <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
                   <h3 className="font-semibold mb-4 text-gray-100">Hesap Ayarları</h3>
                   <SettingsForm 
-                    initialData={{
-                      name: userData.name,
-                      surname: userData.surname,
-                      email: userData.email,
-                      phone: userData.phone
-                    }}
+                    formData={settingsFormData}
+                    onFormChange={setSettingsFormData}
                     onSave={handleSaveSettings}
                     onCancel={() => {}}
                   />
                 </div>
               </div>
-            )}
+            </div>
           </div>
             </>
           )}
