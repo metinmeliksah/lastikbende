@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Eye, EyeOff, LogIn, Lock, Mail, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 
 export default function BayiGiris() {
   const router = useRouter();
@@ -12,36 +13,64 @@ export default function BayiGiris() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
-    if (!email || !password) {
-      setError('Lütfen e-posta ve şifrenizi giriniz.');
-      return;
-    }
+    setLoading(true);
+    setError(null);
 
-    setIsLoading(true);
-    
     try {
-      // Burada gerçek bir API çağrısı yapılacak
-      // Şimdilik simüle ediyoruz
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Örnek doğrulama
-      if (email === 'bayi@lastikbende.com' && password === 'password') {
-        // Giriş başarılı
-        router.push('/bayi');
-      } else {
-        setError('E-posta veya şifre yanlış.');
+      // Önce seller_managers tablosundan kullanıcıyı kontrol et
+      const { data: managerData, error: managerError } = await supabase
+        .from('seller_managers')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .single();
+
+      if (managerError) {
+        throw new Error('Giriş bilgileri hatalı');
       }
-    } catch (err) {
-      setError('Giriş sırasında bir hata oluştu. Lütfen tekrar deneyiniz.');
+
+      if (!managerData) {
+        throw new Error('Giriş bilgileri hatalı');
+      }
+
+      // Durum kontrolü
+      if (!managerData.durum) {
+        throw new Error('Hesabınız askıya alınmıştır. Lütfen yönetici ile iletişime geçin.');
+      }
+
+      // Giriş başarılı, session'a kullanıcı bilgilerini kaydet
+      const session = {
+        user: {
+          id: managerData.id,
+          email: managerData.email,
+          first_name: managerData.first_name,
+          last_name: managerData.last_name,
+          seller_id: managerData.seller_id
+        }
+      };
+
+      // Session'ı localStorage'a kaydet
+      if (rememberMe) {
+        localStorage.setItem('bayiSession', JSON.stringify(session));
+      } else {
+        sessionStorage.setItem('bayiSession', JSON.stringify(session));
+      }
+
+      // Bayi paneline yönlendir
+      router.push('/bayi');
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Bir hata oluştu. Lütfen tekrar deneyin.');
+      }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -49,8 +78,8 @@ export default function BayiGiris() {
     <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">
-          <Image 
-            src="/logo.png" 
+          <Image
+            src="/logo.png"
             alt="LastikBende" 
             width={55} 
             height={55}
@@ -68,7 +97,7 @@ export default function BayiGiris() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleLogin} className="space-y-5">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
             E-posta Adresi
@@ -152,16 +181,16 @@ export default function BayiGiris() {
           <button
             type="submit"
             className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 ${
-              isLoading ? 'opacity-75 cursor-not-allowed' : ''
+              loading ? 'opacity-75 cursor-not-allowed' : ''
             }`}
-            disabled={isLoading}
+            disabled={loading}
           >
-            {isLoading ? (
+            {loading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
             ) : (
               <LogIn className="w-5 h-5 mr-2" />
             )}
-            {isLoading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
+            {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
           </button>
         </div>
       </form>

@@ -180,6 +180,11 @@ export default function YoneticiLayout({
     
     // Giriş sayfasında layout kontrolü yapma
     if (pathname === '/yonetici/giris') {
+      // Eğer giriş sayfasındaysa ve managerData varsa ana sayfaya yönlendir
+      const storedData = localStorage.getItem('managerData');
+      if (storedData) {
+        router.push('/yonetici');
+      }
       return;
     }
 
@@ -194,6 +199,7 @@ export default function YoneticiLayout({
       const data = JSON.parse(storedData);
       setManagerData(data);
     } catch (error) {
+      localStorage.removeItem('managerData');
       router.push('/yonetici/giris');
     }
   }, [pathname, isMounted]);

@@ -95,6 +95,9 @@ export default function YoneticiSidebar({ isSidebarOpen, managerData }: Yonetici
 
   // Çıkış yapma fonksiyonu
   const handleLogout = () => {
+    // LocalStorage'dan yönetici verilerini temizle
+    localStorage.removeItem('managerData');
+    
     // Güvenli yönlendirme
     setTimeout(() => {
       router.push('/yonetici/giris');
