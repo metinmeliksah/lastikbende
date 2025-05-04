@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Eye, EyeOff, LogIn, Lock, Mail, AlertCircle } from 'lucide-react';
+import { signInManager } from '@/app/lib/supabase';
 
 export default function YoneticiGiris() {
   const router = useRouter();
@@ -17,29 +17,23 @@ export default function YoneticiGiris() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
-    if (!email || !password) {
-      setError('Lütfen e-posta ve şifrenizi giriniz.');
-      return;
-    }
-
     setIsLoading(true);
-    
+    setError('');
+
     try {
-      // Burada gerçek bir API çağrısı yapılacak
-      // Şimdilik simüle ediyoruz
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Örnek doğrulama
-      if (email === 'admin@lastikbende.com' && password === 'admin') {
-        // Giriş başarılı
+      const { data, error } = await signInManager(email, password);
+
+      if (error) {
+        setError('Giriş bilgileri hatalı');
+        return;
+      }
+
+      if (data) {
+        localStorage.setItem('managerData', JSON.stringify(data));
         router.push('/yonetici');
-      } else {
-        setError('E-posta veya şifre yanlış.');
       }
     } catch (err) {
-      setError('Giriş sırasında bir hata oluştu. Lütfen tekrar deneyiniz.');
+      setError('Bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setIsLoading(false);
     }
@@ -49,12 +43,12 @@ export default function YoneticiGiris() {
     <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">
-          <Image 
-            src="/logo.png" 
-            alt="LastikBende" 
-            width={55} 
+          <Image
+            src="/logo.png"
+            alt="LastikBende"
+            width={55}
             height={55}
-            className="rounded-lg" 
+            className="rounded-lg"
           />
         </div>
         <h1 className="text-2xl font-bold text-gray-800">Yönetici Giriş Paneli</h1>
@@ -140,12 +134,6 @@ export default function YoneticiGiris() {
               Beni hatırla
             </label>
           </div>
-
-          <div className="text-sm">
-            <Link href="/yonetici/sifremi-unuttum" className="font-medium text-blue-600 hover:text-blue-500">
-              Şifrenizi mi unuttunuz?
-            </Link>
-          </div>
         </div>
 
         <div>
@@ -169,11 +157,6 @@ export default function YoneticiGiris() {
       <div className="mt-6 pt-6 border-t border-gray-200">
         <div className="text-center text-sm text-gray-600">
           Yönetici erişimi sadece yetkili kişilere açıktır.
-        </div>
-        <div className="mt-4 text-center text-sm text-gray-600">
-          <Link href="/" className="font-medium text-blue-600 hover:text-blue-500">
-            Ana siteye dön
-          </Link>
         </div>
       </div>
     </div>

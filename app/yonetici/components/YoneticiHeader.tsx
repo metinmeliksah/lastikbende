@@ -8,9 +8,18 @@ interface YoneticiHeaderProps {
   notifications: number;
   isSidebarOpen: boolean;
   setIsSidebarOpen: (isOpen: boolean) => void;
+  managerData: any;
 }
 
-export default function YoneticiHeader({ notifications, isSidebarOpen, setIsSidebarOpen }: YoneticiHeaderProps) {
+export default function YoneticiHeader({ notifications, isSidebarOpen, setIsSidebarOpen, managerData }: YoneticiHeaderProps) {
+  // Yönetici adını oluştur
+  const managerFullName = managerData ? `${managerData.first_name} ${managerData.last_name}` : 'Yönetici';
+  
+  // Baş harfleri oluştur
+  const initials = managerData ? 
+    `${managerData.first_name?.charAt(0)}${managerData.last_name?.charAt(0)}` : 
+    'Y';
+
   return (
     <header className="bg-white border-b yonetici-header z-30 mt-0 pt-0 sticky top-0">
       <div className="flex items-center justify-between px-6 h-16">
@@ -46,11 +55,17 @@ export default function YoneticiHeader({ notifications, isSidebarOpen, setIsSide
           </button>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-sm font-medium text-blue-600">MY</span>
+              <span className="text-sm font-medium text-blue-600">
+                {initials}
+              </span>
             </div>
             <div className="hidden md:block">
-              <div className="text-sm font-medium text-gray-900">Mehmet Yönetici</div>
-              <div className="text-xs text-gray-500">Sistem Yöneticisi</div>
+              <div className="text-sm font-medium text-gray-900">
+                {managerFullName}
+              </div>
+              <div className="text-xs text-gray-500">
+                {managerData?.position || 'Sistem Yöneticisi'}
+              </div>
             </div>
           </div>
         </div>
