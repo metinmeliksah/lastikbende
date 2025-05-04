@@ -103,10 +103,13 @@ export default function Footer() {
               © 2025 Lastik Bende. Tüm hakları saklıdır.
             </p>
             <div className="mt-4 md:mt-0">
-              <Link href="/gizlilik-politikasi" className="text-gray-400 hover:text-primary text-sm mx-3 focus:outline-none focus-visible:outline-none">
+            <Link href="/sozlesmeler" className="text-gray-400 hover:text-primary text-sm mx-3 focus:outline-none focus-visible:outline-none">
+                Sözleşmeler
+              </Link>
+              <Link href="/sozlesmeler/gizlilik-politikasi" className="text-gray-400 hover:text-primary text-sm mx-3 focus:outline-none focus-visible:outline-none">
                 Gizlilik Politikası
               </Link>
-              <Link href="/kosullar" className="text-gray-400 hover:text-primary text-sm mx-3 focus:outline-none focus-visible:outline-none">
+              <Link href="/sozlesmeler/kullanim-kosullari" className="text-gray-400 hover:text-primary text-sm mx-3 focus:outline-none focus-visible:outline-none">
                 Kullanım Koşulları
               </Link>
             </div>
