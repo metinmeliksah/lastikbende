@@ -36,7 +36,7 @@ export default function Hero() {
 
       <section className="relative h-screen flex items-center justify-center overflow-hidden bg-dark-300">
         {/* Background Image */}
-        <div className="absolute inset-0 z-0">
+        {/* <div className="absolute inset-0 z-0">
           <Image
             src="/hero-bg.jpg"
             alt="Hero Background"
@@ -44,7 +44,7 @@ export default function Hero() {
             className="object-cover opacity-30"
             priority
           />
-        </div>
+        </div> */}
 
         {/* Content */}
         <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8">

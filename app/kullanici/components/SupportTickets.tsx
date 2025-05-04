@@ -11,11 +11,17 @@ export default function SupportTickets({ userId }: { userId: string }) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    category: '',
-    priority: 'medium',
+  const [form, setForm] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('supportTicketForm');
+      if (saved) return JSON.parse(saved);
+    }
+    return {
+      title: '',
+      description: '',
+      category: '',
+      priority: 'medium',
+    };
   });
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -70,6 +76,10 @@ export default function SupportTickets({ userId }: { userId: string }) {
     if (userId) fetchTickets();
   }, [userId]);
 
+  useEffect(() => {
+    localStorage.setItem('supportTicketForm', JSON.stringify(form));
+  }, [form]);
+
   // Dosya yükleme ve talep oluşturma
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,6 +117,7 @@ export default function SupportTickets({ userId }: { userId: string }) {
       setError('Kayıt sırasında hata oluştu.');
     } else {
       setForm({ title: '', description: '', category: '', priority: 'medium' });
+      localStorage.removeItem('supportTicketForm');
       setFile(null);
       setShowForm(false);
       fetchTickets();
@@ -165,7 +176,7 @@ export default function SupportTickets({ userId }: { userId: string }) {
             <input
               type="text"
               value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              onChange={e => setForm((f: typeof form) => ({ ...f, title: e.target.value }))}
               className="w-full px-3 py-2 bg-dark-300 text-gray-100 rounded-md"
               required
             />
@@ -174,7 +185,7 @@ export default function SupportTickets({ userId }: { userId: string }) {
             <label className="block text-sm font-medium text-gray-300 mb-1">Kategori</label>
             <select
               value={form.category}
-              onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+              onChange={e => setForm((f: typeof form) => ({ ...f, category: e.target.value }))}
               className="w-full px-3 py-2 bg-dark-300 text-gray-100 rounded-md"
               required
             >
@@ -190,7 +201,7 @@ export default function SupportTickets({ userId }: { userId: string }) {
             <label className="block text-sm font-medium text-gray-300 mb-1">Öncelik</label>
             <select
               value={form.priority}
-              onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
+              onChange={e => setForm((f: typeof form) => ({ ...f, priority: e.target.value }))}
               className="w-full px-3 py-2 bg-dark-300 text-gray-100 rounded-md"
               required
             >
@@ -203,7 +214,7 @@ export default function SupportTickets({ userId }: { userId: string }) {
             <label className="block text-sm font-medium text-gray-300 mb-1">Açıklama</label>
             <textarea
               value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              onChange={e => setForm((f: typeof form) => ({ ...f, description: e.target.value }))}
               rows={4}
               className="w-full px-3 py-2 bg-dark-300 text-gray-100 rounded-md"
               required
