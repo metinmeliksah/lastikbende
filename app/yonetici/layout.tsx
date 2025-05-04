@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import YoneticiHeader from './components/YoneticiHeader';
 import YoneticiFooter from './components/YoneticiFooter';
 import YoneticiSidebar from './components/YoneticiSidebar';
@@ -26,12 +26,14 @@ export default function YoneticiLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [notifications, setNotifications] = useState(5);
   // Client-side rendering sırasında sunucu tarafında render edilmiş içerikle eşleşmeyen içerik oluşturmamak için
   const [isMounted, setIsMounted] = useState(false);
+  const [managerData, setManagerData] = useState<any>(null);
 
   // Ana sayfa navbar ve footer'ı gizle ve arka plan rengini değiştir
   useEffect(() => {
@@ -176,10 +178,23 @@ export default function YoneticiLayout({
   useEffect(() => {
     if (!isMounted) return;
     
-    // TODO: Burada auth kontrolü yapılacak
-    const isAuthenticated = true; // Örnek değer
-    if (!isAuthenticated && pathname !== '/yonetici/giris') {
-      window.location.href = '/yonetici/giris';
+    // Giriş sayfasında layout kontrolü yapma
+    if (pathname === '/yonetici/giris') {
+      return;
+    }
+
+    // LocalStorage'dan yönetici verilerini kontrol et
+    const storedData = localStorage.getItem('managerData');
+    if (!storedData) {
+      router.push('/yonetici/giris');
+      return;
+    }
+
+    try {
+      const data = JSON.parse(storedData);
+      setManagerData(data);
+    } catch (error) {
+      router.push('/yonetici/giris');
     }
   }, [pathname, isMounted]);
 
@@ -205,7 +220,7 @@ export default function YoneticiLayout({
   return (
     <div className={`${inter.className} min-h-screen bg-[#F8F9FD] flex yonetici-panel-active`} suppressHydrationWarning data-yonetici-layout="true">
       {/* Sidebar */}
-      <MemoizedYoneticiSidebar isSidebarOpen={isSidebarOpen} />
+      <MemoizedYoneticiSidebar isSidebarOpen={isSidebarOpen} managerData={managerData} />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
@@ -214,11 +229,12 @@ export default function YoneticiLayout({
           notifications={notifications} 
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}
+          managerData={managerData}
         />
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto yonetici-content">
-          <div className="py-4">
+          <div className="container mx-auto px-6 py-8">
             {children}
           </div>
         </main>

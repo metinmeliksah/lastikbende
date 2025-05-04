@@ -64,9 +64,10 @@ const menuItems: MenuItem[] = [
 
 interface YoneticiSidebarProps {
   isSidebarOpen: boolean;
+  managerData: any;
 }
 
-export default function YoneticiSidebar({ isSidebarOpen }: YoneticiSidebarProps) {
+export default function YoneticiSidebar({ isSidebarOpen, managerData }: YoneticiSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
