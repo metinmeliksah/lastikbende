@@ -10,6 +10,7 @@ import { getSupabaseClient } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { FiCheckCircle, FiAlertCircle, FiInfo } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
+import { BiLogOut } from 'react-icons/bi';
 
 interface UserData {
   name: string;
@@ -492,6 +493,30 @@ export default function KullaniciPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      setIsLoading(true);
+      await supabase.auth.signOut();
+      toast.custom((t) => (
+        <CustomToast 
+          message="Başarıyla çıkış yapıldı" 
+          type="success" 
+        />
+      ));
+      router.replace('/kullanici/giris');
+    } catch (error) {
+      console.error('Çıkış yapılırken hata:', error);
+      toast.custom((t) => (
+        <CustomToast 
+          message="Çıkış yapılırken bir hata oluştu" 
+          type="error" 
+        />
+      ));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark-400">
@@ -510,12 +535,22 @@ export default function KullaniciPage() {
             </div>
           ) : (
             <>
-          <UserProfile 
-            name={userData.name}
-            surname={userData.surname}
-            email={userData.email}
-                profileImageUrl={userData.profileImageUrl}
-          />
+          <div className="flex justify-between items-center mb-6">
+            <UserProfile 
+              name={userData.name}
+              surname={userData.surname}
+              email={userData.email}
+              profileImageUrl={userData.profileImageUrl}
+            />
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 transition-colors text-white py-2 px-4 rounded-md"
+              disabled={isLoading}
+            >
+              <BiLogOut className="text-lg" />
+              {isLoading ? 'Çıkış yapılıyor...' : 'Çıkış Yap'}
+            </button>
+          </div>
           <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           <div className="space-y-6">
