@@ -314,7 +314,7 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
               </div>
               <div className="ml-3 text-sm">
                 <label className="text-gray-400">
-                  <a href="/uyelik-sozlesmesi" className="text-primary hover:text-red-500" target="_blank">
+                  <a href="/sozlesmeler/uyelik-sozlesmesi" className="text-primary hover:text-red-500" target="_blank">
                     Üyelik Sözleşmesi
                   </a>
                   'ni okudum ve kabul ediyorum.
