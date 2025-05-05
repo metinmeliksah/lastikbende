@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import UserProfile from './components/UserProfile';
 import OrderList from './components/OrderList';
 import SettingsForm from './components/SettingsForm';
@@ -61,7 +61,7 @@ const CustomToast = ({ message, type = 'success' }: { message: string | React.Re
   );
 };
 
-export default function Dashboard() {
+export default function KullaniciPage() {
   const [activeTab, setActiveTab] = useState('orders');
   const [userData, setUserData] = useState<UserData>({
     name: '',
@@ -93,129 +93,31 @@ export default function Dashboard() {
     confirmPassword: '',
     profileImage: undefined
   });
-
-  // Kullanıcı verilerini yükle
-  useEffect(() => {
-    let isSubscribed = true;
-
-    const fetchUserData = async () => {
-      if (!isSubscribed) return;
-      
-      try {
-        setIsLoading(true);
-        
-        // Oturum bilgilerini al
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          console.error('Kullanıcı oturumu bulunamadı');
-          return;
-        }
-        
-        // Kullanıcı profil bilgilerini al
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-          
-        if (profileError) {
-          console.error('Profil bilgileri alınamadı:', profileError);
-          return;
-        }
-        
-        // Kullanıcı tercihlerini al
-        const { data: preferencesData, error: preferencesError } = await supabase
-          .from('user_preferences')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-          
-        if (preferencesError && preferencesError.code !== 'PGRST116') {
-          console.error('Kullanıcı tercihleri alınamadı:', preferencesError);
-        }
-        
-        if (isSubscribed) {
-          // Kullanıcı verilerini güncelle
-          setUserData({
-            name: String(profileData?.first_name || ''),
-            surname: String(profileData?.last_name || ''),
-            email: String(session.user.email || ''),
-            phone: String(profileData?.phone || ''),
-            orders: Number(profileData?.orders_count || 0),
-            memberSince: new Date(session.user.created_at).getFullYear().toString(),
-            emailNotifications: preferencesData?.email_notification === null ? true : preferencesData?.email_notification === true,
-            smsNotifications: preferencesData?.sms_notification === null ? true : preferencesData?.sms_notification === true,
-            marketingEmails: profileData?.marketing_accepted === null ? false : profileData?.marketing_accepted === true,
-            profileImageUrl: typeof profileData?.profile_image_url === 'string' ? profileData.profile_image_url : ''
-          });
-          
-          // Debug için konsola yazdır
-          console.log('Profil verileri:', profileData);
-          console.log('Marketing accepted değeri:', profileData?.marketing_accepted);
-          console.log('Marketing emails değeri:', profileData?.marketing_accepted === null ? false : profileData?.marketing_accepted === true);
-        }
-        
-      } catch (error) {
-        console.error('Kullanıcı verileri yüklenirken hata oluştu:', error);
-        if (isSubscribed) {
-          toast.error('Kullanıcı bilgileri yüklenirken bir hata oluştu');
-        }
-      } finally {
-        if (isSubscribed) {
-          setIsLoading(false);
-        }
-      }
-    };
-    
-    fetchUserData();
-    
-    // Oturum değişikliklerini dinle
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!isSubscribed) return;
-      
-      if (event === 'SIGNED_OUT') {
-        // Kullanıcı çıkış yaptığında verileri sıfırla
-        setUserData({
-          name: '',
-          surname: '',
-          email: '',
-          phone: '',
-          orders: 0,
-          memberSince: '',
-          emailNotifications: true,
-          smsNotifications: true,
-          marketingEmails: false,
-          profileImageUrl: ''
-        });
-      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        // Kullanıcı giriş yaptığında veya token yenilendiğinde verileri güncelle
-        fetchUserData();
-      }
-    });
-    
-    return () => {
-      isSubscribed = false;
-      subscription.unsubscribe();
-    };
-  }, [supabase.auth]);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUserId(session?.user?.id ?? null);
-    };
-    fetchUser();
-  }, [supabase]);
+  const lastFetchTime = useRef<number>(0);
+  const FETCH_COOLDOWN = 300000; // 5 dakika (milisaniye cinsinden)
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = getSupabaseClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.replace('/kullanici/giris');
-      } else {
-        setAuthChecked(true);
+      setIsLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          router.replace('/kullanici/giris');
+        } else {
+          setAuthChecked(true);
+          await fetchData();
+          lastFetchTime.current = Date.now();
+        }
+      } catch (error) {
+        console.error('Oturum kontrolü sırasında hata:', error);
+        toast.custom((t) => (
+          <CustomToast 
+            message="Oturum bilgileri alınamadı" 
+            type="error" 
+          />
+        ));
+      } finally {
+        setIsLoading(false);
       }
     };
     checkAuth();
@@ -231,6 +133,24 @@ export default function Dashboard() {
   useEffect(() => {
     localStorage.setItem('settingsFormData', JSON.stringify(settingsFormData));
   }, [settingsFormData]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && authChecked) {
+        const now = Date.now();
+        // Son veri çekme işleminden bu yana geçen süreyi kontrol et
+        if (now - lastFetchTime.current > FETCH_COOLDOWN) {
+          fetchData();
+          lastFetchTime.current = now;
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [authChecked]);
 
   const orders = [
     {
@@ -488,6 +408,87 @@ export default function Dashboard() {
           type="error" 
         />
       ), { duration: 5000 });
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.error('Kullanıcı oturumu bulunamadı');
+        router.replace('/kullanici/giris');
+        return;
+      }
+      
+      // Kullanıcı profil bilgilerini al
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (profileError) {
+        console.error('Profil bilgileri alınamadı:', profileError);
+        toast.custom((t) => (
+          <CustomToast 
+            message="Profil bilgileri alınamadı" 
+            type="error" 
+          />
+        ));
+        return;
+      }
+      
+      // Kullanıcı tercihlerini al
+      const { data: preferencesData, error: preferencesError } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (preferencesError && preferencesError.code !== 'PGRST116') {
+        console.error('Kullanıcı tercihleri alınamadı:', preferencesError);
+      }
+
+      setUserId(session.user.id);
+      
+      // Kullanıcı verilerini güncelle
+      setUserData({
+        name: String(profileData?.first_name || ''),
+        surname: String(profileData?.last_name || ''),
+        email: String(session.user.email || ''),
+        phone: String(profileData?.phone || ''),
+        orders: Number(profileData?.orders_count || 0),
+        memberSince: new Date(session.user.created_at).getFullYear().toString(),
+        emailNotifications: preferencesData?.email_notification === null ? true : preferencesData?.email_notification === true,
+        smsNotifications: preferencesData?.sms_notification === null ? true : preferencesData?.sms_notification === true,
+        marketingEmails: profileData?.marketing_accepted === null ? false : profileData?.marketing_accepted === true,
+        profileImageUrl: typeof profileData?.profile_image_url === 'string' ? profileData.profile_image_url : ''
+      });
+
+      // Form verilerini de güncelle
+      setSettingsFormData(prevData => ({
+        ...prevData,
+        name: String(profileData?.first_name || ''),
+        surname: String(profileData?.last_name || ''),
+        email: String(session.user.email || ''),
+        phone: String(profileData?.phone || ''),
+        emailNotifications: preferencesData?.email_notification === null ? true : preferencesData?.email_notification === true,
+        smsNotifications: preferencesData?.sms_notification === null ? true : preferencesData?.sms_notification === true,
+        marketingEmails: profileData?.marketing_accepted === null ? false : profileData?.marketing_accepted === true
+      }));
+      
+    } catch (error) {
+      console.error('Veri yüklenirken hata:', error);
+      toast.custom((t) => (
+        <CustomToast 
+          message="Kullanıcı bilgileri yüklenirken bir hata oluştu" 
+          type="error" 
+        />
+      ));
+    } finally {
+      setIsLoading(false);
     }
   };
 
