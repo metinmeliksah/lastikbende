@@ -109,36 +109,16 @@ const MembershipAgreement = () => {
 
           {/* Agreement Content */}
           <div className="prose prose-invert max-w-none">
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-white mb-4">
-                {t('agreement.sections.1.title')}
-              </h2>
-              <p className="text-gray-300">
-                {t('agreement.sections.1.content')}
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-white mb-4">
-                {t('agreement.sections.2.title')}
-              </h2>
-              <p className="text-gray-300">
-                {t('agreement.sections.2.content')}
-              </p>
-            </section>
-
-            {/* Add more sections as needed */}
-          </div>
-
-          {/* Contact Button */}
-          <div className="mt-8 pt-6 border-t border-gray-700">
-            <button
-              onClick={() => router.push('/iletisim')}
-              className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
-            >
-              <Mail className="w-5 h-5" />
-              {t('agreement.contact')}
-            </button>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sectionNumber) => (
+              <section key={sectionNumber} className="mb-8">
+                <h2 className="text-xl font-semibold text-white mb-4">
+                  {t(`agreement.sections.${sectionNumber}.title`)}
+                </h2>
+                <p className="text-gray-300">
+                  {t(`agreement.sections.${sectionNumber}.content`)}
+                </p>
+              </section>
+            ))}
           </div>
         </motion.div>
       </div>

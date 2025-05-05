@@ -38,9 +38,6 @@ export default function Navbar() {
               <Link href="/hakkimizda" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
                 Hakkımızda
               </Link>
-              <Link href="/iletisim" className="text-gray-300 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none">
-                İletişim
-              </Link>
             </div>
           </div>
 
@@ -107,13 +104,6 @@ export default function Navbar() {
             onClick={handleLinkClick}
           >
             Hakkımızda
-          </Link>
-          <Link 
-            href="/iletisim" 
-            className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none"
-            onClick={handleLinkClick}
-          >
-            İletişim
           </Link>
           <Link 
             href="/giris" 
