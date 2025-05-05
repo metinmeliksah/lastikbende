@@ -1,9 +1,0 @@
-Düzen ve kullanıcı paneli işlevselliğini iyileştirme
-
-- `layout.tsx` dosyasındaki ana düzenden gereksiz boşlukları kaldırdım.
-- Kullanıcı panelinde kimlik doğrulama kontrolü ekleyerek kimliği doğrulanmamış kullanıcıları giriş sayfasına yönlendirdim.
-- Kullanıcı panelinde ayarlar formu verileri için yerel depolama işlemlerini ekledim.
-- `SettingsForm` bileşenini form verilerini prop olarak alacak ve değişiklikleri buna göre işleyecek şekilde güncelledim.
-- Destek bileti formunu yerel depolamadan veri kaydetme ve alma işlevselliği ile geliştirdim.
-
-Bu değişiklikler, uygun kimlik doğrulama akışını sağlayarak ve form durumunu oturumlar arasında koruyarak kullanıcı deneyimini iyileştiriyor. 
