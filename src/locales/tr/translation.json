@@ -1,0 +1,21 @@
+{
+  "membershipAgreement": {
+    "title": "Üyelik Sözleşmesi",
+    "version": "Versiyon",
+    "effectiveDate": "Geçerlilik Tarihi",
+    "section1": {
+      "title": "1. Giriş",
+      "content": "Bu üyelik sözleşmesi ('Sözleşme'), LastikBende platformunu ('Platform') kullanmak isteyen üyeler ('Üye') ile LastikBende arasında yapılan bir anlaşmadır. Bu Sözleşme, Platform'un kullanımına ilişkin tüm hak ve yükümlülükleri düzenler."
+    },
+    "section2": {
+      "title": "2. Üyelik Koşulları",
+      "content": "2.1. Üye, Platform'u kullanmak için 18 yaşından büyük olmalıdır.\n2.2. Üye, kayıt sırasında doğru ve güncel bilgileri sağlamalıdır.\n2.3. Üye, Platform'un kullanımı sırasında tüm yasal düzenlemelere uymalıdır."
+    }
+  },
+  "common": {
+    "language": "Dil",
+    "downloadPDF": "PDF İndir",
+    "acceptContract": "Sözleşmeyi Kabul Et",
+    "contactSupport": "Destek ile İletişime Geç"
+  }
+} 

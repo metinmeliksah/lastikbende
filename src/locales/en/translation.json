@@ -1,0 +1,21 @@
+{
+  "membershipAgreement": {
+    "title": "Membership Agreement",
+    "version": "Version",
+    "effectiveDate": "Effective Date",
+    "section1": {
+      "title": "1. Introduction",
+      "content": "This membership agreement ('Agreement') is made between LastikBende ('Platform') and members ('Member') who wish to use the LastikBende platform. This Agreement governs all rights and obligations related to the use of the Platform."
+    },
+    "section2": {
+      "title": "2. Membership Conditions",
+      "content": "2.1. Member must be over 18 years old to use the Platform.\n2.2. Member must provide accurate and up-to-date information during registration.\n2.3. Member must comply with all legal regulations while using the Platform."
+    }
+  },
+  "common": {
+    "language": "Language",
+    "downloadPDF": "Download PDF",
+    "acceptContract": "Accept Agreement",
+    "contactSupport": "Contact Support"
+  }
+} 
