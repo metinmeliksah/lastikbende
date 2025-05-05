@@ -18,6 +18,8 @@ interface SettingsFormProps {
     newPassword: string;
     confirmPassword: string;
     profileImage?: File;
+    profileImageUrl?: string;
+    oldProfileImageUrl?: string;
   };
   onFormChange: (data: any) => void;
   onSave: (data: any) => void;
@@ -36,6 +38,7 @@ export default function SettingsForm({ formData, onFormChange, onSave, onCancel 
   }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [initialFormData, setInitialFormData] = useState(formData);
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -90,8 +93,27 @@ export default function SettingsForm({ formData, onFormChange, onSave, onCancel 
     return isValid;
   };
 
-  const handleImageChange = (file: File) => {
-    onFormChange({ ...formData, profileImage: file });
+  // Form değişikliklerini kontrol et
+  const hasChanges = () => {
+    return (
+      formData.name !== initialFormData.name ||
+      formData.surname !== initialFormData.surname ||
+      formData.emailNotifications !== initialFormData.emailNotifications ||
+      formData.smsNotifications !== initialFormData.smsNotifications ||
+      formData.marketingEmails !== initialFormData.marketingEmails ||
+      formData.profileImage !== undefined ||
+      formData.currentPassword !== '' ||
+      formData.newPassword !== '' ||
+      formData.confirmPassword !== ''
+    );
+  };
+
+  const handleImageChange = (file: File, oldImageUrl?: string) => {
+    onFormChange({ 
+      ...formData, 
+      profileImage: file,
+      oldProfileImageUrl: oldImageUrl // Eski fotoğraf URL'ini sakla
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,8 +122,16 @@ export default function SettingsForm({ formData, onFormChange, onSave, onCancel 
       setIsLoading(true);
       setIsSuccess(false);
       try {
-        await onSave(formData);
+        // Profil fotoğrafı URL'ini formData'ya ekle
+        const formDataWithImageUrl = {
+          ...formData,
+          profileImageUrl: formData.profileImage ? URL.createObjectURL(formData.profileImage) : formData.profileImageUrl,
+          oldProfileImageUrl: formData.oldProfileImageUrl // Eski fotoğraf URL'ini ekle
+        };
+        
+        await onSave(formDataWithImageUrl);
         onFormChange({ ...formData, currentPassword: '', newPassword: '', confirmPassword: '' });
+        setInitialFormData(formDataWithImageUrl); // Başarılı kayıttan sonra initial state'i güncelle
         setIsSuccess(true);
         setTimeout(() => setIsSuccess(false), 3000);
       } catch (error) {
@@ -168,9 +198,9 @@ export default function SettingsForm({ formData, onFormChange, onSave, onCancel 
           </button>
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !hasChanges()}
             className={`px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-md transition-colors ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              (isLoading || !hasChanges()) ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             {isLoading ? (
