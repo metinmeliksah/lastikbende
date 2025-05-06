@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { FaFileContract, FaUserShield, FaHandshake, FaExchangeAlt } from 'react-icons/fa'
+import { FaFileContract, FaUserShield, FaHandshake, FaExchangeAlt, FaFileSignature } from 'react-icons/fa'
 
 export default function SozlesmelerPage() {
   const sozlesmeler = [
@@ -26,6 +26,12 @@ export default function SozlesmelerPage() {
       aciklama: 'Ürün iade ve değişim süreçleri hakkında detaylı bilgiler.',
       icon: FaExchangeAlt,
       link: '/sozlesmeler/iade-politikasi'
+    },
+    {
+      baslik: 'Mesafeli Satış Sözleşmesi',
+      aciklama: 'Mesafeli satış sözleşmesi hakkında bilgiler.',
+      icon: FaFileSignature,
+      link: '/sozlesmeler/mesafeli-satis-sozlesmesi'
     }
   ]
 

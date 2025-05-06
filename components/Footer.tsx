@@ -74,25 +74,31 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Newsletter */}
+          {/* Sıkça Sorulan Sorular */}
           <div className="px-4 sm:px-0">
-            <h3 className="text-lg font-semibold text-white mb-4">Bülten</h3>
-            <p className="text-gray-400 mb-4">
-              Kampanya ve yeniliklerden haberdar olmak için bültenimize abone olun.
-            </p>
-            <form className="flex">
-              <input
-                type="email"
-                placeholder="E-posta adresiniz"
-                className="flex-1 bg-dark-200 text-white px-4 py-2 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-              <button
-                type="submit"
-                className="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-red-600 transition-colors focus:outline-none focus-visible:outline-none"
-              >
-                Abone Ol
-              </button>
-            </form>
+            <h3 className="text-lg font-semibold text-white mb-4">Sıkça Sorulan Sorular</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/sikca-sorulan-sorular#lastik-omru" className="group">
+                  <p className="text-gray-400 group-hover:text-primary transition-colors">Lastiğimin ömrü ne kadardır?</p>
+                </Link>
+              </li>
+              <li>
+                <Link href="/sikca-sorulan-sorular#kis-lastik" className="group">
+                  <p className="text-gray-400 group-hover:text-primary transition-colors">Kış lastiği ne zaman takılmalıdır?</p>
+                </Link>
+              </li>
+              <li>
+                <Link href="/sikca-sorulan-sorular#kullanilmis-lastik" className="group">
+                  <p className="text-gray-400 group-hover:text-primary transition-colors">Kullanılmış lastik alırken nelere dikkat etmeliyim?</p>
+                </Link>
+              </li>
+              <li>
+                <Link href="/sikca-sorulan-sorular" className="group">
+                  <p className="text-primary group-hover:text-primary-dark transition-colors font-medium text-sm mt-2">Tüm Sorular</p>
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
 
