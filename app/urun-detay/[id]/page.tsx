@@ -4,108 +4,84 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaShoppingCart, FaTruck, FaTools, FaStore, FaMapMarkerAlt, FaCheckCircle, FaStar, FaChevronLeft, FaChevronRight, FaInfoCircle } from 'react-icons/fa';
+import { createClient } from '@supabase/supabase-js';
 
-// Örnek ürün verileri
-const productData = {
-  id: 1,
-  name: 'Lastik Test 1',
-  brand: 'Michelin',
-  model: 'Pilot Sport 4',
-  price: 999,
-  discountedPrice: 899,
-  images: [
-    '/placeholder-tire.jpg',
-    '/placeholder-tire.jpg',
-    '/placeholder-tire.jpg',
-  ],
-  health: 60,
-  size: '16 inç',
-  width: '205',
-  aspectRatio: '55',
-  construction: 'R',
-  diameter: '16',
-  season: 'Yaz',
-  loadIndex: '91',
-  speedIndex: 'V',
-  features: [
-    'Yüksek hızlarda mükemmel yol tutuş',
-    'Islak zeminde gelişmiş fren performansı',
-    'Düşük yuvarlanma direnci ile yakıt tasarrufu',
-    'Uzun lastik ömrü',
-    'Sessiz ve konforlu sürüş deneyimi'
-  ],
-  description: 'Bu lastik, %60 sağlık durumu ile hala güvenli ve verimli bir sürüş deneyimi sunmaktadır. Orta seviyedeki aşınma durumu, günlük kullanım ve şehir içi sürüşler için uygun olmasını sağlar. Performansını artırmak ve ömrünü uzatmak için düzenli bakım önerilir. Ekonomik bir seçenek arayanlar için ideal bir tercih!',
-  stock: 10,
-  shops: [
-    {
-      id: 1,
-      name: 'Lassa Lastik Satış A.Ş.',
-      city: 'Elazığ',
-      address: 'Cumhuriyet Mah. 35/A',
-      price: 899,
-      stock: 10,
-      hasMontage: true,
-      shippingMethods: ['Aras Kargo', 'MNG Kargo'],
-      rating: 4.7
-    },
-    {
-      id: 2,
-      name: 'Lassa Lastik Satış A.Ş.',
-      city: 'İstanbul',
-      address: 'Kadıköy, Bağdat Cad. 121/B',
-      price: 849,
-      stock: 5,
-      hasMontage: true,
-      shippingMethods: ['Yurtiçi Kargo'],
-      rating: 4.5
-    },
-    {
-      id: 3,
-      name: 'Lassa Lastik Satış A.Ş.',
-      city: 'Ankara',
-      address: 'Çankaya, Atatürk Bulvarı 78',
-      price: 929,
-      stock: 8,
-      hasMontage: true,
-      shippingMethods: ['MNG Kargo', 'PTT Kargo'],
-      rating: 4.8
-    }
-  ],
-  creditCardInstallments: [
-    {
-      bank: 'Maximum',
-      rates: [
-        { installments: 2, price: 1268.49, total: 2536.97 },
-        { installments: 3, price: 927.18, total: 2781.53 },
-        { installments: 4, price: 736.48, total: 2945.93 },
-        { installments: 5, price: 604.36, total: 3021.78 },
-        { installments: 6, price: 516.23, total: 3097.39 },
-        { installments: 9, price: 369.86, total: 3328.76 },
-        { installments: 12, price: 302.70, total: 3632.43 }
-      ]
-    },
-    {
-      bank: 'Axess',
-      rates: [
-        { installments: 2, price: 1268.49, total: 2536.97 },
-        { installments: 3, price: 845.66, total: 2536.97 },
-        { installments: 6, price: 463.00, total: 2777.98 },
-        { installments: 9, price: 370.68, total: 3336.12 },
-        { installments: 12, price: 304.44, total: 3653.24 }
-      ]
-    },
-    {
-      bank: 'QNB',
-      rates: [
-        { installments: 2, price: 1268.49, total: 2536.97 },
-        { installments: 3, price: 845.66, total: 2536.97 },
-        { installments: 6, price: 497.46, total: 2984.75 },
-        { installments: 9, price: 355.74, total: 3201.66 },
-        { installments: 12, price: 278.64, total: 3343.73 }
-      ]
-    }
-  ]
-};
+// Supabase client oluştur
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Ürün veri tipi tanımla
+interface ProductData {
+  urun_id: number;
+  model: string;
+  marka: string;
+  cap_inch: string;
+  mevsim: string;
+  saglik_durumu: number;
+  aciklama: string;
+  genislik_mm: string;
+  profil: string;
+  yapi: string;
+  yuk_endeksi: string;
+  hiz_endeksi: string;
+  features?: string[];
+  urun_resmi_0: string;
+  urun_resmi_1?: string;
+  urun_resmi_2?: string;
+  urun_resmi_3?: string;
+  price?: number;           // For display compatibility
+  discountedPrice?: number; // For display compatibility
+  shippingCompanies?: string[]; // For backward compatibility
+}
+
+// Mağaza veri tipi tanımla
+interface Shop {
+  id: number;
+  stok_id: number;
+  name: string;
+  city: string;
+  address: string;
+  price: number;
+  stock: number;
+  hasMontage: boolean;
+  shippingCompanies: string[];
+  rating: number;
+}
+
+// Kredi kartı taksit veri tipi tanımla
+interface CreditCardInstallment {
+  bank: string;
+  rates: {
+    installments: number;
+    price: number;
+    total: number;
+  }[];
+}
+
+// Tam ürün veri tipi tanımla
+interface FullProduct {
+  product: ProductData;
+  shops: Shop[];
+  creditCardInstallments: CreditCardInstallment[];
+  similarProducts: SimilarProduct[];
+}
+
+// Benzer ürün tipi
+interface SimilarProduct {
+  urun_id: number;
+  model: string;
+  marka: string;
+  cap_inch: string;
+  mevsim: string;
+  saglik_durumu: number;
+  urun_resmi_0: string;
+  fiyat: number;
+  indirimli_fiyat: number;
+  stok: number;
+  magaza_isim: string;
+  magaza_sehir: string;
+}
 
 // Örnek benzer ürün verileri
 const dummyProducts = [
@@ -168,41 +144,343 @@ const dummyProducts = [
 ];
 
 export default function UrunDetayPage({ params }: { params: { id: string } }) {
-  const [product, setProduct] = useState(productData);
-  const [selectedShop, setSelectedShop] = useState(productData.shops[0]);
+  const [fullProduct, setFullProduct] = useState<FullProduct | null>(null);
+  const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedCity, setSelectedCity] = useState('Tümü');
   const [showAllShops, setShowAllShops] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
-  const [cheapestShop, setCheapestShop] = useState<typeof selectedShop | null>(null);
+  const [cheapestShop, setCheapestShop] = useState<Shop | null>(null);
   const [showCheapestWarning, setShowCheapestWarning] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [similarProducts, setSimilarProducts] = useState<SimilarProduct[]>([]);
 
-  // Gerçek uygulamada, ürün verilerini API'den çekeceksiniz
-  useEffect(() => {
-    // Bu kısım API entegrasyonu için
-    // const fetchProduct = async () => {
-    //   const response = await fetch(`/api/products/${params.id}`);
-    //   const data = await response.json();
-    //   setProduct(data);
-    //   setSelectedShop(data.shops[0]);
-    // };
-    // fetchProduct();
+  // Bütün resim URL'lerini alıp geçerli olanları filtrele
+  const getProductImages = (product: ProductData | null | undefined) => {
+    if (!product) return [];
     
-    // En ucuz mağazayı bul
-    const cheapest = [...product.shops].sort((a, b) => a.price - b.price)[0];
-    setCheapestShop(cheapest);
-  }, [params.id, product.shops]);
+    return [
+      product.urun_resmi_0, 
+      product.urun_resmi_1, 
+      product.urun_resmi_2, 
+      product.urun_resmi_3
+    ].filter((img): img is string => Boolean(img));
+  };
+
+  // Ürün verilerini Supabase'den çek
+  useEffect(() => {
+    const fetchProductData = async () => {
+      setLoading(true);
+      try {
+        console.log("Ürün verileri çekiliyor, ID:", params.id);
+        
+        // Ürün detaylarını çek
+        const { data: productData, error: productError } = await supabase
+          .from('urundetay')
+          .select('*')
+          .eq('urun_id', params.id)
+          .single();
+
+        if (productError) {
+          console.error("Ürün verisi çekilirken hata:", productError);
+          throw productError;
+        }
+        
+        if (!productData) {
+          console.error("Ürün bulunamadı");
+          throw new Error('Ürün bulunamadı');
+        }
+        
+        console.log("Ürün verisi başarıyla çekildi:", productData.model);
+
+        // Ürün için stok bilgilerini çek
+        const { data: stockData, error: stockError } = await supabase
+          .from('stok')
+          .select('*')
+          .eq('urun_id', params.id);
+
+        if (stockError) {
+          console.error("Stok verisi çekilirken hata:", stockError);
+          throw stockError;
+        }
+        
+        if (!stockData || stockData.length === 0) {
+          console.error("Stok bilgisi bulunamadı");
+          throw new Error('Stok bilgisi bulunamadı');
+        }
+        
+        console.log(`${stockData.length} adet stok kaydı bulundu`);
+
+        // Mağaza ve teslimat bilgilerini çek
+        const shopPromises = stockData.map(async (stock) => {
+          try {
+            // Mağaza bilgisini çek
+            const { data: sellerData, error: sellerError } = await supabase
+              .from('sellers')
+              .select('*')
+              .eq('id', stock.magaza_id)
+              .single();
+
+            if (sellerError) {
+              console.error(`Mağaza verisi çekilirken hata (ID: ${stock.magaza_id}):`, sellerError);
+              return null;
+            }
+            
+            if (!sellerData) {
+              console.error(`Mağaza bulunamadı (ID: ${stock.magaza_id})`);
+              return null;
+            }
+
+            // Teslimat seçeneklerini çek
+            const { data: deliveryOptions, error: deliveryError } = await supabase
+              .from('teslimat_secenekleri')
+              .select('*')
+              .eq('stok_id', stock.stok_id);
+
+            if (deliveryError) {
+              console.error(`Teslimat seçenekleri çekilirken hata (stok_id: ${stock.stok_id}):`, deliveryError);
+            }
+            
+            // Teslimat bilgilerini hazırla
+            let hasMontage = false;
+            let shippingCompanies: string[] = [];
+            
+            if (deliveryOptions && deliveryOptions.length > 0) {
+              hasMontage = deliveryOptions.some(option => option.magazada_montaj === true);
+              
+              // Kargo şirketlerini al
+              shippingCompanies = deliveryOptions
+                .filter(option => option.kargo_firmasi)
+                .map(option => option.kargo_firmasi)
+                .filter((value, index, self) => self.indexOf(value) === index); // Benzersiz değerler
+            }
+            
+            // Mağaza bilgilerini döndür
+            return {
+              id: sellerData.id,
+              stok_id: stock.stok_id,
+              name: sellerData.isim,
+              city: sellerData.sehir,
+              address: sellerData.adres || '',
+              price: stock.fiyat,
+              stock: stock.stok_adet,
+              hasMontage: hasMontage,
+              shippingCompanies: shippingCompanies.length > 0 ? shippingCompanies : ['Belirtilmemiş'],
+              rating: sellerData.rating || 4.5
+            };
+          } catch (err) {
+            console.error(`Mağaza bilgileri işlenirken hata:`, err);
+            return null;
+          }
+        });
+
+        const shops = (await Promise.all(shopPromises)).filter((shop): shop is Shop => shop !== null);
+
+        if (shops.length === 0) {
+          console.error("Mağaza bilgisi bulunamadı");
+          throw new Error('Mağaza bilgisi bulunamadı');
+        }
+        
+        console.log(`${shops.length} adet mağaza bilgisi işlendi`);
+
+        // Ürün özelliklerini parse et (string'den array'e)
+        let features: string[] = [];
+        try {
+          if (productData.features && typeof productData.features === 'string') {
+            features = JSON.parse(productData.features);
+          } else if (Array.isArray(productData.features)) {
+            features = productData.features;
+          }
+        } catch (e) {
+          console.error("Ürün özellikleri ayrıştırılırken hata:", e);
+          features = [];
+        }
+
+        // Benzer ürünleri çek (önce aynı inç ve mevsim, sonra sadece inç, en son sadece mevsim)
+        const fetchSimilarProducts = async () => {
+          try {
+            // Önce aynı inç ve mevsim olan ürünleri çek
+            const { data: sameSizeAndSeason, error: sssError } = await supabase
+              .from('urundetay')
+              .select('*')
+              .eq('cap_inch', productData.cap_inch)
+              .eq('mevsim', productData.mevsim)
+              .neq('urun_id', productData.urun_id)
+              .limit(4);
+              
+            // Sonra aynı inç olan ürünleri çek
+            const { data: sameSize, error: ssError } = await supabase
+              .from('urundetay')
+              .select('*')
+              .eq('cap_inch', productData.cap_inch)
+              .neq('mevsim', productData.mevsim)
+              .neq('urun_id', productData.urun_id)
+              .limit(4);
+              
+            // Son olarak aynı mevsim olan ürünleri çek
+            const { data: sameSeason, error: sError } = await supabase
+              .from('urundetay')
+              .select('*')
+              .eq('mevsim', productData.mevsim)
+              .neq('cap_inch', productData.cap_inch)
+              .neq('urun_id', productData.urun_id)
+              .limit(4);
+
+            // En fazla 4 benzer ürün gösterilecek, öncelik sırası ile
+            let similarProductsRaw: any[] = [];
+            
+            if (sameSizeAndSeason && sameSizeAndSeason.length > 0) {
+              similarProductsRaw = [...sameSizeAndSeason];
+            }
+            
+            if (similarProductsRaw.length < 4 && sameSize && sameSize.length > 0) {
+              similarProductsRaw = [...similarProductsRaw, ...sameSize];
+            }
+            
+            if (similarProductsRaw.length < 4 && sameSeason && sameSeason.length > 0) {
+              similarProductsRaw = [...similarProductsRaw, ...sameSeason];
+            }
+            
+            // Benzer ürünleri en fazla 4 tane olacak şekilde kes
+            similarProductsRaw = similarProductsRaw.slice(0, 4);
+            
+            // Fiyat ve stok bilgilerini çek
+            const processedSimilarProducts = await Promise.all(
+              similarProductsRaw.map(async (product) => {
+                // Stok bilgisini çek
+                const { data: stockData, error: stockError } = await supabase
+                  .from('stok')
+                  .select('*')
+                  .eq('urun_id', product.urun_id)
+                  .limit(1);
+
+                if (stockError || !stockData || stockData.length === 0) {
+                  return null;
+                }
+
+                // İlk stok bilgisini al
+                const stock = stockData[0];
+
+                // Mağaza bilgisini çek
+                const { data: sellerData, error: sellerError } = await supabase
+                  .from('sellers')
+                  .select('id, isim, sehir')
+                  .eq('id', stock.magaza_id)
+                  .single();
+
+                if (sellerError || !sellerData) {
+                  return null;
+                }
+
+                // Benzer ürün bilgilerini döndür
+                return {
+                  urun_id: product.urun_id,
+                  model: product.model,
+                  marka: product.marka,
+                  cap_inch: product.cap_inch,
+                  mevsim: product.mevsim,
+                  saglik_durumu: product.saglik_durumu,
+                  urun_resmi_0: product.urun_resmi_0,
+                  fiyat: stock.fiyat,
+                  indirimli_fiyat: stock.indirimli_fiyat || stock.fiyat,
+                  stok: stock.stok_adet,
+                  magaza_isim: sellerData.isim,
+                  magaza_sehir: sellerData.sehir
+                };
+              })
+            );
+            
+            // Null değerlerini filtrele
+            return processedSimilarProducts.filter((product): product is SimilarProduct => product !== null);
+          } catch (err) {
+            console.error("Benzer ürünler çekilirken hata:", err);
+            return [];
+          }
+        };
+
+        const similarProductsData = await fetchSimilarProducts();
+        
+        console.log(`${similarProductsData.length} adet benzer ürün bulundu`);
+
+        // Kredi kartı taksit bilgileri (örnek veri - gerçek uygulamada bunlar da veritabanından gelebilir)
+        const creditCardInstallments = [
+          {
+            bank: 'Maximum',
+            rates: [
+              { installments: 1, price: Math.round(shops[0].price), total: Math.round(shops[0].price) },
+              { installments: 2, price: Math.round(shops[0].price * 1.05 / 2), total: Math.round(shops[0].price * 1.05) },
+              { installments: 3, price: Math.round(shops[0].price * 1.08 / 3), total: Math.round(shops[0].price * 1.08) },
+              { installments: 6, price: Math.round(shops[0].price * 1.12 / 6), total: Math.round(shops[0].price * 1.12) },
+              { installments: 9, price: Math.round(shops[0].price * 1.15 / 9), total: Math.round(shops[0].price * 1.15) },
+              { installments: 12, price: Math.round(shops[0].price * 1.18 / 12), total: Math.round(shops[0].price * 1.18) }
+            ]
+          },
+          {
+            bank: 'Axess',
+            rates: [
+              { installments: 1, price: Math.round(shops[0].price), total: Math.round(shops[0].price) },
+              { installments: 2, price: Math.round(shops[0].price * 1.04 / 2), total: Math.round(shops[0].price * 1.04) },
+              { installments: 3, price: Math.round(shops[0].price * 1.07 / 3), total: Math.round(shops[0].price * 1.07) },
+              { installments: 6, price: Math.round(shops[0].price * 1.10 / 6), total: Math.round(shops[0].price * 1.10) },
+              { installments: 9, price: Math.round(shops[0].price * 1.13 / 9), total: Math.round(shops[0].price * 1.13) },
+              { installments: 12, price: Math.round(shops[0].price * 1.16 / 12), total: Math.round(shops[0].price * 1.16) }
+            ]
+          }
+        ];
+
+        // Tam ürün verisi oluştur
+        const fullProductData: FullProduct = {
+          product: {
+            ...productData,
+            features
+          },
+          shops,
+          creditCardInstallments,
+          similarProducts: similarProductsData
+        };
+
+        setFullProduct(fullProductData);
+        setSelectedShop(shops[0]);
+        setSimilarProducts(similarProductsData);
+
+        // En ucuz mağazayı bul
+        const cheapest = [...shops].sort((a, b) => a.price - b.price)[0];
+        setCheapestShop(cheapest);
+
+        // Eğer seçili mağaza en ucuz değilse, uyarı göster
+        if (shops[0].id !== cheapest.id) {
+          setShowCheapestWarning(true);
+        }
+      } catch (error) {
+        console.error('Ürün verisi çekilirken hata oluştu:', error);
+        setError('Ürün bilgileri yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductData();
+  }, [params.id]);
 
   const handlePreviousImage = () => {
-    setActiveImageIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : product.images.length - 1));
+    if (!fullProduct) return;
+    
+    const images = getProductImages(fullProduct.product);
+    
+    setActiveImageIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : images.length - 1));
   };
 
   const handleNextImage = () => {
-    setActiveImageIndex((prevIndex) => (prevIndex < product.images.length - 1 ? prevIndex + 1 : 0));
+    if (!fullProduct) return;
+    
+    const images = getProductImages(fullProduct.product);
+    
+    setActiveImageIndex((prevIndex) => (prevIndex < images.length - 1 ? prevIndex + 1 : 0));
   };
 
-  const handleShopChange = (shop: typeof selectedShop) => {
+  const handleShopChange = (shop: Shop) => {
     setSelectedShop(shop);
     
     // Seçilen mağaza en ucuz değilse, uyarı göster
@@ -215,7 +493,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
 
   const handleAddToCart = () => {
     // Sepete ekleme işlemi
-    alert(`${quantity} adet ${product.name} sepete eklendi. Mağaza: ${selectedShop.name} (${selectedShop.city})`);
+    alert(`${quantity} adet ${fullProduct?.product.model} sepete eklendi. Mağaza: ${selectedShop?.name} (${selectedShop?.city})`);
   };
 
   const getHealthColor = (health: number) => {
@@ -226,20 +504,22 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
   };
 
   const incrementQuantity = () => {
-    setQuantity(prev => Math.min(prev + 1, selectedShop.stock));
+    if (!selectedShop || quantity >= selectedShop.stock) return;
+    setQuantity(prev => prev + 1);
   };
   
   const decrementQuantity = () => {
-    setQuantity(prev => Math.max(prev - 1, 1));
+    if (quantity <= 1) return;
+    setQuantity(prev => prev - 1);
   };
 
-  const cities = ['Tümü', ...Array.from(new Set(product.shops.map(shop => shop.city)))];
+  const cities = ['Tümü', ...Array.from(new Set(fullProduct?.shops.map(shop => shop.city) || []))];
 
   const filteredShops = selectedCity === 'Tümü' 
-    ? product.shops 
-    : product.shops.filter(shop => shop.city === selectedCity);
+    ? fullProduct?.shops 
+    : fullProduct?.shops.filter(shop => shop.city === selectedCity);
 
-  const displayedShops = showAllShops ? filteredShops : filteredShops.slice(0, 3);
+  const displayedShops = showAllShops ? filteredShops : filteredShops?.slice(0, 3);
 
   return (
     <div className="min-h-screen pt-20 bg-dark-400">
@@ -250,58 +530,54 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
           <span>/</span>
           <Link href="/urunler" className="hover:text-primary">Lastikler</Link>
           <span>/</span>
-          <Link href={`/urunler?brand=${product.brand}`} className="hover:text-primary">{product.brand}</Link>
+          <Link href={`/urunler?brand=${fullProduct?.product.marka}`} className="hover:text-primary">{fullProduct?.product.marka}</Link>
           <span>/</span>
-          <span className="text-gray-300">{product.name}</span>
+          <span className="text-gray-300">{fullProduct?.product.model}</span>
         </div>
 
         <div className="bg-dark-300 rounded-lg shadow-lg overflow-hidden border border-dark-100 mb-6">
           <div className="md:flex">
             {/* Ürün Görselleri */}
             <div className="md:w-1/2 p-6">
-              <div className="relative aspect-square bg-dark-200 rounded-lg overflow-hidden mb-4">
-                <Image
-                  src={product.images[activeImageIndex]}
-                  alt={`${product.name} - Görsel ${activeImageIndex + 1}`}
-                  className="object-contain"
-                  fill
-                />
-                <div className="absolute inset-0 flex items-center justify-between px-4">
-                  <button 
-                    onClick={handlePreviousImage}
-                    className="bg-dark-300 bg-opacity-70 text-white p-2 rounded-full hover:bg-opacity-90"
-                  >
-                    <FaChevronLeft />
-                  </button>
-                  <button 
-                    onClick={handleNextImage}
-                    className="bg-dark-300 bg-opacity-70 text-white p-2 rounded-full hover:bg-opacity-90"
-                  >
-                    <FaChevronRight />
-                  </button>
-                </div>
-                <div className={`absolute top-2 left-2 ${getHealthColor(product.health)} px-2 py-1 rounded text-sm`}>
-                  {product.health === 100 ? 'Sıfır' : `%${product.health} Sağlık`}
-                </div>
+              <div className="relative h-96 border border-gray-200 rounded-lg overflow-hidden">
+                {getProductImages(fullProduct?.product)[activeImageIndex] && (
+                  <Image 
+                    src={getProductImages(fullProduct?.product)[activeImageIndex] || '/placeholder-tire.jpg'}
+                    alt={fullProduct?.product?.model || 'Ürün görseli'} 
+                    fill
+                    style={{ objectFit: 'contain' }}
+                    className="w-full h-full"
+                  />
+                )}
+                {/* Navigasyon butonları */}
+                <button 
+                  onClick={handlePreviousImage} 
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/70 rounded-full p-2 shadow-md hover:bg-white"
+                >
+                  <FaChevronLeft />
+                </button>
+                <button 
+                  onClick={handleNextImage} 
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/70 rounded-full p-2 shadow-md hover:bg-white"
+                >
+                  <FaChevronRight />
+                </button>
               </div>
-
-              <div className="flex overflow-x-auto space-x-2 pb-2">
-                {product.images.map((image, index) => (
+              <div className="flex mt-4 gap-2 overflow-x-auto">
+                {getProductImages(fullProduct?.product).map((image, index) => (
                   <div 
-                    key={index}
-                    className={`w-20 h-20 flex-shrink-0 rounded-md overflow-hidden cursor-pointer border-2 ${
-                      activeImageIndex === index ? 'border-primary' : 'border-transparent'
-                    }`}
+                    key={index} 
+                    className={`w-20 h-20 border rounded-md overflow-hidden cursor-pointer ${activeImageIndex === index ? 'border-primary' : 'border-gray-200'}`}
                     onClick={() => setActiveImageIndex(index)}
                   >
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={image}
-                        alt={`${product.name} - Küçük Görsel ${index + 1}`}
-                        className="object-contain"
-                        fill
-                      />
-                    </div>
+                    <Image 
+                      src={image}
+                      alt={`${fullProduct?.product.model} - ${index + 1}`} 
+                      width={80}
+                      height={80}
+                      style={{ objectFit: 'cover' }}
+                      className="w-full h-full"
+                    />
                   </div>
                 ))}
               </div>
@@ -310,19 +586,19 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
             {/* Ürün Bilgileri */}
             <div className="md:w-1/2 p-6 md:border-l border-dark-100">
               <div className="mb-3">
-                <span className="bg-primary text-white text-xs px-2 py-1 rounded">{product.brand}</span>
+                <span className="bg-primary text-white text-xs px-2 py-1 rounded">{fullProduct?.product.marka}</span>
               </div>
-              <h1 className="text-2xl font-semibold text-white mb-2">{product.name}</h1>
-              <h2 className="text-lg text-gray-300 mb-4">{product.model}</h2>
+              <h1 className="text-2xl font-semibold text-white mb-2">{fullProduct?.product.model}</h1>
+              <h2 className="text-lg text-gray-300 mb-4">{fullProduct?.product.cap_inch} inç</h2>
 
               <div className="flex items-baseline mb-4">
-                {product.discountedPrice ? (
+                {fullProduct?.product.discountedPrice ? (
                   <>
-                    <span className="text-2xl font-bold text-white mr-3">{selectedShop.price}₺</span>
-                    <span className="text-lg text-gray-400 line-through">{product.price}₺</span>
+                    <span className="text-2xl font-bold text-white mr-3">{selectedShop?.price}₺</span>
+                    <span className="text-lg text-gray-400 line-through">{fullProduct.product.price}₺</span>
                   </>
                 ) : (
-                  <span className="text-2xl font-bold text-white">{selectedShop.price}₺</span>
+                  <span className="text-2xl font-bold text-white">{selectedShop?.price}₺</span>
                 )}
               </div>
 
@@ -345,19 +621,19 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
               <div className="space-y-4 mb-6">
                 <div className="flex items-center">
                   <span className="text-gray-400 w-32">Stok Durumu:</span>
-                  <span className={`${selectedShop.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {selectedShop.stock > 0 ? `${selectedShop.stock} Adet Stokta` : 'Tükendi'}
+                  <span className={`${selectedShop && selectedShop.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {selectedShop && selectedShop.stock > 0 ? `${selectedShop.stock} Adet Stokta` : 'Tükendi'}
                   </span>
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-400 w-32">Lastik Sağlığı:</span>
-                  <span className="text-white">{product.health === 100 ? 'Sıfır (Yeni)' : `%${product.health}`}</span>
+                  <span className="text-white">{fullProduct?.product.saglik_durumu === 100 ? 'Sıfır (Yeni)' : `%${fullProduct?.product.saglik_durumu}`}</span>
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-400 w-32">Mağaza:</span>
                   <div className="text-white flex items-center">
                     <FaStore className="mr-2 text-primary" />
-                    {selectedShop.name}
+                    {selectedShop?.name}
                     <button 
                       onClick={() => setActiveTab("shops")}
                       className="ml-2 text-sm text-primary hover:text-primary-dark underline"
@@ -370,13 +646,13 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                   <span className="text-gray-400 w-32">Şehir:</span>
                   <div className="text-white flex items-center">
                     <FaMapMarkerAlt className="mr-2 text-primary" />
-                    {selectedShop.city}
+                    {selectedShop?.city}
                   </div>
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-400 w-32">Montaj Hizmeti:</span>
                   <div className="text-white flex items-center">
-                    {selectedShop.hasMontage ? (
+                    {selectedShop?.hasMontage ? (
                       <>
                         <FaTools className="mr-2 text-green-500" />
                         <span className="text-green-500">Mevcut</span>
@@ -391,7 +667,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                   <div className="text-white">
                     <div className="flex items-center mb-1">
                       <FaTruck className="mr-2 text-primary" />
-                      <span>{selectedShop.shippingMethods.join(', ')}</span>
+                      <span>{selectedShop?.shippingCompanies?.join(', ') || 'Belirtilmemiş'}</span>
                     </div>
                     <p className="text-xs text-gray-400">2-4 iş günü içinde kargoya verilir</p>
                   </div>
@@ -415,7 +691,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                   <button 
                     onClick={incrementQuantity}
                     className="bg-dark-200 text-white h-10 w-10 flex items-center justify-center rounded-r-md"
-                    disabled={quantity >= selectedShop.stock}
+                    disabled={!selectedShop || typeof selectedShop.stock !== 'number' || quantity >= selectedShop.stock}
                   >
                     +
                   </button>
@@ -423,9 +699,9 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                 <button 
                   onClick={handleAddToCart}
                   className={`flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white py-3 px-4 rounded-md transition-colors ${
-                    selectedShop.stock < 1 ? 'opacity-50 cursor-not-allowed' : ''
+                    !selectedShop || typeof selectedShop.stock !== 'number' || selectedShop.stock < 1 ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
-                  disabled={selectedShop.stock < 1}
+                  disabled={!selectedShop || typeof selectedShop.stock !== 'number' || selectedShop.stock < 1}
                 >
                   <FaShoppingCart />
                   <span>Sepete Ekle</span>
@@ -505,12 +781,11 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                 <h3 className="text-xl font-semibold text-white mb-4">Ürün Açıklaması</h3>
                 <div className="bg-dark-200 p-4 rounded-lg mb-6">
                   <p className="text-gray-300 mb-4">
-                    {product.description}
+                    {fullProduct?.product.aciklama}
                   </p>
 
-                  <h4 className="text-lg font-medium text-white mb-2">Özellikler</h4>
                   <ul className="list-disc list-inside text-gray-300 space-y-1 ml-2">
-                    {product.features.map((feature, index) => (
+                    {fullProduct?.product.features?.map((feature, index) => (
                       <li key={index} className="flex items-start">
                         <FaCheckCircle className="text-primary mt-1 mr-2 flex-shrink-0" />
                         <span>{feature}</span>
@@ -526,19 +801,19 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Genişlik</span>
-                        <span className="text-white">{product.width} mm</span>
+                        <span className="text-white">{fullProduct?.product.genislik_mm} mm</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Profil</span>
-                        <span className="text-white">{product.aspectRatio}</span>
+                        <span className="text-white">{fullProduct?.product.profil}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Yapı</span>
-                        <span className="text-white">{product.construction}</span>
+                        <span className="text-white">{fullProduct?.product.yapi}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Çap</span>
-                        <span className="text-white">{product.diameter} inç</span>
+                        <span className="text-white">{fullProduct?.product.cap_inch} inç</span>
                       </div>
                     </div>
                   </div>
@@ -547,15 +822,15 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Yük Endeksi</span>
-                        <span className="text-white">{product.loadIndex}</span>
+                        <span className="text-white">{fullProduct?.product.yuk_endeksi}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Hız Endeksi</span>
-                        <span className="text-white">{product.speedIndex}</span>
+                        <span className="text-white">{fullProduct?.product.hiz_endeksi}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Mevsim</span>
-                        <span className="text-white">{product.season}</span>
+                        <span className="text-white">{fullProduct?.product.mevsim}</span>
                       </div>
                     </div>
                   </div>
@@ -564,15 +839,15 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Marka</span>
-                        <span className="text-white">{product.brand}</span>
+                        <span className="text-white">{fullProduct?.product.marka}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Model</span>
-                        <span className="text-white">{product.model}</span>
+                        <span className="text-white">{fullProduct?.product.model}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Sağlık Durumu</span>
-                        <span className="text-white">{product.health === 100 ? 'Sıfır (Yeni)' : `%${product.health}`}</span>
+                        <span className="text-white">{fullProduct?.product.saglik_durumu === 100 ? 'Sıfır (Yeni)' : `%${fullProduct?.product.saglik_durumu}`}</span>
                       </div>
                     </div>
                   </div>
@@ -602,11 +877,11 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                   </div>
 
                   <div className="space-y-3">
-                    {displayedShops.map(shop => (
+                    {displayedShops?.map(shop => (
                       <div 
                         key={shop.id}
                         className={`bg-dark-200 p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                          selectedShop.id === shop.id ? 'border-primary' : 'border-transparent hover:border-gray-700'
+                          selectedShop?.id === shop.id ? 'border-primary' : 'border-transparent hover:border-gray-700'
                         }`}
                         onClick={() => handleShopChange(shop)}
                       >
@@ -645,7 +920,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                       </div>
                     ))}
 
-                    {filteredShops.length > 3 && !showAllShops && (
+                    {filteredShops && filteredShops.length > 3 && !showAllShops && (
                       <button
                         className="w-full py-2 text-primary hover:text-primary-dark text-center"
                         onClick={() => setShowAllShops(true)}
@@ -673,7 +948,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                 <h3 className="text-xl font-semibold text-white mb-4">Kredi Kart Taksitleri</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
-                  {product.creditCardInstallments.map((bank, index) => (
+                  {fullProduct?.creditCardInstallments.map((bank, index) => (
                     <div key={index} className="bg-dark-200 rounded-lg overflow-hidden h-full">
                       <div className="bg-dark-100 py-2 px-4 flex items-center mb-1">
                         <h4 className="text-white font-medium">{bank.bank}</h4>
@@ -699,10 +974,10 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                                 1
                               </td>
                               <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-300">
-                                {selectedShop.price.toFixed(2)} TL
+                                {selectedShop?.price.toFixed(2)} TL
                               </td>
                               <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-300">
-                                {selectedShop.price.toFixed(2)} TL
+                                {selectedShop?.price.toFixed(2)} TL
                               </td>
                             </tr>
                             {bank.rates.map((rate, idx) => (
@@ -766,72 +1041,72 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
           <h2 className="text-2xl font-bold text-white mb-6">Benzer Ürünler</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Benzer Ürün Kartları - İlk 4 ürünü gösteriyoruz */}
-            {dummyProducts.slice(0, 4).map((similarProduct) => (
+            {similarProducts.slice(0, 4).map((similarProduct) => (
               <div 
-                key={similarProduct.id} 
+                key={similarProduct.urun_id} 
                 className="bg-dark-300 rounded-lg overflow-hidden border border-dark-100 transition-transform hover:transform hover:scale-[1.01]"
               >
                 <div className="relative">
-                  <Link href={`/urun-detay/${similarProduct.id}`}>
+                  <Link href={`/urun-detay/${similarProduct.urun_id}`}>
                     <div className="h-48 bg-gray-700 flex items-center justify-center">
                       <Image
                         src="/placeholder-tire.jpg"
-                        alt={similarProduct.name}
+                        alt={similarProduct.model}
                         width={200}
                         height={200}
                         className="object-contain"
                       />
                     </div>
                   </Link>
-                  <div className={`absolute top-2 left-2 ${getHealthColor(similarProduct.health).split(' ').slice(0, 2).join(' ')} px-2 py-1 rounded text-xs`}>
-                    {similarProduct.health === 100 ? 'Sıfır' : `%${similarProduct.health}`}
+                  <div className={`absolute top-2 left-2 ${getHealthColor(similarProduct.saglik_durumu).split(' ').slice(0, 2).join(' ')} px-2 py-1 rounded text-xs`}>
+                    {similarProduct.saglik_durumu === 100 ? 'Sıfır' : `%${similarProduct.saglik_durumu}`}
                   </div>
                 </div>
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <Link href={`/urun-detay/${similarProduct.id}`}>
+                    <Link href={`/urun-detay/${similarProduct.urun_id}`}>
                       <h3 className="text-lg font-medium text-white hover:text-primary transition-colors">
-                        {similarProduct.name}
+                        {similarProduct.model}
                       </h3>
                     </Link>
                     <span className="bg-primary px-2 py-1 rounded text-xs text-white">
-                      {similarProduct.brand}
+                      {similarProduct.marka}
                     </span>
                   </div>
                   <div className="mb-2 text-sm text-gray-400">
-                    {similarProduct.size} | {similarProduct.season}
+                    {similarProduct.cap_inch} | {similarProduct.mevsim}
                   </div>
                   <div className="flex flex-col mb-3">
                     <div className="text-gray-300 text-sm truncate">
-                      {similarProduct.shop}
+                      {similarProduct.magaza_isim}
                     </div>
                     <div className="text-gray-400 text-xs">
-                      {similarProduct.city}
+                      {similarProduct.magaza_sehir}
                     </div>
                   </div>
                   <div className="flex items-baseline mb-3">
-                    {similarProduct.discountedPrice ? (
+                    {similarProduct.indirimli_fiyat ? (
                       <>
                         <span className="text-xl font-bold text-white mr-2">
-                          {similarProduct.discountedPrice}₺
+                          {similarProduct.indirimli_fiyat}₺
                         </span>
                         <span className="text-sm text-gray-400 line-through">
-                          {similarProduct.price}₺
+                          {similarProduct.fiyat}₺
                         </span>
                       </>
                     ) : (
                       <span className="text-xl font-bold text-white">
-                        {similarProduct.price}₺
+                        {similarProduct.fiyat}₺
                       </span>
                     )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className={`text-sm ${similarProduct.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {similarProduct.stock > 0 ? 'Stokta' : 'Tükendi'}
+                    <span className={`text-sm ${similarProduct.stok > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {similarProduct.stok > 0 ? 'Stokta' : 'Tükendi'}
                     </span>
                     <div className="flex space-x-2">
                       <Link
-                        href={`/urun-detay/${similarProduct.id}`}
+                        href={`/urun-detay/${similarProduct.urun_id}`}
                         className="bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm transition-colors"
                       >
                         Detaylar
