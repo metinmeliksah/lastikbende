@@ -5,6 +5,12 @@ import { Slider } from '../components/ui/slider';
 import { FaSearch, FaSort, FaFilter, FaShoppingCart } from 'react-icons/fa';
 import Link from 'next/link';
 import Image from 'next/image';
+import { createClient } from '@supabase/supabase-js';
+
+// Supabase client oluştur
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Marka verileri
 const brands = [
@@ -35,127 +41,29 @@ const tireConditionOptions = [
   { value: 'used', label: 'İkinci El' }
 ];
 
-// Örnek ürün verileri (API'den gelecek)
-const dummyProducts = [
-  {
-    id: 1,
-    name: 'Lastik Test 1',
-    brand: 'Michelin',
-    price: 999,
-    discountedPrice: 899,
-    image: '/placeholder-tire.jpg',
-    health: 60,
-    size: '16 inç',
-    season: 'Yaz',
-    stock: 10,
-    shop: 'Lassa Lastik Satış A.Ş.',
-    city: 'Elazığ',
-  },
-  {
-    id: 2,
-    name: 'Lastik Test 2',
-    brand: 'Bridgestone',
-    price: 1299,
-    discountedPrice: null,
-    image: '/placeholder-tire.jpg',
-    health: 100,
-    size: '17 inç',
-    season: 'Kış',
-    stock: 5,
-    shop: 'Lassa Lastik Satış A.Ş.',
-    city: 'İstanbul',
-  },
-  {
-    id: 3,
-    name: 'Lastik Test 3',
-    brand: 'Pirelli',
-    price: 1499,
-    discountedPrice: 1399,
-    image: '/placeholder-tire.jpg',
-    health: 85,
-    size: '18 inç',
-    season: '4 Mevsim',
-    stock: 8,
-    shop: 'Lassa Lastik Satış A.Ş.',
-    city: 'Ankara',
-  },
-  {
-    id: 4,
-    name: 'Lastik Test 4',
-    brand: 'Goodyear',
-    price: 1699,
-    discountedPrice: null,
-    image: '/placeholder-tire.jpg',
-    health: 70,
-    size: '19 inç',
-    season: 'Yaz',
-    stock: 3,
-    shop: 'Lassa Lastik Satış A.Ş.',
-    city: 'İzmir',
-  },
-  {
-    id: 5,
-    name: 'Lastik Test 5',
-    brand: 'Continental',
-    price: 1899,
-    discountedPrice: 1799,
-    image: '/placeholder-tire.jpg',
-    health: 40,
-    size: '20 inç',
-    season: 'Kış',
-    stock: 0,
-    shop: 'Lassa Lastik Satış A.Ş.',
-    city: 'Bursa',
-  },
-  {
-    id: 6,
-    name: 'Lastik Test 6',
-    brand: 'Dunlop',
-    price: 999,
-    discountedPrice: 899,
-    image: '/placeholder-tire.jpg',
-    health: 100,
-    size: '16 inç',
-    season: '4 Mevsim',
-    stock: 12,
-    shop: 'Lassa Lastik Satış A.Ş.',
-    city: 'Adana',
-  },
-  {
-    id: 7,
-    name: 'Lastik Test 7',
-    brand: 'Hankook',
-    price: 1299,
-    discountedPrice: null,
-    image: '/placeholder-tire.jpg',
-    health: 90,
-    size: '17 inç',
-    season: 'Yaz',
-    stock: 7,
-    shop: 'Lassa Lastik Satış A.Ş.',
-    city: 'Antalya',
-  },
-  {
-    id: 8,
-    name: 'Lastik Test 8',
-    brand: 'Yokohama',
-    price: 1499,
-    discountedPrice: 1399,
-    image: '/placeholder-tire.jpg',
-    health: 100,
-    size: '18 inç',
-    season: 'Kış',
-    stock: 9,
-    shop: 'Lassa Lastik Satış A.Ş.',
-    city: 'Trabzon',
-  },
-];
+// Ürün veri tipini tanımla
+interface Product {
+  urun_id: number;
+  stok_id: number;
+  model: string;
+  marka: string;
+  cap_inch: string;
+  mevsim: string;
+  saglik_durumu: number;
+  urun_resmi_0: string;
+  stok: number;
+  magaza_id: number;
+  magaza_isim: string;
+  magaza_sehir: string;
+  fiyat: number;
+  indirimli_fiyat: number;
+}
 
 export default function UrunlerPage() {
-  const [products, setProducts] = useState(dummyProducts);
-  const [filteredProducts, setFilteredProducts] = useState(dummyProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [priceRange, setPriceRange] = useState([0, 2000]);
+  const [priceRange, setPriceRange] = useState([0, 10000]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
@@ -165,6 +73,130 @@ export default function UrunlerPage() {
   const [sortOption, setSortOption] = useState('default');
   const [isFilterMobileOpen, setIsFilterMobileOpen] = useState(false);
   const [compareList, setCompareList] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Verileri Supabase'den çek
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        // urundetay tablosundan ürünleri çek
+        const { data: urunDetayData, error: urunDetayError } = await supabase
+          .from('urundetay')
+          .select('*');
+
+        if (urunDetayError) {
+          console.error('Ürün verisi çekilirken hata oluştu:', urunDetayError);
+          throw urunDetayError;
+        }
+        
+        if (!urunDetayData || urunDetayData.length === 0) {
+          console.log('Ürün verisi bulunamadı');
+          setLoading(false);
+          return;
+        }
+
+        console.log('Çekilen ürün sayısı:', urunDetayData.length);
+
+        // Ürünlerin stok ve satıcı bilgilerini çek
+        const productDataPromises = urunDetayData.flatMap(async (urun) => {
+          try {
+            // Stok bilgisini çek
+            const { data: stokData, error: stokError } = await supabase
+              .from('stok')
+              .select('*')
+              .eq('urun_id', urun.urun_id);
+
+            if (stokError) {
+              console.error(`Stok verisi çekilirken hata (ürün_id: ${urun.urun_id}):`, stokError);
+              return null;
+            }
+            
+            if (!stokData || stokData.length === 0) {
+              console.log(`Stok verisi bulunamadı (ürün_id: ${urun.urun_id})`);
+              return null;
+            }
+
+            // Aynı ürünün farklı mağazalardaki stokları için ayrı kayıtlar oluştur
+            return Promise.all(stokData.map(async (stok) => {
+              try {
+                // Mağaza bilgisini çek
+                const { data: magazaData, error: magazaError } = await supabase
+                  .from('sellers')
+                  .select('id, isim, sehir')
+                  .eq('id', stok.magaza_id)
+                  .single();
+
+                if (magazaError) {
+                  console.error(`Mağaza verisi çekilirken hata (magaza_id: ${stok.magaza_id}):`, magazaError);
+                  return null;
+                }
+                
+                if (!magazaData) {
+                  console.log(`Mağaza verisi bulunamadı (magaza_id: ${stok.magaza_id})`);
+                  return null;
+                }
+
+                // Tüm verileri birleştir
+                return {
+                  urun_id: urun.urun_id,
+                  stok_id: stok.stok_id,
+                  model: urun.model || "İsimsiz Ürün",
+                  marka: urun.marka || "Bilinmiyor",
+                  cap_inch: urun.cap_inch || "",
+                  mevsim: urun.mevsim || "Belirtilmemiş",
+                  saglik_durumu: urun.saglik_durumu || 0,
+                  urun_resmi_0: urun.urun_resmi_0 || "/placeholder-tire.jpg",
+                  stok: stok.stok_adet || 0,
+                  magaza_id: stok.magaza_id,
+                  magaza_isim: magazaData.isim || "Bilinmiyor",
+                  magaza_sehir: magazaData.sehir || "Belirtilmemiş",
+                  fiyat: stok.fiyat || 0,
+                  indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat || 0
+                };
+              } catch (err) {
+                console.error(`Mağaza işlenirken hata (magaza_id: ${stok.magaza_id}):`, err);
+                return null;
+              }
+            }));
+          } catch (err) {
+            console.error(`Ürün işlenirken hata (ürün_id: ${urun.urun_id}):`, err);
+            return null;
+          }
+        });
+
+        // Tüm ürün bilgilerini bekle ve null olanları filtrele
+        const flattenedPromises = (await Promise.all(productDataPromises))
+          .filter(result => result !== null)
+          .flat()
+          .filter(product => product !== null);
+
+        const productData = flattenedPromises as Product[];
+
+        console.log('İşlenen toplam ürün sayısı:', productData.length);
+
+        if (productData.length === 0) {
+          console.log('İşlenebilen ürün bulunamadı');
+          setLoading(false);
+          return;
+        }
+
+        setProducts(productData);
+        setFilteredProducts(productData);
+
+        // Maksimum fiyat değerini ayarla
+        const maxPrice = Math.max(...productData.map(p => p.fiyat));
+        setPriceRange([0, maxPrice > 0 ? maxPrice : 10000]);
+        
+      } catch (error) {
+        console.error('Veri çekerken hata oluştu:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Filtreleme işlemi
   useEffect(() => {
@@ -173,62 +205,62 @@ export default function UrunlerPage() {
     // Arama filtresi
     if (searchTerm) {
       newFiltered = newFiltered.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+        product.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.marka.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Fiyat aralığı filtresi
     newFiltered = newFiltered.filter(product => {
-      const price = product.discountedPrice || product.price;
+      const price = product.indirimli_fiyat || product.fiyat;
       return price >= priceRange[0] && price <= priceRange[1];
     });
 
     // Marka filtresi
     if (selectedBrands.length > 0) {
-      newFiltered = newFiltered.filter(product => selectedBrands.includes(product.brand));
+      newFiltered = newFiltered.filter(product => selectedBrands.includes(product.marka));
     }
 
     // Boyut filtresi
     if (selectedSizes.length > 0) {
-      newFiltered = newFiltered.filter(product => selectedSizes.includes(product.size));
+      newFiltered = newFiltered.filter(product => selectedSizes.includes(`${product.cap_inch} inç`));
     }
 
     // Mevsim filtresi
     if (selectedSeasons.length > 0) {
-      newFiltered = newFiltered.filter(product => selectedSeasons.includes(product.season));
+      newFiltered = newFiltered.filter(product => selectedSeasons.includes(product.mevsim));
     }
 
     // İl filtresi
     if (selectedCities.length > 0) {
-      newFiltered = newFiltered.filter(product => selectedCities.includes(product.city));
+      newFiltered = newFiltered.filter(product => selectedCities.includes(product.magaza_sehir));
     }
 
     // Stok durumu filtresi
     if (stockStatus === 'inStock') {
-      newFiltered = newFiltered.filter(product => product.stock > 0);
+      newFiltered = newFiltered.filter(product => product.stok > 0);
     } else if (stockStatus === 'outOfStock') {
-      newFiltered = newFiltered.filter(product => product.stock === 0);
+      newFiltered = newFiltered.filter(product => product.stok === 0);
     }
 
     // Lastik durumu filtresi
     if (tireCondition === 'new') {
-      newFiltered = newFiltered.filter(product => product.health === 100);
+      newFiltered = newFiltered.filter(product => product.saglik_durumu === 100);
     } else if (tireCondition === 'used') {
-      newFiltered = newFiltered.filter(product => product.health < 100);
+      newFiltered = newFiltered.filter(product => product.saglik_durumu < 100);
     }
 
     // Sıralama
     if (sortOption === 'price-asc') {
-      newFiltered.sort((a, b) => (a.discountedPrice || a.price) - (b.discountedPrice || b.price));
+      newFiltered.sort((a, b) => (a.indirimli_fiyat || a.fiyat) - (b.indirimli_fiyat || b.fiyat));
     } else if (sortOption === 'price-desc') {
-      newFiltered.sort((a, b) => (b.discountedPrice || b.price) - (a.discountedPrice || a.price));
+      newFiltered.sort((a, b) => (b.indirimli_fiyat || b.fiyat) - (a.indirimli_fiyat || a.fiyat));
     } else if (sortOption === 'name-asc') {
-      newFiltered.sort((a, b) => a.name.localeCompare(b.name));
+      newFiltered.sort((a, b) => a.model.localeCompare(b.model));
     } else if (sortOption === 'name-desc') {
-      newFiltered.sort((a, b) => b.name.localeCompare(a.name));
+      newFiltered.sort((a, b) => b.model.localeCompare(a.model));
     } else if (sortOption === 'health-desc') {
-      newFiltered.sort((a, b) => b.health - a.health);
+      newFiltered.sort((a, b) => b.saglik_durumu - a.saglik_durumu);
     }
 
     setFilteredProducts(newFiltered);
@@ -291,7 +323,7 @@ export default function UrunlerPage() {
 
   const resetFilters = () => {
     setSearchTerm('');
-    setPriceRange([0, 2000]);
+    setPriceRange([0, 10000]);
     setSelectedBrands([]);
     setSelectedSizes([]);
     setSelectedSeasons([]);
@@ -303,10 +335,11 @@ export default function UrunlerPage() {
 
   // Lastik sağlık durumuna göre renk belirleme
   const getHealthColor = (health: number) => {
-    if (health === 100) return 'bg-green-500'; // Sıfır için yeşil
-    if (health >= 70) return 'bg-green-500'; // İyi durum için yeşil
-    if (health >= 40) return 'bg-yellow-500'; // Orta durum için sarı
-    return 'bg-red-500'; // Kötü durum için kırmızı
+    if (health === 100) return 'bg-green-500 text-white';
+    if (health >= 80) return 'bg-green-400 text-white';
+    if (health >= 60) return 'bg-yellow-400 text-black';
+    if (health >= 40) return 'bg-orange-400 text-white';
+    return 'bg-red-500 text-white';
   };
 
   // Mobil filtre
@@ -316,7 +349,21 @@ export default function UrunlerPage() {
 
   // Sepete ekleme işlemi
   const handleAddToCart = (product: any) => {
-    alert(`${product.name} sepete eklendi.`);
+    alert(`${product.model} sepete eklendi.`);
+  };
+
+  // Satıcı adı ve şehir ayrı gösterilecek
+  const renderShopAndCity = (product: Product) => {
+    return (
+      <div className="flex flex-col mb-3">
+        <div className="text-gray-300 text-sm truncate">
+          {product.magaza_isim}
+        </div>
+        <div className="text-gray-400 text-xs">
+          {product.magaza_sehir}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -383,9 +430,9 @@ export default function UrunlerPage() {
                 <h4 className="text-gray-200 mb-2 font-medium">Fiyat</h4>
                 <div className="px-2">
                   <Slider
-                    defaultValue={[0, 2000]}
+                    defaultValue={[0, 10000]}
                     min={0}
-                    max={2000}
+                    max={10000}
                     step={50}
                     value={priceRange}
                     onValueChange={setPriceRange}
@@ -531,11 +578,11 @@ export default function UrunlerPage() {
                 <h3 className="text-lg font-semibold text-white mb-3">Karşılaştırma</h3>
                 <div className="space-y-2">
                   {compareList.map(id => {
-                    const product = products.find(p => p.id === id);
+                    const product = products.find(p => p.urun_id === id);
                     return (
                       <div key={id} className="flex justify-between items-center">
                         <span className="text-gray-300 text-sm truncate max-w-[80%]">
-                          {product?.name}
+                          {product?.model}
                         </span>
                         <button
                           onClick={() => toggleCompare(id)}
@@ -567,7 +614,14 @@ export default function UrunlerPage() {
 
           {/* Ürün Listesi */}
           <div className="w-full md:w-3/4">
-            {filteredProducts.length === 0 ? (
+            {loading ? (
+              <div className="bg-dark-300 rounded-lg p-6 text-center border border-dark-100">
+                <h3 className="text-xl text-gray-200 mb-2">Ürünler Yükleniyor...</h3>
+                <p className="text-gray-400">
+                  Lütfen bekleyin, ürünler yükleniyor.
+                </p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="bg-dark-300 rounded-lg p-6 text-center border border-dark-100">
                 <h3 className="text-xl text-gray-200 mb-2">Ürün Bulunamadı</h3>
                 <p className="text-gray-400">
@@ -584,30 +638,31 @@ export default function UrunlerPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredProducts.map((product) => (
                   <div 
-                    key={product.id} 
+                    key={product.urun_id} 
                     className="bg-dark-300 rounded-lg overflow-hidden border border-dark-100 transition-transform hover:transform hover:scale-[1.01]"
                   >
                     <div className="relative">
-                      <Link href={`/urun-detay/${product.id}`}>
+                      <Link href={`/urun-detay/${product.urun_id}`}>
                         <div className="h-48 bg-gray-700 flex items-center justify-center">
                           <Image
-                            src={product.image}
-                            alt={product.name}
+                            src={product.urun_resmi_0}
+                            alt={product.model}
                             width={200}
                             height={200}
-                            className="object-contain"
+                            className="object-contain w-full h-full"
+                            style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                           />
                         </div>
                       </Link>
                       <div className="absolute top-2 right-2">
                         <button
-                          onClick={() => toggleCompare(product.id)}
+                          onClick={() => toggleCompare(product.urun_id)}
                           className={`p-2 rounded-full ${
-                            compareList.includes(product.id)
+                            compareList.includes(product.urun_id)
                               ? 'bg-primary text-white'
                               : 'bg-dark-200 text-gray-300 hover:bg-dark-100'
                           }`}
-                          title={compareList.includes(product.id) ? 'Karşılaştırmadan Çıkar' : 'Karşılaştırmaya Ekle'}
+                          title={compareList.includes(product.urun_id) ? 'Karşılaştırmadan Çıkar' : 'Karşılaştırmaya Ekle'}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -625,63 +680,56 @@ export default function UrunlerPage() {
                           </svg>
                         </button>
                       </div>
-                      <div className={`absolute top-2 left-2 ${getHealthColor(product.health)} text-white px-2 py-1 rounded text-xs`}>
-                        {product.health === 100 ? 'Sıfır' : `%${product.health}`}
+                      <div className={`absolute top-2 left-2 ${getHealthColor(product.saglik_durumu)} px-2 py-1 rounded text-xs`}>
+                        {product.saglik_durumu === 100 ? 'Sıfır' : `%${product.saglik_durumu}`}
                       </div>
                     </div>
                     <div className="p-4">
                       <div className="flex justify-between items-start mb-2">
-                        <Link href={`/urun-detay/${product.id}`}>
+                        <Link href={`/urun-detay/${product.urun_id}`}>
                           <h3 className="text-lg font-medium text-white hover:text-primary transition-colors">
-                            {product.name}
+                            {product.model}
                           </h3>
                         </Link>
                         <span className="bg-primary px-2 py-1 rounded text-xs text-white">
-                          {product.brand}
+                          {product.marka}
                         </span>
                       </div>
                       <div className="mb-2 text-sm text-gray-400">
-                        {product.size} | {product.season}
+                        {product.cap_inch} inç | {product.mevsim}
                       </div>
-                      <div className="flex flex-col mb-3">
-                        <div className="text-gray-300 text-sm truncate">
-                          {product.shop}
-                        </div>
-                        <div className="text-gray-400 text-xs">
-                          {product.city}
-                        </div>
-                      </div>
+                      {renderShopAndCity(product)}
                       <div className="flex items-baseline mb-3">
-                        {product.discountedPrice ? (
+                        {product.indirimli_fiyat !== product.fiyat ? (
                           <>
                             <span className="text-xl font-bold text-white mr-2">
-                              {product.discountedPrice}₺
+                              {product.indirimli_fiyat}₺
                             </span>
                             <span className="text-sm text-gray-400 line-through">
-                              {product.price}₺
+                              {product.fiyat}₺
                             </span>
                           </>
                         ) : (
                           <span className="text-xl font-bold text-white">
-                            {product.price}₺
+                            {product.fiyat}₺
                           </span>
                         )}
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className={`text-sm ${product.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                          {product.stock > 0 ? 'Stokta' : 'Tükendi'}
+                        <span className={`text-sm ${product.stok > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {product.stok > 0 ? 'Stokta' : 'Tükendi'}
                         </span>
                         <div className="flex space-x-2">
                           <Link
-                            href={`/urun-detay/${product.id}`}
+                            href={`/urun-detay/${product.urun_id}`}
                             className="bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm transition-colors"
                           >
                             Detaylar
                           </Link>
                           <button
                             onClick={() => handleAddToCart(product)}
-                            className={`bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm transition-colors flex items-center ${product.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            disabled={product.stock <= 0}
+                            className={`bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm transition-colors flex items-center ${product.stok <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={product.stok <= 0}
                           >
                             <FaShoppingCart className="mr-1" />
                             <span>Sepete Ekle</span>
@@ -695,24 +743,26 @@ export default function UrunlerPage() {
             )}
 
             {/* Sayfalama */}
-            <div className="mt-8 flex justify-center">
-              <nav className="flex items-center space-x-1">
-                <button className="px-3 py-1 rounded-md bg-dark-300 text-gray-400 hover:bg-dark-200" disabled>
-                  Önceki
-                </button>
-                <button className="px-3 py-1 rounded-md bg-primary text-white">1</button>
-                <button className="px-3 py-1 rounded-md bg-dark-300 text-gray-400 hover:bg-dark-200">2</button>
-                <button className="px-3 py-1 rounded-md bg-dark-300 text-gray-400 hover:bg-dark-200">3</button>
-                <span className="px-3 py-1 text-gray-400">...</span>
-                <button className="px-3 py-1 rounded-md bg-dark-300 text-gray-400 hover:bg-dark-200">10</button>
-                <button className="px-3 py-1 rounded-md bg-dark-300 text-gray-400 hover:bg-dark-200">
-                  Sonraki
-                </button>
-              </nav>
-            </div>
+            {filteredProducts.length > 0 && (
+              <div className="mt-8 flex justify-center">
+                <nav className="flex items-center space-x-1">
+                  <button className="px-3 py-1 rounded-md bg-dark-300 text-gray-400 hover:bg-dark-200" disabled>
+                    Önceki
+                  </button>
+                  <button className="px-3 py-1 rounded-md bg-primary text-white">1</button>
+                  <button className="px-3 py-1 rounded-md bg-dark-300 text-gray-400 hover:bg-dark-200">2</button>
+                  <button className="px-3 py-1 rounded-md bg-dark-300 text-gray-400 hover:bg-dark-200">3</button>
+                  <span className="px-3 py-1 text-gray-400">...</span>
+                  <button className="px-3 py-1 rounded-md bg-dark-300 text-gray-400 hover:bg-dark-200">10</button>
+                  <button className="px-3 py-1 rounded-md bg-dark-300 text-gray-400 hover:bg-dark-200">
+                    Sonraki
+                  </button>
+                </nav>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}
