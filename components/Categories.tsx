@@ -11,28 +11,21 @@ const categories = [
     name: 'Yaz Lastikleri',
     image: '/categories/summer-tyres.jpg',
     description: 'Yüksek performanslı yaz lastikleri',
-    link: '/lastikler/yaz',
+    link: '/urunler?mevsim=Yaz',
   },
   {
     id: 2,
     name: 'Kış Lastikleri',
     image: '/categories/winter-tyres.jpg',
     description: 'Güvenli kış sürüşü için özel lastikler',
-    link: '/lastikler/kis',
+    link: '/urunler?mevsim=Kış',
   },
   {
     id: 3,
-    name: 'Spor Jantlar',
-    image: '/categories/sport-wheels.jpg',
-    description: 'Performans ve stil bir arada',
-    link: '/jantlar/spor',
-  },
-  {
-    id: 4,
-    name: 'Klasik Jantlar',
-    image: '/categories/classic-wheels.jpg',
-    description: 'Zamansız tasarımlar',
-    link: '/jantlar/klasik',
+    name: '4 Mevsim Lastikleri',
+    image: '/categories/all-season-tyres.jpg',
+    description: 'Her mevsim kullanılabilen çok yönlü lastikler',
+    link: '/urunler?mevsim=4 Mevsim',
   },
 ]
 
@@ -42,10 +35,10 @@ export default function Categories() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-white mb-4">Kategoriler</h2>
-          <p className="text-gray-400">İhtiyacınıza uygun ürünleri keşfedin</p>
+          <p className="text-gray-400">İhtiyacınıza uygun lastikleri keşfedin</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {categories.map((category, index) => (
             <motion.div
               key={category.id}
