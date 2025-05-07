@@ -14,7 +14,8 @@ export function getSupabaseClient() {
         storageKey: 'lastikbende-auth',
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         autoRefreshToken: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        flowType: 'pkce'
       }
     });
   }

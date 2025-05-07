@@ -20,9 +20,10 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
     phone: '',
     termsAccepted: false,
     marketingAccepted: false,
-    rememberMe: true
+    rememberMe: false
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const supabase = getSupabaseClient();
@@ -101,6 +102,7 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     // Üyelik sözleşmesi kontrolü
     if (!isLogin && !formData.termsAccepted) {
@@ -146,12 +148,17 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
 
         if (error) throw error;
         
-        // Session is automatically persisted
         if (data.session) {
+          // Beni hatırla seçeneğine göre oturum saklama
+          if (formData.rememberMe) {
+            localStorage.setItem('lastikbende-auth', JSON.stringify(data.session));
+          } else {
+            sessionStorage.setItem('lastikbende-auth', JSON.stringify(data.session));
+          }
           router.push('/kullanici');
         }
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
@@ -165,6 +172,21 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
         });
 
         if (error) throw error;
+
+        if (data.user) {
+          setSuccess('Kayıt işleminiz başarıyla tamamlandı. Lütfen e-posta adresinize gönderilen onay linkine tıklayarak hesabınızı aktifleştirin.');
+          // Form verilerini temizle
+          setFormData({
+            email: '',
+            password: '',
+            firstName: '',
+            lastName: '',
+            phone: '',
+            termsAccepted: false,
+            marketingAccepted: false,
+            rememberMe: false
+          });
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Bir hata oluştu');
@@ -184,7 +206,17 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
         </h1>
       </div>
 
-      <ErrorMessage message={error} />
+      {error && (
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-500 text-sm">
+          {success}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isLogin && (

@@ -160,8 +160,8 @@ export default function KullaniciPage() {
       status: 'Tamamlandı',
       total: '₺1,299.99',
       items: [
-        { name: 'Lastik 1', quantity: 2, price: '₺599.99' },
-        { name: 'Jant 1', quantity: 1, price: '₺100.00' }
+        { id: 1, name: 'Lastik 1', quantity: 2, price: '₺599.99' },
+        { id: 2, name: 'Jant 1', quantity: 1, price: '₺100.00' }
       ]
     },
     {
@@ -170,7 +170,7 @@ export default function KullaniciPage() {
       status: 'Kargoda',
       total: '₺899.99',
       items: [
-        { name: 'Lastik 2', quantity: 1, price: '₺899.99' }
+        { id: 1, name: 'Lastik 2', quantity: 1, price: '₺899.99' }
       ]
     },
     {
@@ -179,7 +179,7 @@ export default function KullaniciPage() {
       status: 'İşleme Alındı',
       total: '₺1,599.99',
       items: [
-        { name: 'Lastik 3', quantity: 4, price: '₺399.99' }
+        { id: 1, name: 'Lastik 3', quantity: 4, price: '₺399.99' }
       ]
     }
   ];
@@ -558,7 +558,7 @@ export default function KullaniciPage() {
               <div className="space-y-4">
                 <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
                   <h3 className="font-semibold mb-4 text-gray-100">Siparişlerim</h3>
-                  <OrderList orders={orders} />
+                  <OrderList orders={orders} onSupportRequest={() => setActiveTab('support')} />
                 </div>
               </div>
             </div>

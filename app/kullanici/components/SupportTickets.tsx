@@ -98,6 +98,24 @@ export default function SupportTickets({ userId }: { userId: string }) {
     localStorage.setItem('supportTicketForm', JSON.stringify(form));
   }, [form]);
 
+  // Siparişten destek talebi için otomatik form doldurma
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const orderData = localStorage.getItem('supportTicketOrder');
+      if (orderData) {
+        const order = JSON.parse(orderData);
+        setShowForm(true);
+        setForm({
+          title: `Sipariş #${order.orderId} için destek`,
+          category: 'Sipariş',
+          priority: 'medium',
+          description: `Sipariş Tarihi: ${order.orderDate}\nDurum: ${order.orderStatus}\nÜrünler:\n${order.orderItems.map((item: any) => `- ${item.name} x${item.quantity}`).join('\n')}\n\nLütfen yaşadığınız sorunu detaylandırınız.`,
+        });
+        localStorage.removeItem('supportTicketOrder');
+      }
+    }
+  }, []);
+
   // Form validasyonu
   const isFormValid = form.title.trim() !== '' && 
                      form.category !== '' && 

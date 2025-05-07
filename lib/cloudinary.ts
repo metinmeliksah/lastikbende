@@ -14,6 +14,16 @@ export async function uploadToCloudinary(
       throw new Error('Cloudinary upload preset is not configured');
     }
 
+    // Dosya boyutu kontrolü (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      throw new Error('Dosya boyutu 2MB\'dan küçük olmalıdır');
+    }
+
+    // Dosya tipi kontrolü
+    if (!file.type.match(/^image\/(jpeg|png|gif)$/)) {
+      throw new Error('Sadece JPG, PNG veya GIF dosyaları yükleyebilirsiniz');
+    }
+
     // FormData oluştur
     const formData = new FormData();
     formData.append('file', file);
@@ -27,12 +37,19 @@ export async function uploadToCloudinary(
 
     // Dönüşüm parametrelerini ekle
     if (options.transformation && options.transformation.length > 0) {
-      // Her bir dönüşüm parametresini ayrı ayrı ekle
-      options.transformation.forEach((transform, index) => {
-        Object.entries(transform).forEach(([key, value]) => {
-          formData.append(`transformation[${index}][${key}]`, value.toString());
-        });
+      const transformations = options.transformation.map(transform => {
+        const params = [];
+        for (const [key, value] of Object.entries(transform)) {
+          if (typeof value === 'string' && value.includes('_')) {
+            params.push(value);
+          } else {
+            params.push(`${key}_${value}`);
+          }
+        }
+        return params.join(',');
       });
+      
+      formData.append('transformation', transformations.join('/'));
     }
 
     // Yükleme isteği gönder
@@ -46,21 +63,22 @@ export async function uploadToCloudinary(
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`Cloudinary upload failed: ${errorData.error?.message || response.statusText}`);
+      console.error('Cloudinary API Error:', errorData);
+      throw new Error(errorData.error?.message || 'Fotoğraf yüklenirken bir hata oluştu');
     }
 
     const data = await response.json();
 
     if (!data.secure_url) {
-      throw new Error('Cloudinary upload response does not contain secure_url');
+      throw new Error('Fotoğraf yüklenirken bir hata oluştu');
     }
 
     return data.secure_url;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
     if (error instanceof Error) {
-      throw new Error(`Cloudinary upload failed: ${error.message}`);
+      throw new Error(`Fotoğraf yüklenirken bir hata oluştu: ${error.message}`);
     }
-    throw new Error('Cloudinary upload failed: Unknown error');
+    throw new Error('Fotoğraf yüklenirken beklenmeyen bir hata oluştu');
   }
 } 
