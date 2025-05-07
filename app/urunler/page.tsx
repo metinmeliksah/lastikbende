@@ -94,12 +94,60 @@ export default function UrunlerPage() {
 
   const { addToCart } = useCart();
 
-  // URL'den filtreleri al
   useEffect(() => {
+    // URL'den parametreleri al
     const mevsimParam = searchParams.get('mevsim');
+    const pageParam = searchParams.get('page');
+    const markaParam = searchParams.get('marka');
+    const sehirParam = searchParams.get('sehir');
+    const boyutParam = searchParams.get('boyut');
+    const stokParam = searchParams.get('stok');
+    const durumParam = searchParams.get('durum');
+    const siraParam = searchParams.get('sira');
+    
+    // Mevsim filtresi
     if (mevsimParam) {
-      setSelectedSeasons([mevsimParam]);
+      setSelectedSeasons(mevsimParam.split(','));
     }
+    
+    // Sayfa numarası
+    if (pageParam) {
+      const page = parseInt(pageParam);
+      if (!isNaN(page) && page > 0) {
+        setCurrentPage(page);
+      }
+    }
+    
+    // Marka filtresi
+    if (markaParam) {
+      setSelectedBrands(markaParam.split(','));
+    }
+    
+    // Şehir filtresi
+    if (sehirParam) {
+      setSelectedCities(sehirParam.split(','));
+    }
+    
+    // Boyut filtresi
+    if (boyutParam) {
+      setSelectedSizes(boyutParam.split(','));
+    }
+    
+    // Stok durumu
+    if (stokParam) {
+      setStockStatus(stokParam);
+    }
+    
+    // Lastik durumu
+    if (durumParam) {
+      setTireCondition(durumParam);
+    }
+    
+    // Sıralama
+    if (siraParam) {
+      setSortOption(siraParam);
+    }
+    
   }, [searchParams]);
 
   // Verileri Supabase'den çek
@@ -107,10 +155,11 @@ export default function UrunlerPage() {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        // Stok tablosundan tüm ürünleri çek
+        // Stok tablosundan tüm ürünleri çek ve stok_id'ye göre sırala
         const { data: stokData, error: stokError } = await supabase
           .from('stok')
-          .select('*, urundetay(*)');
+          .select('*, urundetay(*), sellers(*)')
+          .order('stok_id', { ascending: true });
 
         if (stokError) {
           console.error('Stok verisi çekilirken hata oluştu:', stokError);
@@ -122,7 +171,6 @@ export default function UrunlerPage() {
           setLoading(false);
           return;
         }
-
         // Mağaza bilgilerini çek
         const productDataPromises = stokData.map(async (stok) => {
           try {
@@ -188,7 +236,7 @@ export default function UrunlerPage() {
 
         setProducts(productData);
         setFilteredProducts(productData);
-
+        
         // Maksimum fiyat değerini ayarla
         const maxPrice = Math.max(...productData.map(p => p.indirimli_fiyat));
         setPriceRange([0, maxPrice > 0 ? maxPrice : 10000]);
@@ -203,123 +251,170 @@ export default function UrunlerPage() {
     fetchProducts();
   }, []);
 
-  // Sayfa sayısını hesapla ve görüntülenecek ürünleri belirle
-  useEffect(() => {
-    if (filteredProducts.length > 0) {
-      // Toplam sayfa sayısını hesapla
-      const pages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
-      setTotalPages(pages);
-      
-      // Eğer mevcut sayfa, toplam sayfa sayısından büyükse, ilk sayfayı göster
-      if (currentPage > pages) {
-        setCurrentPage(1);
-      }
-      
-      // İlgili sayfadaki ürünleri belirle
-      const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
-      const endIndex = startIndex + PRODUCTS_PER_PAGE;
-      const pageProducts = filteredProducts.slice(startIndex, endIndex);
-      
-      // Grid yapısına uygun olarak 9 ürün göster
-      setDisplayedProducts(pageProducts.slice(0, PRODUCTS_PER_PAGE));
-
-      // Toplam ürün sayısını ve mevcut sayfadaki ürün sayısını konsola yazdır
-      console.log('Toplam ürün sayısı:', filteredProducts.length);
-      console.log('Mevcut sayfadaki ürün sayısı:', pageProducts.slice(0, PRODUCTS_PER_PAGE).length);
+  // Filtreleme parametrelerini URL'ye ekle
+  const updateURLWithFilters = () => {
+    const url = new URL(window.location.href);
+    
+    // Sayfa numarası
+    if (currentPage > 1) {
+      url.searchParams.set('page', currentPage.toString());
     } else {
-      setTotalPages(1);
-      setDisplayedProducts([]);
+      url.searchParams.delete('page');
     }
-  }, [filteredProducts, currentPage]);
+    
+    // Mevsim filtresi
+    if (selectedSeasons.length > 0) {
+      url.searchParams.set('mevsim', selectedSeasons.join(','));
+    } else {
+      url.searchParams.delete('mevsim');
+    }
+    
+    // Marka filtresi
+    if (selectedBrands.length > 0) {
+      url.searchParams.set('marka', selectedBrands.join(','));
+    } else {
+      url.searchParams.delete('marka');
+    }
+    
+    // Şehir filtresi
+    if (selectedCities.length > 0) {
+      url.searchParams.set('sehir', selectedCities.join(','));
+    } else {
+      url.searchParams.delete('sehir');
+    }
+    
+    // Boyut filtresi
+    if (selectedSizes.length > 0) {
+      url.searchParams.set('boyut', selectedSizes.join(','));
+    } else {
+      url.searchParams.delete('boyut');
+    }
+    
+    // Stok durumu
+    if (stockStatus !== 'all') {
+      url.searchParams.set('stok', stockStatus);
+    } else {
+      url.searchParams.delete('stok');
+    }
+    
+    // Lastik durumu
+    if (tireCondition !== 'all') {
+      url.searchParams.set('durum', tireCondition);
+    } else {
+      url.searchParams.delete('durum');
+    }
+    
+    // Sıralama
+    if (sortOption !== 'default') {
+      url.searchParams.set('sira', sortOption);
+    } else {
+      url.searchParams.delete('sira');
+    }
+    
+    // URL'yi güncelle
+    window.history.pushState({}, '', url);
+  };
 
-  // Filtreleme yap
+  // Sayfalama ve filtreleme mantığını birleştir
   useEffect(() => {
     if (products.length === 0) return;
     
-    let newFiltered = [...products];
+    let filtered = [...products];
 
     // Arama filtresi
     if (searchTerm) {
-      newFiltered = newFiltered.filter(product =>
+      filtered = filtered.filter(product =>
         product.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.marka.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Fiyat filtresi (indirimli fiyat üzerinden)
-    newFiltered = newFiltered.filter(product =>
-      Number(product.indirimli_fiyat) >= Number(priceRange[0]) && Number(product.indirimli_fiyat) <= Number(priceRange[1])
+    // Fiyat filtresi
+    filtered = filtered.filter(product =>
+      Number(product.indirimli_fiyat) >= Number(priceRange[0]) && 
+      Number(product.indirimli_fiyat) <= Number(priceRange[1])
     );
 
     // Marka filtresi
     if (selectedBrands.length > 0) {
-      newFiltered = newFiltered.filter(product =>
+      filtered = filtered.filter(product =>
         selectedBrands.includes(product.marka)
       );
     }
 
     // Boyut filtresi
     if (selectedSizes.length > 0) {
-      newFiltered = newFiltered.filter(product =>
+      filtered = filtered.filter(product =>
         selectedSizes.includes(`${product.cap_inch} inç`)
       );
     }
 
     // Mevsim filtresi
     if (selectedSeasons.length > 0) {
-      newFiltered = newFiltered.filter(product =>
+      filtered = filtered.filter(product =>
         selectedSeasons.includes(product.mevsim)
       );
     }
 
     // Şehir filtresi
     if (selectedCities.length > 0) {
-      newFiltered = newFiltered.filter(product =>
+      filtered = filtered.filter(product =>
         selectedCities.includes(product.magaza_sehir)
       );
     }
 
     // Stok durumu filtresi
     if (stockStatus === 'inStock') {
-      newFiltered = newFiltered.filter(product => product.stok > 0);
+      filtered = filtered.filter(product => product.stok > 0);
     } else if (stockStatus === 'outOfStock') {
-      newFiltered = newFiltered.filter(product => product.stok <= 0);
+      filtered = filtered.filter(product => product.stok <= 0);
     }
 
     // Lastik durumu filtresi
     if (tireCondition === 'new') {
-      newFiltered = newFiltered.filter(product => product.saglik_durumu === 100);
+      filtered = filtered.filter(product => product.saglik_durumu === 100);
     } else if (tireCondition === 'used') {
-      newFiltered = newFiltered.filter(product => product.saglik_durumu < 100);
+      filtered = filtered.filter(product => product.saglik_durumu < 100);
     }
-
-    // Aynı bayiden olan aynı ürünleri filtrele
-    const uniqueProducts = newFiltered.reduce((acc, current) => {
-      const existingProduct = acc.find(item => 
-        item.urun_id === current.urun_id && 
-        item.magaza_id === current.magaza_id
-      );
-      if (!existingProduct) {
-        acc.push(current);
-      }
-      return acc;
-    }, [] as Product[]);
 
     // Sıralama
     if (sortOption === 'price-asc') {
-      uniqueProducts.sort((a, b) => Number(a.indirimli_fiyat) - Number(b.indirimli_fiyat));
+      filtered.sort((a, b) => Number(a.indirimli_fiyat) - Number(b.indirimli_fiyat));
     } else if (sortOption === 'price-desc') {
-      uniqueProducts.sort((a, b) => Number(b.indirimli_fiyat) - Number(a.indirimli_fiyat));
+      filtered.sort((a, b) => Number(b.indirimli_fiyat) - Number(a.indirimli_fiyat));
     } else if (sortOption === 'name-asc') {
-      uniqueProducts.sort((a, b) => a.model.localeCompare(b.model));
+      filtered.sort((a, b) => a.model.localeCompare(b.model));
     } else if (sortOption === 'name-desc') {
-      uniqueProducts.sort((a, b) => b.model.localeCompare(a.model));
+      filtered.sort((a, b) => b.model.localeCompare(a.model));
     } else if (sortOption === 'health-desc') {
-      uniqueProducts.sort((a, b) => b.saglik_durumu - a.saglik_durumu);
+      filtered.sort((a, b) => b.saglik_durumu - a.saglik_durumu);
+    } else {
+      // Varsayılan sıralama: stok_id'ye göre artan sırada
+      filtered.sort((a, b) => a.stok_id - b.stok_id);
     }
 
-    setFilteredProducts(uniqueProducts);
-    setCurrentPage(1);
+    // Filtrelenmiş ürünleri güncelle
+    setFilteredProducts(filtered);
+    
+    // Filtreleme değiştiğinde sayfa numarasını 1'e ayarla (sayfa değişikliğinde bu etkilenmeyecek)
+    if (
+      searchTerm || 
+      selectedBrands.length > 0 || 
+      selectedSizes.length > 0 || 
+      selectedSeasons.length > 0 || 
+      selectedCities.length > 0 || 
+      stockStatus !== 'all' || 
+      tireCondition !== 'all' || 
+      sortOption !== 'default' ||
+      priceRange[0] !== 0 || 
+      priceRange[1] !== (Math.max(...products.map(p => p.indirimli_fiyat)))
+    ) {
+      setCurrentPage(1);
+    }
+    
+    // URL'yi güncelle
+    updateURLWithFilters();
+
   }, [
     products,
     searchTerm,
@@ -332,6 +427,55 @@ export default function UrunlerPage() {
     tireCondition,
     sortOption
   ]);
+
+  // Sayfalama işlemi - sadece filteredProducts veya currentPage değiştiğinde çalışır
+  useEffect(() => {
+    if (filteredProducts.length === 0) {
+      setDisplayedProducts([]);
+      setTotalPages(1);
+      return;
+    }
+
+    // Toplam sayfa sayısını hesapla
+    const calculatedTotalPages = Math.max(1, Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE));
+    setTotalPages(calculatedTotalPages);
+    
+    // Geçerli sayfa numarasını kontrol et
+    const validCurrentPage = Math.min(Math.max(1, currentPage), calculatedTotalPages);
+    if (validCurrentPage !== currentPage) {
+      setCurrentPage(validCurrentPage);
+    }
+    
+    // Sayfadaki ürünleri belirle - her sayfada tam olarak 9 ürün
+    const startIndex = (validCurrentPage - 1) * PRODUCTS_PER_PAGE;
+    const endIndex = startIndex + PRODUCTS_PER_PAGE;
+    
+    // Tamamen yeni bir dizi olarak gönder, önceki ürünleri temizle
+    const newDisplayedProducts = filteredProducts.slice(startIndex, endIndex);
+    setDisplayedProducts(newDisplayedProducts);
+    
+    // URL'yi güncelle
+    updateURLWithFilters();
+    
+  }, [filteredProducts, currentPage]);
+
+  // Sayfa değiştirme işlemi
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    
+    // Tarayıcının geçmişini değiştirmeden sadece URL güncelleniyor
+    window.history.replaceState(
+      null,
+      '',
+      `?page=${page}${window.location.search.replace(/[?&]page=\d+/, '')}`
+    );
+    
+    // Sayfayı güncelle
+    setCurrentPage(page);
+    
+    // Sayfanın başına dön
+    window.scrollTo(0, 0);
+  };
 
   // Karşılaştırma listesine ekleme/çıkarma
   const toggleCompare = (id: number) => {
@@ -399,6 +543,9 @@ export default function UrunlerPage() {
     setStockStatus('all');
     setTireCondition('all');
     setSortOption('default');
+    
+    // URL'yi temizle
+    window.history.pushState({}, '', window.location.pathname);
   };
 
   // Lastik sağlık durumuna göre renk belirleme
@@ -438,12 +585,6 @@ export default function UrunlerPage() {
     router.push(`/karsilastir?ids=${compareList.join(',')}`);
   };
 
-  // Sayfa değiştirme işlemi
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo(0, 0); // Sayfa değiştiğinde en üste kaydır
-  };
-
   // Ürün kartı bileşeni
   const ProductCard = ({ product, toggleCompare, compareList }: { product: Product, toggleCompare: (id: number) => void, compareList: number[] }) => {
     const isInCompareList = compareList.includes(product.urun_id);
@@ -472,7 +613,7 @@ export default function UrunlerPage() {
     return (
       <div className="bg-dark-300 rounded-lg overflow-hidden border border-dark-100 transition-transform hover:transform hover:scale-[1.01] flex flex-col h-full">
         <div className="relative">
-          <Link href={`/urun-detay/${product.urun_id}`}>
+          <Link href={`/urun-detay/${product.urun_id}?stok_id=${product.stok_id}`}>
             <div className="h-48 bg-gray-700 flex items-center justify-center">
               <Image
                 src={product.urun_resmi_0}
@@ -503,7 +644,7 @@ export default function UrunlerPage() {
         </div>
         <div className="p-4 flex flex-col flex-grow">
           <div className="flex justify-between items-start mb-2">
-            <Link href={`/urun-detay/${product.urun_id}`}>
+            <Link href={`/urun-detay/${product.urun_id}?stok_id=${product.stok_id}`}>
               <h3 className="text-lg font-medium text-white hover:text-primary transition-colors">
                 {product.model}
               </h3>
@@ -553,7 +694,7 @@ export default function UrunlerPage() {
               </span>
               <div className="flex space-x-2">
                 <Link
-                  href={`/urun-detay/${product.urun_id}`}
+                  href={`/urun-detay/${product.urun_id}?stok_id=${product.stok_id}`}
                   className="bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm transition-colors"
                 >
                   Detaylar
