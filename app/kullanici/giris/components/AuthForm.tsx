@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import ErrorMessage from './ErrorMessage';
-import { getSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 interface AuthFormProps {
   isLogin: boolean;
@@ -26,7 +26,6 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const supabase = getSupabaseClient();
 
   // Check if user is already logged in
   useEffect(() => {

@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { getSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { Ticket, Comment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { uploadToCloudinary } from '@/lib/cloudinary';
-
-const supabase = getSupabaseClient();
 
 export default function SupportTickets({ userId }: { userId: string }) {
   const [tickets, setTickets] = useState<Ticket[]>([]);

@@ -9,9 +9,9 @@ interface DashboardTabsProps {
 
 export default function DashboardTabs({ activeTab, onTabChange }: DashboardTabsProps) {
   const tabs = [
-    { id: 'orders', label: 'Siparişlerim' },
-    { id: 'support', label: 'Destek Taleplerim' },
-    { id: 'settings', label: 'Ayarlar' }
+    { id: 'siparisler', label: 'Siparişlerim' },
+    { id: 'destek', label: 'Destek Taleplerim' },
+    { id: 'ayarlar', label: 'Ayarlar' }
   ];
 
   return (

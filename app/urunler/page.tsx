@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useCart } from '@/contexts/CartContext';
 
 // Supabase client oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -48,19 +49,23 @@ const tireConditionOptions = [
 // Ürün veri tipini tanımla
 interface Product {
   urun_id: number;
-  stok_id: number;
   model: string;
   marka: string;
   cap_inch: string;
   mevsim: string;
   saglik_durumu: number;
+  genislik_mm: string;
+  profil: string;
+  yapi: string;
+  yuk_endeksi: string;
+  hiz_endeksi: string;
   urun_resmi_0: string;
   stok: number;
-  magaza_id: number;
-  magaza_isim: string;
-  magaza_sehir: string;
   fiyat: number;
   indirimli_fiyat: number;
+  magaza_isim: string;
+  magaza_sehir: string;
+  magaza_id: number;
 }
 
 export default function UrunlerPage() {
@@ -86,6 +91,8 @@ export default function UrunlerPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
+
+  const { addToCart } = useCart();
 
   // URL'den filtreleri al
   useEffect(() => {
@@ -131,19 +138,23 @@ export default function UrunlerPage() {
 
             return {
               urun_id: stok.urun_id,
-              stok_id: stok.stok_id,
               model: stok.urundetay.model || "İsimsiz Ürün",
               marka: stok.urundetay.marka || "Bilinmiyor",
               cap_inch: stok.urundetay.cap_inch || "",
               mevsim: stok.urundetay.mevsim || "Belirtilmemiş",
               saglik_durumu: stok.saglik_durumu || 0,
-              urun_resmi_0: stok.urundetay.urun_resmi_0 || "/placeholder-tire.jpg",
+              genislik_mm: stok.urundetay.genislik_mm || "",
+              profil: stok.urundetay.profil || "",
+              yapi: stok.urundetay.yapi || "",
+              yuk_endeksi: stok.urundetay.yuk_endeksi || "",
+              hiz_endeksi: stok.urundetay.hiz_endeksi || "",
+              urun_resmi_0: stok.urundetay.urun_resmi_0 || "/images/placeholder-tire.jpg",
               stok: stok.stok_adet || 0,
-              magaza_id: stok.magaza_id,
+              fiyat: stok.fiyat || 0,
+              indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat || 0,
               magaza_isim: magazaData.isim || "Bilinmiyor",
               magaza_sehir: magazaData.sehir || "Belirtilmemiş",
-              fiyat: stok.fiyat || 0,
-              indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat || 0
+              magaza_id: stok.magaza_id
             };
           } catch (err) {
             console.error(`Ürün işlenirken hata:`, err);
@@ -439,7 +450,23 @@ export default function UrunlerPage() {
     
     // Sepete ekleme işlemi
     const handleAddToCart = () => {
-      alert(`${product.model} sepete eklendi.`);
+      addToCart(
+        {
+          id: product.urun_id,
+          model: product.model,
+          genislik_mm: Number(product.genislik_mm),
+          profil: Number(product.profil),
+          cap_inch: Number(product.cap_inch),
+          urun_resmi_0: product.urun_resmi_0
+        },
+        {
+          id: product.magaza_id,
+          name: product.magaza_isim,
+          city: product.magaza_sehir
+        },
+        1,
+        product.indirimli_fiyat
+      );
     };
 
     return (
@@ -452,6 +479,7 @@ export default function UrunlerPage() {
                 alt={product.model}
                 width={200}
                 height={200}
+                priority={true}
                 className="object-contain w-full h-full"
                 style={{ objectFit: 'cover', width: '100%', height: '100%' }}
               />
@@ -774,7 +802,7 @@ export default function UrunlerPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                   {displayedProducts.map((product) => (
                     <ProductCard 
-                      key={product.urun_id} 
+                      key={`${product.urun_id}-${product.magaza_id}`} 
                       product={product} 
                       toggleCompare={toggleCompare}
                       compareList={compareList}
