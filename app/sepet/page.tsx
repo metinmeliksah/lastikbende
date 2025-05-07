@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { FaTrash, FaMinus, FaPlus, FaTruck, FaMapMarkerAlt, FaCreditCard, FaStore, FaBox } from 'react-icons/fa'
@@ -38,7 +38,6 @@ export default function SepetPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { items, loading, removeFromCart, updateQuantity, subtotal, shipping, total } = useCart();
-  const [isUpdating, setIsUpdating] = useState(false);
 
   // Örnek il ve ilçe verileri
   const [iller] = useState<Il[]>([
@@ -169,36 +168,19 @@ export default function SepetPage() {
     router.push('/sepet/odeme');
   };
 
-  const handleQuantityChange = async (id: string, newQuantity: number) => {
-    try {
-      setIsUpdating(true);
-      await updateQuantity(id, newQuantity);
-    } catch (error) {
-      console.error('Error updating quantity:', error);
-      toast.error('Miktar güncellenirken bir hata oluştu');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleRemoveItem = async (id: string) => {
-    try {
-      setIsUpdating(true);
-      await removeFromCart(id);
-    } catch (error) {
-      console.error('Error removing item:', error);
-      toast.error('Ürün sepetten kaldırılırken bir hata oluştu');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-dark-400 pt-16">
+        <div className="container mx-auto px-4 py-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-dark-300 rounded w-1/4 mb-6"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-4">
+                <div className="h-48 bg-dark-300 rounded"></div>
+                <div className="h-64 bg-dark-300 rounded"></div>
+              </div>
+              <div className="h-64 bg-dark-300 rounded"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -207,17 +189,17 @@ export default function SepetPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-4">
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Sepetiniz Boş</h2>
-            <p className="text-gray-600 mb-6">Sepetinizde henüz ürün bulunmuyor.</p>
-            <button
-              onClick={() => router.push('/')}
-              className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors"
+      <div className="min-h-screen bg-dark-400 pt-16">
+        <div className="container mx-auto px-4 py-6">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-white mb-4">Sepetiniz Boş</h1>
+            <p className="text-gray-400 mb-8">Sepetinizde henüz ürün bulunmuyor.</p>
+            <Link
+              href="/urunler"
+              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark"
             >
               Alışverişe Başla
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -225,126 +207,221 @@ export default function SepetPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Sepetim</h1>
-        
+    <div className="min-h-screen bg-dark-400 pt-16">
+      <div className="container mx-auto px-4 py-6">
+        <h1 className="text-3xl font-bold text-white mb-6">Sepetim</h1>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              {items.map((item) => (
-                <div key={item.id} className="p-6 border-b last:border-b-0">
-                  <div className="flex items-center gap-4">
-                    <div className="relative w-24 h-24">
-                      <Image
-                        src={item.product.urun_resmi_0}
-                        alt={item.product.model}
-                        fill
-                        className="object-cover rounded-md"
-                      />
-                    </div>
-                    
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {item.product.model}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {item.product.genislik_mm}/{item.product.profil}R{item.product.cap_inch}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {item.shop.name} - {item.shop.city}
-                      </p>
-                    </div>
+          {/* Sol Taraf - Teslimat Seçeneği ve Ürün Listesi */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Teslimat Seçenekleri */}
+            <div className="bg-dark-300 rounded-lg p-4 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                <FaStore className="text-primary" />
+                Teslimat Seçeneği
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  className={`p-4 rounded-lg cursor-pointer border transition-colors flex items-center gap-3 ${
+                    teslimatTipi === 'magaza'
+                      ? 'border-primary bg-dark-200'
+                      : 'border-gray-700 hover:border-gray-600'
+                  }`}
+                  onClick={() => setTeslimatTipi('magaza')}
+                >
+                  <FaStore className="text-primary text-xl" />
+                  <div>
+                    <p className="font-medium text-white">Mağazada Montaj</p>
+                    <p className="text-sm text-gray-400">En yakın mağazamızda ücretsiz montaj</p>
+                  </div>
+                </div>
+                <div
+                  className={`p-4 rounded-lg cursor-pointer border transition-colors flex items-center gap-3 ${
+                    teslimatTipi === 'adres'
+                      ? 'border-primary bg-dark-200'
+                      : 'border-gray-700 hover:border-gray-600'
+                  }`}
+                  onClick={() => setTeslimatTipi('adres')}
+                >
+                  <FaTruck className="text-primary text-xl" />
+                  <div>
+                    <p className="font-medium text-white">Adrese Teslimat</p>
+                    <p className="text-sm text-gray-400">Kapınıza kadar teslimat</p>
+                  </div>
+                </div>
+              </div>
 
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center border rounded-md">
-                        <button
-                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                          disabled={isUpdating}
-                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+              {/* Mağaza Seçimi veya Teslimat Adresi */}
+              <div className="mt-4">
+                {teslimatTipi === 'magaza' ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* İl ve İlçe Seçimi */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">İl Seçin</label>
+                        <select
+                          className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
+                          value={secilenIl || ''}
+                          onChange={(e) => {
+                            setSecilenIl(e.target.value ? Number(e.target.value) : null)
+                            setSecilenIlce(null)
+                            setSecilenMagaza(null)
+                          }}
                         >
-                          <FaMinus className="w-3 h-3" />
-                        </button>
-                        <span className="px-3 py-1 text-gray-900">{item.quantity}</span>
-                        <button
-                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                          disabled={isUpdating}
-                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                          <option value="">İl seçiniz</option>
+                          {iller.map((il) => (
+                            <option key={il.id} value={il.id}>{il.isim}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">İlçe Seçin</label>
+                        <select
+                          className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
+                          value={secilenIlce || ''}
+                          onChange={(e) => {
+                            setSecilenIlce(e.target.value ? Number(e.target.value) : null)
+                            setSecilenMagaza(null)
+                          }}
+                          disabled={!secilenIl}
                         >
-                          <FaPlus className="w-3 h-3" />
-                        </button>
+                          <option value="">İlçe seçiniz</option>
+                          {secilenIl && ilceler
+                            .filter(ilce => ilce.il_id === secilenIl)
+                            .map((ilce) => (
+                              <option key={ilce.id} value={ilce.id}>{ilce.isim}</option>
+                            ))}
+                        </select>
                       </div>
+                    </div>
 
-                      <div className="text-right">
-                        <p className="text-lg font-semibold text-gray-900">
-                          {(item.price * item.quantity).toLocaleString('tr-TR', {
-                            style: 'currency',
-                            currency: 'TRY'
-                          })}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Birim: {item.price.toLocaleString('tr-TR', {
-                            style: 'currency',
-                            currency: 'TRY'
-                          })}
-                        </p>
+                    {secilenIl && secilenIlce && (
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Mağaza Seçin</label>
+                        {magazalar[`${secilenIl}-${secilenIlce}`]?.map((magaza: Magaza) => (
+                          <div
+                            key={magaza.id}
+                            className={`p-3 rounded-lg cursor-pointer border transition-colors ${
+                              secilenMagaza === magaza.id
+                                ? 'border-primary bg-dark-200'
+                                : 'border-gray-700 hover:border-gray-600'
+                            }`}
+                            onClick={() => setSecilenMagaza(magaza.id)}
+                          >
+                            <p className="font-medium text-white">{magaza.isim}</p>
+                            <p className="text-sm text-gray-400">{magaza.adres}</p>
+                          </div>
+                        ))}
                       </div>
-
-                      <button
-                        onClick={() => handleRemoveItem(item.id)}
-                        disabled={isUpdating}
-                        className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Teslimat Adresi Seçin</label>
+                    {adresler.map((adres) => (
+                      <div
+                        key={adres.id}
+                        className={`p-3 rounded-lg cursor-pointer border transition-colors ${
+                          secilenTeslimatAdresi === adres.id
+                            ? 'border-primary bg-dark-200'
+                            : 'border-gray-700 hover:border-gray-600'
+                        }`}
+                        onClick={() => handleTeslimatAdresiChange(adres.id)}
                       >
-                        <FaTrash className="w-5 h-5" />
+                        <p className="font-medium text-white">{adres.baslik}</p>
+                        <p className="text-sm text-gray-400">{adres.adres}</p>
+                        <p className="text-sm text-gray-400">{adres.sehir}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Ürün Listesi */}
+            <div className="bg-dark-300 rounded-lg p-4 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                <FaBox className="text-primary" />
+                Ürünler
+              </h2>
+              {items.map((item) => (
+                <div key={item.id} className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-700 last:border-0 last:mb-0 last:pb-0">
+                  <div className="w-24 h-24 relative rounded-lg overflow-hidden bg-gray-800">
+                    <Image
+                      src={item.product.urun_resmi_0}
+                      alt={item.product.model}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-white">{item.product.model}</h3>
+                    <p className="text-gray-400">{item.product.genislik_mm}/{item.product.profil}R{item.product.cap_inch}</p>
+                    <p className="text-sm text-gray-400">{item.shop.name} - {item.shop.city}</p>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="p-1 text-gray-400 hover:text-primary transition-colors"
+                          disabled={item.quantity <= 1}
+                        >
+                          <FaMinus size={14} />
+                        </button>
+                        <span className="w-8 text-center text-white">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="p-1 text-gray-400 hover:text-primary transition-colors"
+                        >
+                          <FaPlus size={14} />
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-gray-400 hover:text-primary transition-colors"
+                      >
+                        <FaTrash size={16} />
                       </button>
                     </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-white">{(item.price * item.quantity).toLocaleString('tr-TR')} ₺</p>
+                    <p className="text-sm text-gray-400">{item.price.toLocaleString('tr-TR')} ₺ (Birim)</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Sipariş Özeti</h2>
-              
-              <div className="space-y-4">
-                <div className="flex justify-between text-gray-600">
+          {/* Sağ Taraf - Sipariş Özeti */}
+          <div className="space-y-4">
+            <div className="bg-dark-300 rounded-lg p-4 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                <FaCreditCard className="text-primary" />
+                Sipariş Özeti
+              </h2>
+              <div className="space-y-3">
+                <div className="flex justify-between text-gray-400">
                   <span>Ara Toplam</span>
-                  <span>{subtotal.toLocaleString('tr-TR', {
-                    style: 'currency',
-                    currency: 'TRY'
-                  })}</span>
+                  <span>{subtotal.toLocaleString('tr-TR')} ₺</span>
                 </div>
-                
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-400">
                   <span>Kargo</span>
-                  <span>{shipping.toLocaleString('tr-TR', {
-                    style: 'currency',
-                    currency: 'TRY'
-                  })}</span>
+                  <span>{shipping === 0 ? 'Ücretsiz' : `${shipping.toLocaleString('tr-TR')} ₺`}</span>
                 </div>
-                
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-lg font-semibold text-gray-900">
-                    <span>Toplam</span>
-                    <span>{total.toLocaleString('tr-TR', {
-                      style: 'currency',
-                      currency: 'TRY'
-                    })}</span>
+                <div className="border-t border-gray-700 pt-3 mt-3">
+                  <div className="flex justify-between text-white font-semibold">
+                    <span>Genel Toplam</span>
+                    <span>{total.toLocaleString('tr-TR')} ₺</span>
                   </div>
                 </div>
-
-                <button
-                  onClick={handleSiparisOnayla}
-                  disabled={isUpdating}
-                  className="w-full bg-primary text-white py-3 rounded-md hover:bg-primary-dark transition-colors disabled:opacity-50"
-                >
-                  Ödemeye Geç
-                </button>
               </div>
+              <button
+                onClick={handleSiparisOnayla}
+                className="w-full mt-6 bg-primary hover:bg-primary-dark text-white py-3 px-4 rounded-md transition-colors flex items-center justify-center gap-2"
+              >
+                <FaCreditCard />
+                <span>Siparişi Onayla</span>
+              </button>
             </div>
           </div>
         </div>

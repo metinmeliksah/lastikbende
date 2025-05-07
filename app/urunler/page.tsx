@@ -49,6 +49,7 @@ const tireConditionOptions = [
 // Ürün veri tipini tanımla
 interface Product {
   urun_id: number;
+  stok_id: number;
   model: string;
   marka: string;
   cap_inch: string;
@@ -154,12 +155,19 @@ export default function UrunlerPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
+      console.log('FETCH START');
       try {
         // Stok tablosundan tüm ürünleri çek ve stok_id'ye göre sırala
         const { data: stokData, error: stokError } = await supabase
           .from('stok')
-          .select('*, urundetay(*), sellers(*)')
+          .select(`
+            *,
+            urundetay:urun_id(*),
+            sellers:magaza_id(*)
+          `)
           .order('stok_id', { ascending: true });
+        console.log('stokData:', stokData);
+        console.log('stokError:', stokError);
 
         if (stokError) {
           console.error('Stok verisi çekilirken hata oluştu:', stokError);
@@ -186,6 +194,7 @@ export default function UrunlerPage() {
 
             return {
               urun_id: stok.urun_id,
+              stok_id: stok.stok_id,
               model: stok.urundetay.model || "İsimsiz Ürün",
               marka: stok.urundetay.marka || "Bilinmiyor",
               cap_inch: stok.urundetay.cap_inch || "",

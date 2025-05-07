@@ -7,8 +7,6 @@ import { CreditCard, Building2, FileText, Check } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
-import BillingAddressForm, { BillingAddress } from '@/components/BillingAddressForm';
-import AgreementsSection from '@/components/AgreementsSection';
 
 type PaymentMethod = 'credit-card' | 'bank-transfer';
 type CardType = 'visa' | 'mastercard' | 'amex' | 'troy' | null;
@@ -77,7 +75,7 @@ const OdemePage = () => {
   const [cardType, setCardType] = useState<CardType>(null);
   const [cardSide, setCardSide] = useState<CardSide>('front');
   const [sepetVerisi, setSepetVerisi] = useState<SepetVerisi | null>(null);
-  const [billingAddress, setBillingAddress] = useState<BillingAddress | null>(null);
+  const [sozlesmeMetni, setSozlesmeMetni] = useState('');
   const [paymentFormData, setPaymentFormData] = useState<PaymentFormData>({
     cardNumber: '',
     cardHolder: '',
@@ -91,15 +89,13 @@ const OdemePage = () => {
     if (sepetData) {
       setSepetVerisi(JSON.parse(sepetData));
     }
+
+    // Mesafeli satış sözleşmesi metnini al
+    fetch('/api/sozlesme/mesafeli-satis')
+      .then(res => res.text())
+      .then(metin => setSozlesmeMetni(metin))
+      .catch(err => console.error('Sözleşme metni alınamadı:', err));
   }, []);
-
-  const handleBillingAddressChange = (address: BillingAddress) => {
-    setBillingAddress(address);
-  };
-
-  const handleAgreementChange = (agreed: boolean) => {
-    setIsAgreementAccepted(agreed);
-  };
 
   const isFormValid = () => {
     if (paymentMethod === 'credit-card') {
@@ -222,25 +218,68 @@ const OdemePage = () => {
   };
 
   return (
-    <main className="min-h-screen pt-20 bg-dark-400">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Sol Taraf - Ödeme Formu */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Fatura Adresi */}
-            <div className="bg-dark-300 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                <Building2 className="text-primary" />
-                Fatura Adresi
-              </h2>
-              <BillingAddressForm
-                onAddressChange={handleBillingAddressChange}
-                initialAddress={billingAddress || undefined}
-              />
-            </div>
+    <main className="min-h-screen bg-dark-400 pt-8">
+      <div className="container mx-auto px-4 py-6">
+        <h1 className="text-3xl font-bold text-white mb-6">Ödeme</h1>
 
-            {/* Ödeme Yöntemi */}
-            <div className="bg-dark-300 rounded-lg p-6 border border-gray-700">
+        {/* Sipariş Özeti */}
+        {sepetVerisi && (
+          <div className="bg-dark-300 rounded-lg p-4 border border-gray-700 mb-6">
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <FileText className="text-primary" />
+              Sipariş Özeti
+            </h2>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                {sepetVerisi.urunler.map((urun) => (
+                  <div key={urun.id} className="flex items-center gap-4 border-b border-gray-700 pb-4">
+                    <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-800">
+                      <Image
+                        src={urun.resim}
+                        alt={urun.isim}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-medium">{urun.isim}</h3>
+                      <p className="text-gray-400">{urun.ebat}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white font-medium">{(urun.fiyat * urun.adet).toLocaleString('tr-TR')} ₺</p>
+                      <p className="text-sm text-gray-400">{urun.adet} adet</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                <div className="border-t border-gray-700 pt-4">
+                  <h3 className="text-white font-medium mb-2">Teslimat Bilgileri</h3>
+                  <p className="text-gray-400">
+                    {sepetVerisi.teslimatBilgileri.tip === 'magaza' 
+                      ? `Mağazada Montaj: ${sepetVerisi.teslimatBilgileri.magaza?.isim}`
+                      : `Adrese Teslimat: ${sepetVerisi.teslimatBilgileri.teslimatAdresi?.adres}`
+                    }
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-white font-medium mb-2">Fatura Adresi</h3>
+                  <p className="text-gray-400">{sepetVerisi.faturaAdresi.isim}</p>
+                  <p className="text-gray-400">{sepetVerisi.faturaAdresi.adres}</p>
+                  <p className="text-gray-400">{sepetVerisi.faturaAdresi.sehir}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Sol Taraf - Ödeme Seçenekleri */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Ödeme Yöntemi Modülü */}
+            <div className="bg-dark-300 rounded-lg p-4 border border-gray-700">
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                 <CreditCard className="text-primary" />
                 Ödeme Yöntemi
@@ -422,57 +461,145 @@ const OdemePage = () => {
               )}
             </div>
 
-            {/* Sözleşmeler */}
-            <div className="bg-dark-300 rounded-lg p-6 border border-gray-700">
-              <AgreementsSection onAgreementChange={handleAgreementChange} />
+            {/* Sözleşmeler Modülü */}
+            <div className="bg-dark-300 rounded-lg p-4 border border-gray-700 space-y-6">
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                <FileText className="text-primary" />
+                Sözleşmeler
+              </h2>
+
+              <div>
+                <h3 className="text-lg font-medium text-white mb-4">Ön Bilgilendirme Formu</h3>
+                <div className="h-40 overflow-y-auto bg-dark-400 rounded-lg p-4 text-gray-300">
+                  {sepetVerisi && (
+                    <div className="prose prose-invert max-w-none">
+                      <h4 className="text-lg font-medium mb-4">1. TARAFLAR</h4>
+                      <p className="mb-4">
+                        <strong>SATICI:</strong><br />
+                        Ünvan: LastikBende A.Ş.<br />
+                        Adres: Merkez Mah. Lastik Sok. No:1 İstanbul<br />
+                        Tel: 0850 123 4567<br />
+                        E-posta: info@lastikbende.com
+                      </p>
+                      <p className="mb-4">
+                        <strong>ALICI:</strong><br />
+                        Ad Soyad: {sepetVerisi.faturaAdresi.isim}<br />
+                        Adres: {sepetVerisi.faturaAdresi.adres}<br />
+                        Tel: {sepetVerisi.faturaAdresi.telefon}
+                      </p>
+                      <h4 className="text-lg font-medium mb-4">2. ÜRÜN BİLGİLERİ</h4>
+                      {sepetVerisi.urunler.map((urun) => (
+                        <div key={urun.id} className="mb-2">
+                          <p>
+                            {urun.isim} ({urun.ebat}) - {urun.adet} adet<br />
+                            Birim Fiyat: {urun.fiyat.toLocaleString('tr-TR')} ₺<br />
+                            Toplam: {(urun.fiyat * urun.adet).toLocaleString('tr-TR')} ₺
+                          </p>
+                        </div>
+                      ))}
+                      <h4 className="text-lg font-medium mb-4">3. TESLİMAT BİLGİLERİ</h4>
+                      <p>
+                        Teslimat Şekli: {sepetVerisi.teslimatBilgileri.tip === 'magaza' ? 'Mağazada Montaj' : 'Adrese Teslimat'}<br />
+                        {sepetVerisi.teslimatBilgileri.tip === 'magaza' ? (
+                          <>
+                            Mağaza: {sepetVerisi.teslimatBilgileri.magaza?.isim}<br />
+                            Adres: {sepetVerisi.teslimatBilgileri.magaza?.adres}
+                          </>
+                        ) : (
+                          <>
+                            Teslimat Adresi: {sepetVerisi.teslimatBilgileri.teslimatAdresi?.adres}<br />
+                            {sepetVerisi.teslimatBilgileri.teslimatAdresi?.sehir}
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-white mb-4">Mesafeli Satış Sözleşmesi</h3>
+                <div className="h-40 overflow-y-auto bg-dark-400 rounded-lg p-4 text-gray-300">
+                  {sepetVerisi && (
+                    <div className="prose prose-invert max-w-none">
+                      <h4 className="text-lg font-medium mb-4">MADDE 1 - TARAFLAR</h4>
+                      <p className="mb-4">
+                        <strong>SATICI:</strong><br />
+                        Ünvan: LastikBende A.Ş.<br />
+                        Adres: Merkez Mah. Lastik Sok. No:1 İstanbul<br />
+                        Tel: 0850 123 4567<br />
+                        E-posta: info@lastikbende.com
+                      </p>
+                      <p className="mb-4">
+                        <strong>ALICI:</strong><br />
+                        Ad Soyad: {sepetVerisi.faturaAdresi.isim}<br />
+                        Adres: {sepetVerisi.faturaAdresi.adres}<br />
+                        Tel: {sepetVerisi.faturaAdresi.telefon}
+                      </p>
+                      <h4 className="text-lg font-medium mb-4">MADDE 2 - KONU</h4>
+                      <p className="mb-4">
+                        İşbu sözleşmenin konusu, ALICI'nın SATICI'ya ait internet sitesinden elektronik ortamda siparişini verdiği
+                        aşağıda nitelikleri ve satış fiyatı belirtilen ürünün satışı ve teslimi ile ilgili olarak 6502 sayılı
+                        Tüketicinin Korunması Hakkında Kanun hükümleri gereğince tarafların hak ve yükümlülüklerinin saptanmasıdır.
+                      </p>
+                      <h4 className="text-lg font-medium mb-4">MADDE 3 - ÜRÜN BİLGİLERİ</h4>
+                      {sepetVerisi.urunler.map((urun) => (
+                        <div key={urun.id} className="mb-2">
+                          <p>
+                            {urun.isim} ({urun.ebat})<br />
+                            Adet: {urun.adet}<br />
+                            Birim Fiyat: {urun.fiyat.toLocaleString('tr-TR')} ₺<br />
+                            Toplam: {(urun.fiyat * urun.adet).toLocaleString('tr-TR')} ₺
+                          </p>
+                        </div>
+                      ))}
+                      <p className="mb-4">
+                        Teslimat Ücreti: {sepetVerisi.kargo === 0 ? 'Ücretsiz' : sepetVerisi.kargo.toLocaleString('tr-TR') + ' ₺'}<br />
+                        Toplam Ödeme: {sepetVerisi.genelToplam.toLocaleString('tr-TR')} ₺
+                      </p>
+                      <h4 className="text-lg font-medium mb-4">MADDE 4 - TESLİMAT</h4>
+                      <p className="mb-4">
+                        Teslimat Şekli: {sepetVerisi.teslimatBilgileri.tip === 'magaza' ? 'Mağazada Montaj' : 'Adrese Teslimat'}<br />
+                        {sepetVerisi.teslimatBilgileri.tip === 'magaza' ? (
+                          <>
+                            Mağaza: {sepetVerisi.teslimatBilgileri.magaza?.isim}<br />
+                            Adres: {sepetVerisi.teslimatBilgileri.magaza?.adres}
+                          </>
+                        ) : (
+                          <>
+                            Teslimat Adresi: {sepetVerisi.teslimatBilgileri.teslimatAdresi?.adres}<br />
+                            {sepetVerisi.teslimatBilgileri.teslimatAdresi?.sehir}
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Sağ Taraf - Sipariş Özeti */}
-          <div className="lg:col-span-1">
-            <div className="bg-dark-300 rounded-lg p-6 border border-gray-700 sticky top-24">
-              <h2 className="text-xl font-semibold text-white mb-4">Sipariş Özeti</h2>
+          {/* Sağ Taraf - Sipariş Özeti Modülü */}
+          <div className="space-y-4">
+            <div className="bg-dark-300 rounded-lg p-4 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                <FileText className="text-primary" />
+                Sipariş Tutarı
+              </h2>
               {sepetVerisi && (
-                <div className="space-y-4">
-                  <div className="space-y-4">
-                    {sepetVerisi.urunler.map((urun) => (
-                      <div key={urun.id} className="flex items-center gap-4 border-b border-gray-700 pb-4">
-                        <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-800">
-                          <Image
-                            src={urun.resim}
-                            alt={urun.isim}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-white font-medium">{urun.isim}</h3>
-                          <p className="text-gray-400">{urun.ebat}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-white font-medium">{(urun.fiyat * urun.adet).toLocaleString('tr-TR')} ₺</p>
-                          <p className="text-sm text-gray-400">{urun.adet} adet</p>
-                        </div>
-                      </div>
-                    ))}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-gray-400">
+                    <span>Ara Toplam</span>
+                    <span>{sepetVerisi.toplamTutar.toLocaleString('tr-TR')} ₺</span>
                   </div>
-
-                  <div className="space-y-4">
-                    <div className="border-t border-gray-700 pt-4">
-                      <h3 className="text-white font-medium mb-2">Teslimat Bilgileri</h3>
-                      <p className="text-gray-400">
-                        {sepetVerisi.teslimatBilgileri.tip === 'magaza' 
-                          ? `Mağazada Montaj: ${sepetVerisi.teslimatBilgileri.magaza?.isim}`
-                          : `Adrese Teslimat: ${sepetVerisi.teslimatBilgileri.teslimatAdresi?.adres}`
-                        }
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-white font-medium mb-2">Fatura Adresi</h3>
-                      <p className="text-gray-400">{sepetVerisi.faturaAdresi.isim}</p>
-                      <p className="text-gray-400">{sepetVerisi.faturaAdresi.adres}</p>
-                      <p className="text-gray-400">{sepetVerisi.faturaAdresi.sehir}</p>
+                  <div className="flex justify-between text-gray-400">
+                    <span>Kargo</span>
+                    <span className="text-green-500">Ücretsiz</span>
+                  </div>
+                  <div className="border-t border-gray-700 my-2 pt-2">
+                    <div className="flex justify-between text-white font-semibold">
+                      <span>Toplam</span>
+                      <span>{sepetVerisi.genelToplam.toLocaleString('tr-TR')} ₺</span>
                     </div>
                   </div>
                 </div>
