@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaShoppingCart, FaTruck, FaTools, FaStore, FaMapMarkerAlt, FaCheckCircle, FaStar, FaChevronLeft, FaChevronRight, FaInfoCircle } from 'react-icons/fa';
+import { FaShoppingCart, FaTruck, FaTools, FaStore, FaMapMarkerAlt, FaCheckCircle, FaStar, FaChevronLeft, FaChevronRight, FaInfoCircle, FaBox } from 'react-icons/fa';
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase client oluştur
@@ -30,7 +30,7 @@ interface ProductData {
   urun_resmi_1?: string;
   urun_resmi_2?: string;
   urun_resmi_3?: string;
-  price?: number;           // For display compatibility
+  fiyat?: number;           // For display compatibility
   discountedPrice?: number; // For display compatibility
   shippingCompanies?: string[]; // For backward compatibility
 }
@@ -42,11 +42,13 @@ interface Shop {
   name: string;
   city: string;
   address: string;
-  price: number;
+  fiyat: number;
+  indirimli_fiyat: number;
   stock: number;
   hasMontage: boolean;
   shippingCompanies: string[];
   rating: number;
+  saglik_durumu: number;
 }
 
 // Kredi kartı taksit veri tipi tanımla
@@ -54,7 +56,7 @@ interface CreditCardInstallment {
   bank: string;
   rates: {
     installments: number;
-    price: number;
+    price: number; // Bu alanı değiştirmiyoruz çünkü taksit tutarını ifade ediyor
     total: number;
   }[];
 }
@@ -89,7 +91,7 @@ const dummyProducts = [
     id: 2,
     name: 'Michelin Pilot Sport 5',
     brand: 'Michelin',
-    price: 1299,
+    fiyat: 1299,
     discountedPrice: 1199,
     image: '/placeholder-tire.jpg',
     health: 100,
@@ -103,7 +105,7 @@ const dummyProducts = [
     id: 3,
     name: 'Bridgestone Turanza T005',
     brand: 'Bridgestone',
-    price: 1199,
+    fiyat: 1199,
     discountedPrice: null,
     image: '/placeholder-tire.jpg',
     health: 90,
@@ -117,7 +119,7 @@ const dummyProducts = [
     id: 4,
     name: 'Continental ContiWinterContact',
     brand: 'Continental',
-    price: 1399,
+    fiyat: 1399,
     discountedPrice: 1299,
     image: '/placeholder-tire.jpg',
     health: 100,
@@ -131,7 +133,7 @@ const dummyProducts = [
     id: 5,
     name: 'Pirelli P Zero',
     brand: 'Pirelli',
-    price: 1599,
+    fiyat: 1599,
     discountedPrice: 1499,
     image: '/placeholder-tire.jpg',
     health: 80,
@@ -264,11 +266,13 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
               name: sellerData.isim,
               city: sellerData.sehir,
               address: sellerData.adres || '',
-              price: stock.fiyat,
+              fiyat: stock.fiyat,
+              indirimli_fiyat: stock.indirimli_fiyat || stock.fiyat,
               stock: stock.stok_adet,
               hasMontage: hasMontage,
               shippingCompanies: shippingCompanies.length > 0 ? shippingCompanies : ['Belirtilmemiş'],
-              rating: sellerData.rating || 4.5
+              rating: sellerData.rating || 4.5,
+              saglik_durumu: stock.saglik_durumu
             };
           } catch (err) {
             console.error(`Mağaza bilgileri işlenirken hata:`, err);
@@ -298,33 +302,33 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
           features = [];
         }
 
-        // Benzer ürünleri çek (önce aynı inç ve mevsim, sonra sadece inç, en son sadece mevsim)
+        // Benzer ürünleri çek
         const fetchSimilarProducts = async () => {
           try {
             // Önce aynı inç ve mevsim olan ürünleri çek
             const { data: sameSizeAndSeason, error: sssError } = await supabase
-              .from('urundetay')
-              .select('*')
-              .eq('cap_inch', productData.cap_inch)
-              .eq('mevsim', productData.mevsim)
+              .from('stok')
+              .select('*, urundetay(*)')
+              .eq('urundetay.cap_inch', productData.cap_inch)
+              .eq('urundetay.mevsim', productData.mevsim)
               .neq('urun_id', productData.urun_id)
               .limit(4);
               
             // Sonra aynı inç olan ürünleri çek
             const { data: sameSize, error: ssError } = await supabase
-              .from('urundetay')
-              .select('*')
-              .eq('cap_inch', productData.cap_inch)
-              .neq('mevsim', productData.mevsim)
+              .from('stok')
+              .select('*, urundetay(*)')
+              .eq('urundetay.cap_inch', productData.cap_inch)
+              .neq('urundetay.mevsim', productData.mevsim)
               .neq('urun_id', productData.urun_id)
               .limit(4);
               
             // Son olarak aynı mevsim olan ürünleri çek
             const { data: sameSeason, error: sError } = await supabase
-              .from('urundetay')
-              .select('*')
-              .eq('mevsim', productData.mevsim)
-              .neq('cap_inch', productData.cap_inch)
+              .from('stok')
+              .select('*, urundetay(*)')
+              .eq('urundetay.mevsim', productData.mevsim)
+              .neq('urundetay.cap_inch', productData.cap_inch)
               .neq('urun_id', productData.urun_id)
               .limit(4);
 
@@ -346,49 +350,40 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
             // Benzer ürünleri en fazla 4 tane olacak şekilde kes
             similarProductsRaw = similarProductsRaw.slice(0, 4);
             
-            // Fiyat ve stok bilgilerini çek
+            // Mağaza bilgilerini çek
             const processedSimilarProducts = await Promise.all(
-              similarProductsRaw.map(async (product) => {
-                // Stok bilgisini çek
-                const { data: stockData, error: stockError } = await supabase
-                  .from('stok')
-                  .select('*')
-                  .eq('urun_id', product.urun_id)
-                  .limit(1);
+              similarProductsRaw.map(async (stok) => {
+                try {
+                  // Mağaza bilgisini çek
+                  const { data: sellerData, error: sellerError } = await supabase
+                    .from('sellers')
+                    .select('id, isim, sehir')
+                    .eq('id', stok.magaza_id)
+                    .single();
 
-                if (stockError || !stockData || stockData.length === 0) {
+                  if (sellerError || !sellerData) {
+                    return null;
+                  }
+
+                  // Benzer ürün bilgilerini döndür
+                  return {
+                    urun_id: stok.urun_id,
+                    model: stok.urundetay.model,
+                    marka: stok.urundetay.marka,
+                    cap_inch: stok.urundetay.cap_inch,
+                    mevsim: stok.urundetay.mevsim,
+                    saglik_durumu: stok.saglik_durumu,
+                    urun_resmi_0: stok.urundetay.urun_resmi_0,
+                    fiyat: stok.fiyat,
+                    indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat,
+                    stok: stok.stok_adet,
+                    magaza_isim: sellerData.isim,
+                    magaza_sehir: sellerData.sehir
+                  };
+                } catch (err) {
+                  console.error("Benzer ürün işlenirken hata:", err);
                   return null;
                 }
-
-                // İlk stok bilgisini al
-                const stock = stockData[0];
-
-                // Mağaza bilgisini çek
-                const { data: sellerData, error: sellerError } = await supabase
-                  .from('sellers')
-                  .select('id, isim, sehir')
-                  .eq('id', stock.magaza_id)
-                  .single();
-
-                if (sellerError || !sellerData) {
-                  return null;
-                }
-
-                // Benzer ürün bilgilerini döndür
-                return {
-                  urun_id: product.urun_id,
-                  model: product.model,
-                  marka: product.marka,
-                  cap_inch: product.cap_inch,
-                  mevsim: product.mevsim,
-                  saglik_durumu: product.saglik_durumu,
-                  urun_resmi_0: product.urun_resmi_0,
-                  fiyat: stock.fiyat,
-                  indirimli_fiyat: stock.indirimli_fiyat || stock.fiyat,
-                  stok: stock.stok_adet,
-                  magaza_isim: sellerData.isim,
-                  magaza_sehir: sellerData.sehir
-                };
               })
             );
             
@@ -404,28 +399,28 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
         
         console.log(`${similarProductsData.length} adet benzer ürün bulundu`);
 
-        // Kredi kartı taksit bilgileri (örnek veri - gerçek uygulamada bunlar da veritabanından gelebilir)
+        // Kredi kartı taksit bilgileri
         const creditCardInstallments = [
           {
             bank: 'Maximum',
             rates: [
-              { installments: 1, price: Math.round(shops[0].price), total: Math.round(shops[0].price) },
-              { installments: 2, price: Math.round(shops[0].price * 1.05 / 2), total: Math.round(shops[0].price * 1.05) },
-              { installments: 3, price: Math.round(shops[0].price * 1.08 / 3), total: Math.round(shops[0].price * 1.08) },
-              { installments: 6, price: Math.round(shops[0].price * 1.12 / 6), total: Math.round(shops[0].price * 1.12) },
-              { installments: 9, price: Math.round(shops[0].price * 1.15 / 9), total: Math.round(shops[0].price * 1.15) },
-              { installments: 12, price: Math.round(shops[0].price * 1.18 / 12), total: Math.round(shops[0].price * 1.18) }
+              { installments: 1, price: Math.round(shops[0].indirimli_fiyat), total: Math.round(shops[0].indirimli_fiyat) },
+              { installments: 2, price: Math.round(shops[0].indirimli_fiyat * 1.05 / 2), total: Math.round(shops[0].indirimli_fiyat * 1.05) },
+              { installments: 3, price: Math.round(shops[0].indirimli_fiyat * 1.08 / 3), total: Math.round(shops[0].indirimli_fiyat * 1.08) },
+              { installments: 6, price: Math.round(shops[0].indirimli_fiyat * 1.12 / 6), total: Math.round(shops[0].indirimli_fiyat * 1.12) },
+              { installments: 9, price: Math.round(shops[0].indirimli_fiyat * 1.15 / 9), total: Math.round(shops[0].indirimli_fiyat * 1.15) },
+              { installments: 12, price: Math.round(shops[0].indirimli_fiyat * 1.18 / 12), total: Math.round(shops[0].indirimli_fiyat * 1.18) }
             ]
           },
           {
             bank: 'Axess',
             rates: [
-              { installments: 1, price: Math.round(shops[0].price), total: Math.round(shops[0].price) },
-              { installments: 2, price: Math.round(shops[0].price * 1.04 / 2), total: Math.round(shops[0].price * 1.04) },
-              { installments: 3, price: Math.round(shops[0].price * 1.07 / 3), total: Math.round(shops[0].price * 1.07) },
-              { installments: 6, price: Math.round(shops[0].price * 1.10 / 6), total: Math.round(shops[0].price * 1.10) },
-              { installments: 9, price: Math.round(shops[0].price * 1.13 / 9), total: Math.round(shops[0].price * 1.13) },
-              { installments: 12, price: Math.round(shops[0].price * 1.16 / 12), total: Math.round(shops[0].price * 1.16) }
+              { installments: 1, price: Math.round(shops[0].indirimli_fiyat), total: Math.round(shops[0].indirimli_fiyat) },
+              { installments: 2, price: Math.round(shops[0].indirimli_fiyat * 1.04 / 2), total: Math.round(shops[0].indirimli_fiyat * 1.04) },
+              { installments: 3, price: Math.round(shops[0].indirimli_fiyat * 1.07 / 3), total: Math.round(shops[0].indirimli_fiyat * 1.07) },
+              { installments: 6, price: Math.round(shops[0].indirimli_fiyat * 1.10 / 6), total: Math.round(shops[0].indirimli_fiyat * 1.10) },
+              { installments: 9, price: Math.round(shops[0].indirimli_fiyat * 1.13 / 9), total: Math.round(shops[0].indirimli_fiyat * 1.13) },
+              { installments: 12, price: Math.round(shops[0].indirimli_fiyat * 1.16 / 12), total: Math.round(shops[0].indirimli_fiyat * 1.16) }
             ]
           }
         ];
@@ -446,12 +441,14 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
         setSimilarProducts(similarProductsData);
 
         // En ucuz mağazayı bul
-        const cheapest = [...shops].sort((a, b) => a.price - b.price)[0];
+        const cheapest = [...shops].sort((a, b) => Number(a.indirimli_fiyat) - Number(b.indirimli_fiyat))[0];
         setCheapestShop(cheapest);
 
         // Eğer seçili mağaza en ucuz değilse, uyarı göster
-        if (shops[0].id !== cheapest.id) {
+        if (shops[0].id !== cheapest.id && Number(shops[0].indirimli_fiyat) > Number(cheapest.indirimli_fiyat)) {
           setShowCheapestWarning(true);
+        } else {
+          setShowCheapestWarning(false);
         }
       } catch (error) {
         console.error('Ürün verisi çekilirken hata oluştu:', error);
@@ -484,7 +481,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
     setSelectedShop(shop);
     
     // Seçilen mağaza en ucuz değilse, uyarı göster
-    if (cheapestShop && shop.id !== cheapestShop.id && shop.price > cheapestShop.price) {
+    if (cheapestShop && shop.id !== cheapestShop.id && Number(shop.indirimli_fiyat) > Number(cheapestShop.indirimli_fiyat)) {
       setShowCheapestWarning(true);
     } else {
       setShowCheapestWarning(false);
@@ -539,7 +536,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
           <div className="md:flex">
             {/* Ürün Görselleri */}
             <div className="md:w-1/2 p-6">
-              <div className="relative h-96 border border-gray-200 rounded-lg overflow-hidden">
+              <div className="relative h-[500px] border border-gray-200 rounded-lg overflow-hidden">
                 {getProductImages(fullProduct?.product)[activeImageIndex] && (
                   <Image 
                     src={getProductImages(fullProduct?.product)[activeImageIndex] || '/placeholder-tire.jpg'}
@@ -592,13 +589,13 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
               <h2 className="text-lg text-gray-300 mb-4">{fullProduct?.product.cap_inch} inç</h2>
 
               <div className="flex items-baseline mb-4">
-                {fullProduct?.product.discountedPrice ? (
+                {selectedShop && Number(selectedShop.indirimli_fiyat) !== Number(selectedShop.fiyat) ? (
                   <>
-                    <span className="text-2xl font-bold text-white mr-3">{selectedShop?.price}₺</span>
-                    <span className="text-lg text-gray-400 line-through">{fullProduct.product.price}₺</span>
+                    <span className="text-2xl font-bold text-white mr-3">{selectedShop.indirimli_fiyat}₺</span>
+                    <span className="text-lg text-gray-400 line-through">{selectedShop.fiyat}₺</span>
                   </>
                 ) : (
-                  <span className="text-2xl font-bold text-white">{selectedShop?.price}₺</span>
+                  <span className="text-2xl font-bold text-white">{selectedShop?.indirimli_fiyat}₺</span>
                 )}
               </div>
 
@@ -607,7 +604,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                   <FaInfoCircle className="mr-2 mt-1 flex-shrink-0" />
                   <div>
                     <p className="font-medium">Daha uygun fiyatlı mağaza mevcut!</p>
-                    <p className="text-sm">{cheapestShop.name} ({cheapestShop.city}) bu ürünü <span className="font-bold">{cheapestShop.price}₺</span> fiyatla sunuyor.</p>
+                    <p className="text-sm">{cheapestShop.name} ({cheapestShop.city}) bu ürünü <span className="font-bold">{cheapestShop.indirimli_fiyat}₺</span> fiyatla sunuyor.</p>
                     <button 
                       onClick={() => handleShopChange(cheapestShop)}
                       className="mt-1 text-sm text-blue-600 hover:text-blue-800 underline"
@@ -627,7 +624,9 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-400 w-32">Lastik Sağlığı:</span>
-                  <span className="text-white">{fullProduct?.product.saglik_durumu === 100 ? 'Sıfır (Yeni)' : `%${fullProduct?.product.saglik_durumu}`}</span>
+                  <div className={`inline-block ${getHealthColor(selectedShop?.saglik_durumu || 0)} px-3 py-1 rounded-full text-sm font-medium`}>
+                    {selectedShop?.saglik_durumu === 100 ? 'Sıfır' : `%${selectedShop?.saglik_durumu} Sağlık Durumu`}
+                  </div>
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-400 w-32">Mağaza:</span>
@@ -847,7 +846,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Sağlık Durumu</span>
-                        <span className="text-white">{fullProduct?.product.saglik_durumu === 100 ? 'Sıfır (Yeni)' : `%${fullProduct?.product.saglik_durumu}`}</span>
+                        <span className="text-white">{selectedShop?.saglik_durumu === 100 ? 'Sıfır (Yeni)' : `%${selectedShop?.saglik_durumu}`}</span>
                       </div>
                     </div>
                   </div>
@@ -891,23 +890,33 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                               <FaStore className="text-primary mr-2" />
                               <h4 className="font-medium text-white">{shop.name}</h4>
                             </div>
-                            <div className="flex items-start text-sm text-gray-400 mb-2">
-                              <FaMapMarkerAlt className="mr-2 mt-0.5 flex-shrink-0" />
-                              <span>{shop.city}, {shop.address}</span>
-                            </div>
-                            <div className="flex items-center text-sm">
-                              <div className="flex items-center text-yellow-400 mr-2">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <FaStar key={i} className={i < Math.floor(shop.rating) ? 'text-yellow-400' : 'text-gray-600'} />
-                                ))}
+                            <div className="flex flex-col text-sm text-gray-400">
+                              <div className="flex items-start mb-1">
+                                <FaMapMarkerAlt className="mr-2 mt-0.5 flex-shrink-0" />
+                                <span>{shop.city}, {shop.address}</span>
                               </div>
-                              <span className="text-gray-300">{shop.rating}</span>
+                              <div className="flex items-center">
+                                <div className={`${getHealthColor(shop.saglik_durumu)} px-2 py-1 rounded text-xs mr-2`}>
+                                  {shop.saglik_durumu === 100 ? 'Sıfır' : `%${shop.saglik_durumu} Sağlık Durumu`}
+                                </div>
+                              </div>
                             </div>
                           </div>
                           <div className="md:text-right">
-                            <div className="text-xl font-bold text-white mb-1">{shop.price}₺</div>
-                            <div className={`text-sm ${shop.stock > 0 ? 'text-green-500' : 'text-red-500'} mb-2`}>
-                              {shop.stock > 0 ? `${shop.stock} Adet Stokta` : 'Tükendi'}
+                            <div className="flex items-baseline mb-1">
+                              {Number(shop.indirimli_fiyat) !== Number(shop.fiyat) ? (
+                                <>
+                                  <div className="text-xl font-bold text-white mr-2">{shop.indirimli_fiyat}₺</div>
+                                  <div className="text-sm text-gray-400 line-through">{shop.fiyat}₺</div>
+                                </>
+                              ) : (
+                                <div className="text-xl font-bold text-white">{shop.indirimli_fiyat}₺</div>
+                              )}
+                            </div>
+                            <div className="text-sm mb-2">
+                              <span className={`${shop.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                {shop.stock > 0 ? `${shop.stock} Adet Stokta` : 'Tükendi'}
+                              </span>
                             </div>
                             {shop.hasMontage && (
                               <div className="flex items-center justify-end text-sm text-green-500">
@@ -971,16 +980,16 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                           <tbody className="bg-dark-200 divide-y divide-dark-100">
                             <tr className="bg-dark-200">
                               <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-300">
-                                1
+                                Tek Çekim
                               </td>
                               <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-300">
-                                {selectedShop?.price.toFixed(2)} TL
+                                {selectedShop?.indirimli_fiyat ? selectedShop.indirimli_fiyat.toFixed(2) : "0.00"} TL
                               </td>
                               <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-300">
-                                {selectedShop?.price.toFixed(2)} TL
+                                {selectedShop?.indirimli_fiyat ? selectedShop.indirimli_fiyat.toFixed(2) : "0.00"} TL
                               </td>
                             </tr>
-                            {bank.rates.map((rate, idx) => (
+                            {bank.rates.filter((rate, idx) => idx !== 0).map((rate, idx) => (
                               <tr key={idx} className={idx % 2 === 0 ? 'bg-dark-200' : 'bg-dark-300'}>
                                 <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-300">
                                   {rate.installments}
@@ -998,6 +1007,43 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                       </div>
                     </div>
                   ))}
+                  
+                  {/* Diğer Taksit Seçeneği */}
+                  <div className="bg-dark-200 rounded-lg overflow-hidden h-full">
+                    <div className="bg-dark-100 py-2 px-4 flex items-center mb-1">
+                      <h4 className="text-white font-medium">Diğer</h4>
+                    </div>
+                    <div className="overflow-x-auto p-2">
+                      <table className="min-w-full divide-y divide-dark-100">
+                        <thead className="bg-dark-300">
+                          <tr>
+                            <th scope="col" className="px-2 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                              Taksit
+                            </th>
+                            <th scope="col" className="px-2 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                              Taksit Tutarı
+                            </th>
+                            <th scope="col" className="px-2 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                              Toplam Tutar
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-dark-200 divide-y divide-dark-100">
+                          <tr className="bg-dark-200">
+                            <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-300">
+                              Tek Çekim
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-300">
+                              {selectedShop?.indirimli_fiyat ? selectedShop.indirimli_fiyat.toFixed(2) : "0.00"} TL
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-300">
+                              {selectedShop?.indirimli_fiyat ? selectedShop.indirimli_fiyat.toFixed(2) : "0.00"} TL
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="bg-dark-200 text-gray-300 p-4 rounded-lg">
@@ -1040,29 +1086,29 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
         <div className="max-w-7xl mx-auto px-4 py-8 mb-10">
           <h2 className="text-2xl font-bold text-white mb-6">Benzer Ürünler</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Benzer Ürün Kartları - İlk 4 ürünü gösteriyoruz */}
             {similarProducts.slice(0, 4).map((similarProduct) => (
               <div 
                 key={similarProduct.urun_id} 
-                className="bg-dark-300 rounded-lg overflow-hidden border border-dark-100 transition-transform hover:transform hover:scale-[1.01]"
+                className="bg-dark-300 rounded-lg overflow-hidden border border-dark-100 transition-transform hover:transform hover:scale-[1.01] flex flex-col h-full"
               >
                 <div className="relative">
                   <Link href={`/urun-detay/${similarProduct.urun_id}`}>
                     <div className="h-48 bg-gray-700 flex items-center justify-center">
                       <Image
-                        src="/placeholder-tire.jpg"
+                        src={similarProduct.urun_resmi_0 || "/placeholder-tire.jpg"}
                         alt={similarProduct.model}
                         width={200}
                         height={200}
-                        className="object-contain"
+                        className="object-contain w-full h-full"
+                        style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                       />
                     </div>
                   </Link>
-                  <div className={`absolute top-2 left-2 ${getHealthColor(similarProduct.saglik_durumu).split(' ').slice(0, 2).join(' ')} px-2 py-1 rounded text-xs`}>
+                  <div className={`absolute top-2 left-2 ${getHealthColor(similarProduct.saglik_durumu)} px-2 py-1 rounded text-xs`}>
                     {similarProduct.saglik_durumu === 100 ? 'Sıfır' : `%${similarProduct.saglik_durumu}`}
                   </div>
                 </div>
-                <div className="p-4">
+                <div className="p-4 flex flex-col flex-grow">
                   <div className="flex justify-between items-start mb-2">
                     <Link href={`/urun-detay/${similarProduct.urun_id}`}>
                       <h3 className="text-lg font-medium text-white hover:text-primary transition-colors">
@@ -1073,10 +1119,14 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                       {similarProduct.marka}
                     </span>
                   </div>
-                  <div className="mb-2 text-sm text-gray-400">
-                    {similarProduct.cap_inch} | {similarProduct.mevsim}
+                  
+                  {/* Sabit İnç ve Mevsim Bilgisi */}
+                  <div className="mb-2 text-sm text-gray-400 h-6">
+                    {similarProduct.cap_inch} inç | {similarProduct.mevsim}
                   </div>
-                  <div className="flex flex-col mb-3">
+                  
+                  {/* Sabit Mağaza Bilgileri */}
+                  <div className="mb-3 h-14">
                     <div className="text-gray-300 text-sm truncate">
                       {similarProduct.magaza_isim}
                     </div>
@@ -1084,8 +1134,9 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                       {similarProduct.magaza_sehir}
                     </div>
                   </div>
+                  
                   <div className="flex items-baseline mb-3">
-                    {similarProduct.indirimli_fiyat ? (
+                    {Number(similarProduct.indirimli_fiyat) !== Number(similarProduct.fiyat) ? (
                       <>
                         <span className="text-xl font-bold text-white mr-2">
                           {similarProduct.indirimli_fiyat}₺
@@ -1096,21 +1147,33 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                       </>
                     ) : (
                       <span className="text-xl font-bold text-white">
-                        {similarProduct.fiyat}₺
+                        {similarProduct.indirimli_fiyat}₺
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm ${similarProduct.stok > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {similarProduct.stok > 0 ? 'Stokta' : 'Tükendi'}
-                    </span>
-                    <div className="flex space-x-2">
-                      <Link
-                        href={`/urun-detay/${similarProduct.urun_id}`}
-                        className="bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm transition-colors"
-                      >
-                        Detaylar
-                      </Link>
+                  
+                  {/* Sabit Alt Kısım */}
+                  <div className="mt-auto">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm ${similarProduct.stok > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {similarProduct.stok > 0 ? 'Stokta' : 'Tükendi'}
+                      </span>
+                      <div className="flex space-x-2">
+                        <Link
+                          href={`/urun-detay/${similarProduct.urun_id}`}
+                          className="bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm transition-colors"
+                        >
+                          Detaylar
+                        </Link>
+                        <button
+                          onClick={() => handleAddToCart()}
+                          className={`bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm transition-colors flex items-center ${similarProduct.stok <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          disabled={similarProduct.stok <= 0}
+                        >
+                          <FaShoppingCart className="mr-1" />
+                          <span>Sepete Ekle</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
