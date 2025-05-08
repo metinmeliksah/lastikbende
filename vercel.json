@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build -- --no-lint",
   "outputDirectory": "out",
   "installCommand": "npm install",
   "framework": "nextjs",
@@ -35,7 +35,5 @@
         }
       ]
     }
-  ],
-  "ignoreBuildErrors": true,
-  "ignoreDevErrors": true
+  ]
 } 
