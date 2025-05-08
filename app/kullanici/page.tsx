@@ -6,7 +6,7 @@ import OrderList from './components/OrderList';
 import SettingsForm from './components/SettingsForm';
 import DashboardTabs from './components/DashboardTabs';
 import SupportTickets from './components/SupportTickets';
-import { getSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { FiCheckCircle, FiAlertCircle, FiInfo } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
@@ -63,7 +63,7 @@ const CustomToast = ({ message, type = 'success' }: { message: string | React.Re
 };
 
 export default function KullaniciPage() {
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState('siparisler');
   const [userData, setUserData] = useState<UserData>({
     name: '',
     surname: '',
@@ -77,7 +77,6 @@ export default function KullaniciPage() {
     profileImageUrl: ''
   });
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = getSupabaseClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const router = useRouter();
@@ -160,8 +159,8 @@ export default function KullaniciPage() {
       status: 'Tamamlandı',
       total: '₺1,299.99',
       items: [
-        { name: 'Lastik 1', quantity: 2, price: '₺599.99' },
-        { name: 'Jant 1', quantity: 1, price: '₺100.00' }
+        { id: 1, name: 'Lastik 1', quantity: 2, price: '₺599.99' },
+        { id: 2, name: 'Jant 1', quantity: 1, price: '₺100.00' }
       ]
     },
     {
@@ -170,7 +169,7 @@ export default function KullaniciPage() {
       status: 'Kargoda',
       total: '₺899.99',
       items: [
-        { name: 'Lastik 2', quantity: 1, price: '₺899.99' }
+        { id: 1, name: 'Lastik 2', quantity: 1, price: '₺899.99' }
       ]
     },
     {
@@ -179,7 +178,7 @@ export default function KullaniciPage() {
       status: 'İşleme Alındı',
       total: '₺1,599.99',
       items: [
-        { name: 'Lastik 3', quantity: 4, price: '₺399.99' }
+        { id: 1, name: 'Lastik 3', quantity: 4, price: '₺399.99' }
       ]
     }
   ];
@@ -554,16 +553,24 @@ export default function KullaniciPage() {
           <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           <div className="space-y-6">
-            <div className={activeTab === 'orders' ? '' : 'hidden'}>
+            <div className={activeTab === 'siparisler' ? '' : 'hidden'}>
               <div className="space-y-4">
                 <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
                   <h3 className="font-semibold mb-4 text-gray-100">Siparişlerim</h3>
-                  <OrderList orders={orders} />
+                  <OrderList orders={orders} onSupportRequest={() => setActiveTab('destek')} />
                 </div>
               </div>
             </div>
 
-            <div className={activeTab === 'support' ? '' : 'hidden'}>
+            <div className={activeTab === 'adresler' ? '' : 'hidden'}>
+              <div className="space-y-4">
+                <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
+                  {/* Adresler content */}
+                </div>
+              </div>
+            </div>
+
+            <div className={activeTab === 'destek' ? '' : 'hidden'}>
               <div className="space-y-4">
                 <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
                   {userId ? (
@@ -575,7 +582,7 @@ export default function KullaniciPage() {
               </div>
             </div>
 
-            <div className={activeTab === 'settings' ? '' : 'hidden'}>
+            <div className={activeTab === 'ayarlar' ? '' : 'hidden'}>
               <div className="space-y-4">
                 <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
                   <h3 className="font-semibold mb-4 text-gray-100">Hesap Ayarları</h3>
