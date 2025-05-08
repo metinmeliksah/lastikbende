@@ -30,7 +30,13 @@ export default function YoneticiLayout({
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [notifications, setNotifications] = useState(5);
+  const [notifications, setNotifications] = useState<{ id: number; title: string; time: string }[]>([
+    { id: 1, title: "Yeni destek talebi alındı", time: "10 dakika önce" },
+    { id: 2, title: "Yeni sipariş oluşturuldu", time: "30 dakika önce" },
+    { id: 3, title: "Stok uyarısı: Bazı ürünlerin stok seviyesi düşük", time: "1 saat önce" },
+    { id: 4, title: "Ödeme işlemi tamamlandı", time: "3 saat önce" },
+    { id: 5, title: "Haftalık rapor hazır", time: "1 gün önce" }
+  ]);
   // Client-side rendering sırasında sunucu tarafında render edilmiş içerikle eşleşmeyen içerik oluşturmamak için
   const [isMounted, setIsMounted] = useState(false);
   const [managerData, setManagerData] = useState<any>(null);
