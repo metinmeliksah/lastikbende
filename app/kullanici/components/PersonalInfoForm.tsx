@@ -119,16 +119,8 @@ export default function PersonalInfoForm({ formData, errors = {}, onChange, onIm
 
         // Cloudinary'ye yükle
         const imageUrl = await uploadToCloudinary(file, {
-          folder: 'profile_images',
           transformation: [
-            { 
-              width: 400,
-              height: 400,
-              crop: 'fill',
-              gravity: 'face',
-              quality: 'auto',
-              fetch_format: 'auto'
-            }
+            { width: 400, crop: 'limit' }
           ]
         });
         
