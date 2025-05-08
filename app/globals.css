@@ -214,4 +214,48 @@ html {
     /* postcss-ignore-next-line */
     @apply text-xl;
   }
+}
+
+/* Yönetici panel scrollbar stili */
+.yonetici-panel-active ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.yonetici-panel-active ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 5px;
+}
+
+.yonetici-panel-active ::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 5px;
+  border: 2px solid #f1f5f9;
+}
+
+.yonetici-panel-active ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Firefox scrollbar */
+.yonetici-panel-active {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
+}
+
+/* Koyu modlu bölgeler için scrollbar */
+.yonetici-panel-active .bg-dark-300 ::-webkit-scrollbar-track,
+.yonetici-panel-active .bg-dark-400 ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.yonetici-panel-active .bg-dark-300 ::-webkit-scrollbar-thumb,
+.yonetici-panel-active .bg-dark-400 ::-webkit-scrollbar-thumb {
+  background: #475569;
+  border: 2px solid #1e293b;
+}
+
+.yonetici-panel-active .bg-dark-300 ::-webkit-scrollbar-thumb:hover,
+.yonetici-panel-active .bg-dark-400 ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 } 
