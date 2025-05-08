@@ -29,7 +29,7 @@ export default function BayiLayout({
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [notifications, setNotifications] = useState(2);
+  const [notifications, setNotifications] = useState<number>(2);
   // Client-side rendering sırasında sunucu tarafında render edilmiş içerikle eşleşmeyen içerik oluşturmamak için
   const [isMounted, setIsMounted] = useState(false);
 
