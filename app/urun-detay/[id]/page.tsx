@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FaShoppingCart, FaTruck, FaTools, FaStore, FaMapMarkerAlt, FaCheckCircle, FaStar, FaChevronLeft, FaChevronRight, FaInfoCircle, FaBox } from 'react-icons/fa';
 import { createClient } from '@supabase/supabase-js';
-import { useCart } from '@/contexts/CartContext';
 
 // Supabase client oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -147,7 +146,6 @@ const dummyProducts = [
 ];
 
 export default function UrunDetayPage({ params }: { params: { id: string } }) {
-  const { addToCart } = useCart();
   const [fullProduct, setFullProduct] = useState<FullProduct | null>(null);
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -487,24 +485,8 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
   };
 
   const handleAddToCart = () => {
-    if (!fullProduct || !selectedShop) return;
-    
-    addToCart(
-      {
-        id: fullProduct.product.urun_id,
-        model: fullProduct.product.model,
-        genislik_mm: Number(fullProduct.product.genislik_mm),
-        profil: Number(fullProduct.product.profil),
-        cap_inch: Number(fullProduct.product.cap_inch),
-        urun_resmi_0: fullProduct.product.urun_resmi_0
-      },
-      {
-        id: selectedShop.id,
-        name: selectedShop.name,
-        city: selectedShop.city
-      },
-      quantity
-    );
+    // Sepete ekleme işlemi
+    alert(`${quantity} adet ${fullProduct?.product.model} sepete eklendi. Mağaza: ${selectedShop?.name} (${selectedShop?.city})`);
   };
 
   const getHealthColor = (health: number) => {

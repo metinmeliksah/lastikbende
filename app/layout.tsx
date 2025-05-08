@@ -5,9 +5,6 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import '@fortawesome/fontawesome-free/css/all.min.css'
-import { Toaster } from 'react-hot-toast'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { CartProvider } from '@/contexts/CartContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -27,16 +24,11 @@ export default function RootLayout({
         className={`${inter.className} bg-dark-400 text-gray-100`}
         suppressHydrationWarning
       >
-        <AuthProvider>
-          <CartProvider>
-            <Navbar />
-            <main>
-              {children}
-            </main>
-            <Footer />
-            <Toaster position="top-right" />
-          </CartProvider>
-        </AuthProvider>
+        <Navbar />
+        <main>
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   )
