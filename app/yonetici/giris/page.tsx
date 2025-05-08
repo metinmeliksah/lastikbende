@@ -24,7 +24,11 @@ export default function YoneticiGiris() {
       const { data, error } = await signInManager(email, password);
 
       if (error) {
-        setError('Giriş bilgileri hatalı');
+        if (typeof error === 'string') {
+          setError(error);
+        } else {
+          setError('Giriş bilgileri hatalı');
+        }
         return;
       }
 
@@ -104,19 +108,17 @@ export default function YoneticiGiris() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Eye className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
           </div>
         </div>
 
@@ -126,30 +128,44 @@ export default function YoneticiGiris() {
               id="remember-me"
               name="remember-me"
               type="checkbox"
-              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               checked={rememberMe}
-              onChange={() => setRememberMe(!rememberMe)}
+              onChange={(e) => setRememberMe(e.target.checked)}
             />
             <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-              Beni hatırla
+              Beni Hatırla
             </label>
+          </div>
+
+          <div className="text-sm">
+            <a href="#" className="text-blue-600 hover:text-blue-800">
+              Şifremi Unuttum
+            </a>
           </div>
         </div>
 
         <div>
           <button
             type="submit"
-            className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-              isLoading ? 'opacity-75 cursor-not-allowed' : ''
+            className={`flex w-full items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-white shadow-sm hover:bg-blue-700 focus:outline-none ${
+              isLoading ? "opacity-70 cursor-not-allowed" : ""
             }`}
             disabled={isLoading}
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Giriş Yapılıyor...
+              </span>
             ) : (
-              <LogIn className="w-5 h-5 mr-2" />
+              <span className="flex items-center">
+                <LogIn className="mr-2 h-5 w-5" />
+                Giriş Yap
+              </span>
             )}
-            {isLoading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
           </button>
         </div>
       </form>
