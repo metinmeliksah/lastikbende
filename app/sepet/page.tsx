@@ -1,10 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FaTrash, FaMinus, FaPlus, FaTruck, FaMapMarkerAlt, FaCreditCard, FaStore, FaBox } from 'react-icons/fa'
+import { FaTrash, FaMinus, FaPlus, FaTruck, FaMapMarkerAlt, FaCreditCard, FaStore, FaBox, FaEdit, FaTrashAlt } from 'react-icons/fa'
 import { useRouter } from 'next/navigation'
+import AdresForm from '../components/AdresForm'
+import { useCart } from '../contexts/CartContext'
+import { getSupabaseClient } from '@/lib/supabase'
 
 interface Il {
   id: number
@@ -32,34 +35,16 @@ interface Magazalar {
 
 export default function SepetPage() {
   const router = useRouter();
-
-  // Örnek sepet verisi
-  const [sepetUrunler, setSepetUrunler] = useState([
-    {
-      id: 1,
-      isim: "Michelin Pilot Sport 4",
-      ebat: "225/45 R17",
-      fiyat: 2850,
-      adet: 2,
-      resim: "/lastik-ornegi.jpg"
-    },
-    {
-      id: 2,
-      isim: "Bridgestone Turanza T005",
-      ebat: "205/55 R16",
-      fiyat: 2450,
-      adet: 1,
-      resim: "/lastik-ornegi.jpg"
-    }
-  ])
-
-  // Örnek il ve ilçe verileri
+  const supabase = getSupabaseClient();
+  const { sepetUrunler, adetGuncelle: sepetAdetGuncelle, sepettenCikar, toplamTutar } = useCart();
+  
+  // All useState hooks
+  const [isLoading, setIsLoading] = useState(true);
   const [iller] = useState<Il[]>([
     { id: 1, isim: "İstanbul" },
     { id: 2, isim: "Ankara" },
     { id: 3, isim: "İzmir" }
-  ])
-
+  ]);
   const [ilceler] = useState<Ilceler>({
     1: [
       { id: 1, isim: "Kadıköy" },
@@ -82,9 +67,7 @@ export default function SepetPage() {
       { id: 4, isim: "Buca" },
       { id: 5, isim: "Çiğli" }
     ]
-  })
-
-  // Örnek mağaza verileri
+  });
   const [magazalar] = useState<Magazalar>({
     "1-1": [ // İstanbul-Kadıköy
       { id: 1, isim: "Lastik Bende Kadıköy", adres: "Caferağa Mah. Moda Cad. No:123" },
@@ -110,84 +93,164 @@ export default function SepetPage() {
       { id: 11, isim: "Lastik Bende Alsancak", adres: "Alsancak Mah. Kıbrıs Şehitleri Cad. No:167" },
       { id: 12, isim: "Lastik Bende Konak", adres: "Konak Mah. Gazi Bulvarı No:34" }
     ]
-  })
+  });
+  const [adresler, setAdresler] = useState<any[]>([]);
+  const [secilenTeslimatAdresi, setSecilenTeslimatAdresi] = useState<number | null>(null);
+  const [secilenFaturaAdresi, setSecilenFaturaAdresi] = useState<number | null>(null);
+  const [faturaAdresiAyni, setFaturaAdresiAyni] = useState(false);
+  const [teslimatTipi, setTeslimatTipi] = useState('magaza');
+  const [secilenIl, setSecilenIl] = useState<number | null>(null);
+  const [secilenIlce, setSecilenIlce] = useState<number | null>(null);
+  const [secilenMagaza, setSecilenMagaza] = useState<number | null>(null);
+  const [montajTarihi, setMontajTarihi] = useState<string>('');
+  const [montajSaati, setMontajSaati] = useState<string>('');
+  const [montajNotu, setMontajNotu] = useState<string>('');
+  const [kargoUcreti, setKargoUcreti] = useState<number>(0);
+  const [adresFormOpen, setAdresFormOpen] = useState<null | 'teslimat' | 'fatura'>(null);
+  const [editAdres, setEditAdres] = useState<any | null>(null);
 
-  const [adresler] = useState([
-    {
-      id: 1,
-      baslik: "Ev Adresi",
-      isim: "Ahmet Yılmaz",
-      adres: "Atatürk Mah. Cumhuriyet Cad. No:123 D:4",
-      sehir: "İstanbul",
-      telefon: "0532 123 45 67"
-    },
-    {
-      id: 2,
-      baslik: "İş Adresi",
-      isim: "Ahmet Yılmaz",
-      adres: "Merkez Mah. İstiklal Cad. No:45 K:3",
-      sehir: "İstanbul",
-      telefon: "0532 123 45 67"
+  // All useEffect hooks
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          router.replace('/kullanici/giris');
+          return;
+        }
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Auth check error:', error);
+        router.replace('/kullanici/giris');
+      }
+    };
+    checkAuth();
+  }, [router, supabase.auth]);
+
+  // Adresleri yenileme fonksiyonu
+  const refreshAddresses = async () => {
+    try {
+      const res = await fetch('/api/user/address', {
+        credentials: 'include'
+      });
+      const json = await res.json();
+      if (json.success) {
+        setAdresler(json.data);
+      }
+    } catch (error) {
+      console.error('Adresler yüklenirken hata:', error);
     }
-  ])
+  };
 
-  const [secilenTeslimatAdresi, setSecilenTeslimatAdresi] = useState<number | null>(null)
-  const [secilenFaturaAdresi, setSecilenFaturaAdresi] = useState<number | null>(null)
-  const [faturaAdresiAyni, setFaturaAdresiAyni] = useState(false)
-  const [teslimatTipi, setTeslimatTipi] = useState('magaza')
-  const [secilenIl, setSecilenIl] = useState<number | null>(null)
-  const [secilenIlce, setSecilenIlce] = useState<number | null>(null)
-  const [secilenMagaza, setSecilenMagaza] = useState<number | null>(null)
+  // Adres formu başarılı olduğunda
+  const handleAdresFormSuccess = async (data: any) => {
+    await refreshAddresses();
+    setEditAdres(null);
+    setAdresFormOpen(null);
+  };
 
-  // Fatura adresi değiştiğinde kontrol
+  // Initial fetch
+  useEffect(() => {
+    refreshAddresses();
+  }, []);
+
+  // Shipping fee calculation effect
+  useEffect(() => {
+    if (teslimatTipi === 'adres' && secilenTeslimatAdresi) {
+      const secilenAdres = adresler.find(a => a.id === secilenTeslimatAdresi);
+      if (!secilenAdres) {
+        setKargoUcreti(0);
+        return;
+      }
+      
+      const kargoUcretleri: { [key: string]: number } = {
+        'İstanbul': 50,
+        'Ankara': 60,
+        'İzmir': 70,
+        'default': 80
+      };
+      
+      const ucret = kargoUcretleri[secilenAdres.sehir] || kargoUcretleri.default;
+      setKargoUcreti(ucret);
+    } else {
+      setKargoUcreti(0);
+    }
+  }, [teslimatTipi, secilenTeslimatAdresi, adresler]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-dark-400 pt-16 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Event handlers and other functions
   const handleFaturaAdresiChange = (adresId: number) => {
-    setSecilenFaturaAdresi(adresId)
+    setSecilenFaturaAdresi(adresId);
     if (faturaAdresiAyni) {
-      setSecilenTeslimatAdresi(adresId)
+      setSecilenTeslimatAdresi(adresId);
     }
-  }
+  };
 
-  // Teslimat adresi değiştiğinde kontrol
   const handleTeslimatAdresiChange = (adresId: number) => {
-    setSecilenTeslimatAdresi(adresId)
+    setSecilenTeslimatAdresi(adresId);
     if (faturaAdresiAyni) {
-      setSecilenFaturaAdresi(adresId)
+      setSecilenFaturaAdresi(adresId);
     }
-  }
+  };
 
-  // Fatura adresi aynı seçeneği değiştiğinde
   const handleFaturaAdresiAyniChange = (checked: boolean) => {
-    setFaturaAdresiAyni(checked)
+    setFaturaAdresiAyni(checked);
     if (checked && secilenTeslimatAdresi) {
-      setSecilenFaturaAdresi(secilenTeslimatAdresi)
+      setSecilenFaturaAdresi(secilenTeslimatAdresi);
     }
-  }
+  };
 
-  // Adet güncelleme fonksiyonu
   const adetGuncelle = (urunId: number, yeniAdet: number) => {
-    setSepetUrunler(sepetUrunler.map(urun => 
-      urun.id === urunId ? { ...urun, adet: Math.max(1, yeniAdet) } : urun
-    ))
-  }
+    const urun = sepetUrunler.find(u => u.id === urunId);
+    if (urun) {
+      sepetAdetGuncelle(urunId, urun.ebat, Math.max(1, yeniAdet));
+    }
+  };
 
-  // Ürün silme fonksiyonu
   const urunSil = (urunId: number) => {
-    setSepetUrunler(sepetUrunler.filter(urun => urun.id !== urunId))
-  }
+    const urun = sepetUrunler.find(u => u.id === urunId);
+    if (urun) {
+      sepettenCikar(urunId, urun.ebat);
+    }
+  };
 
-  // Toplam tutarı hesapla
-  const toplamTutar = sepetUrunler.reduce((total, urun) => total + (urun.fiyat * urun.adet), 0)
-  const kargo = 0 // Ücretsiz kargo
-  const genelToplam = toplamTutar + kargo
+  const handleAdresSil = async (id: number) => {
+    if (!window.confirm('Bu adresi silmek istediğinize emin misiniz?')) return;
+    try {
+      await fetch('/api/user/address', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+        credentials: 'include'
+      });
+      if (secilenTeslimatAdresi === id) setSecilenTeslimatAdresi(null);
+      if (secilenFaturaAdresi === id) setSecilenFaturaAdresi(null);
+      const res = await fetch('/api/user/address', {
+        credentials: 'include'
+      });
+      const json = await res.json();
+      if (json.success) setAdresler(json.data);
+    } catch (err) {
+      alert('Adres silinirken bir hata oluştu.');
+    }
+  };
 
   const handleSiparisOnayla = () => {
     // Teslimat tipine göre validasyon
-    if (teslimatTipi === 'magaza' && (!secilenMagaza || !secilenFaturaAdresi)) {
-      alert('Lütfen mağaza ve fatura adresi seçiniz.');
-      return;
-    }
-
-    if (teslimatTipi === 'adres' && (!secilenTeslimatAdresi || !secilenFaturaAdresi)) {
+    if (teslimatTipi === 'magaza') {
+      if (!secilenMagaza || !secilenFaturaAdresi || !montajTarihi || !montajSaati) {
+        alert('Lütfen mağaza, fatura adresi ve montaj randevusu bilgilerini giriniz.');
+        return;
+      }
+    } else if (!secilenTeslimatAdresi || !secilenFaturaAdresi) {
       alert('Lütfen teslimat ve fatura adresi seçiniz.');
       return;
     }
@@ -196,21 +259,67 @@ export default function SepetPage() {
     const sepetVerisi = {
       urunler: sepetUrunler,
       toplamTutar,
-      kargo,
+      kargoUcreti,
       genelToplam,
       teslimatBilgileri: {
         tip: teslimatTipi,
-        magaza: teslimatTipi === 'magaza' ? magazalar[`${secilenIl}-${secilenIlce}`]?.find(m => m.id === secilenMagaza) : null,
+        magaza: teslimatTipi === 'magaza' ? {
+          ...magazalar[`${secilenIl}-${secilenIlce}`]?.find(m => m.id === secilenMagaza),
+          montajTarihi,
+          montajSaati,
+          montajNotu
+        } : null,
         teslimatAdresi: teslimatTipi === 'adres' ? adresler.find(a => a.id === secilenTeslimatAdresi) : null,
       },
-      faturaAdresi: adresler.find(a => a.id === secilenFaturaAdresi)
+      faturaAdresi: adresler.find(a => a.id === secilenFaturaAdresi),
+      durum: {
+        kod: 'siparis_alindi',
+        mesaj: 'Sipariş Alındı',
+        tarih: new Date().toISOString(),
+        sonrakiDurum: teslimatTipi === 'magaza' ? 'onaylandi' : 'onaylandi',
+        durumGecmisi: [
+          {
+            kod: 'siparis_alindi',
+            mesaj: 'Sipariş Alındı',
+            tarih: new Date().toISOString()
+          }
+        ],
+        durumAkisi: teslimatTipi === 'magaza' 
+          ? ['siparis_alindi', 'onaylandi', 'montaj', 'tamamlandi']
+          : ['siparis_alindi', 'onaylandi', 'kargoya_verildi', 'tamamlandi']
+      }
     };
     localStorage.setItem('sepetVerisi', JSON.stringify(sepetVerisi));
     router.push('/sepet/odeme');
   };
 
+  // Calculate totals
+  const kargo = kargoUcreti;
+  const genelToplam = toplamTutar + kargo;
+
   return (
     <div className="min-h-screen bg-dark-400 pt-16">
+      {/* AdresForm Modal (Ekle/Güncelle) */}
+      {(adresFormOpen || editAdres) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-dark-400 rounded-lg shadow-lg p-4 w-full max-w-md">
+            <AdresForm
+              onSubmit={handleAdresFormSuccess}
+              onCancel={() => { setAdresFormOpen(null); setEditAdres(null); }}
+              initialValues={editAdres ? {
+                id: editAdres.id,
+                adres_baslik: editAdres.baslik,
+                adres: editAdres.adres,
+                sehir: editAdres.sehir,
+                ilce: editAdres.ilce,
+                telefon: editAdres.telefon,
+                adres_tipi: editAdres.adres_tipi || (adresFormOpen || 'teslimat'),
+              } : { adres_tipi: adresFormOpen || 'teslimat' }}
+              isEdit={!!editAdres}
+            />
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-4 py-6">
         <h1 className="text-3xl font-bold text-white mb-6">Sepetim</h1>
 
@@ -326,19 +435,42 @@ export default function SepetPage() {
                       {adresler.map((adres) => (
                         <div
                           key={adres.id}
-                          className={`p-3 rounded-lg cursor-pointer border transition-colors ${
+                          className={`p-3 rounded-lg cursor-pointer border transition-colors flex justify-between items-center ${
                             secilenTeslimatAdresi === adres.id
                               ? 'border-primary bg-dark-200'
                               : 'border-gray-700 hover:border-gray-600'
                           }`}
                           onClick={() => handleTeslimatAdresiChange(adres.id)}
                         >
-                          <p className="font-medium text-white">{adres.baslik}</p>
-                          <p className="text-sm text-gray-400">{adres.adres}</p>
-                          <p className="text-sm text-gray-400">{adres.sehir}</p>
+                          <div>
+                            <p className="font-medium text-white">{adres.baslik}</p>
+                            <p className="text-sm text-gray-400">{adres.adres}</p>
+                            <p className="text-sm text-gray-400">{adres.sehir}</p>
+                          </div>
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              type="button"
+                              className="text-primary hover:text-yellow-400"
+                              onClick={e => { e.stopPropagation(); setEditAdres(adres); }}
+                              title="Düzenle"
+                            >
+                              <FaEdit />
+                            </button>
+                            <button
+                              type="button"
+                              className="text-red-400 hover:text-red-600"
+                              onClick={e => { e.stopPropagation(); handleAdresSil(adres.id); }}
+                              title="Sil"
+                            >
+                              <FaTrashAlt />
+                            </button>
+                          </div>
                         </div>
                       ))}
-                      <button className="w-full py-2 text-center text-primary hover:text-red-400 transition-colors">
+                      <button
+                        className="w-full py-2 text-center text-primary hover:text-red-400 transition-colors"
+                        onClick={() => setAdresFormOpen('teslimat')}
+                      >
                         + Yeni Teslimat Adresi Ekle
                       </button>
                     </div>
@@ -360,6 +492,54 @@ export default function SepetPage() {
                 )}
               </div>
             </div>
+
+            {/* After the store selection section */}
+            {secilenMagaza && (
+              <div className="space-y-4 mt-4 p-4 bg-dark-200 rounded-lg">
+                <h3 className="text-lg font-semibold text-white">Montaj Randevusu</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Tarih</label>
+                    <input
+                      type="date"
+                      value={montajTarihi}
+                      onChange={(e) => setMontajTarihi(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Saat</label>
+                    <select
+                      value={montajSaati}
+                      onChange={(e) => setMontajSaati(e.target.value)}
+                      className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
+                      required
+                    >
+                      <option value="">Saat seçiniz</option>
+                      <option value="09:00">09:00</option>
+                      <option value="10:00">10:00</option>
+                      <option value="11:00">11:00</option>
+                      <option value="13:00">13:00</option>
+                      <option value="14:00">14:00</option>
+                      <option value="15:00">15:00</option>
+                      <option value="16:00">16:00</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Montaj Notu (Opsiyonel)</label>
+                  <textarea
+                    value={montajNotu}
+                    onChange={(e) => setMontajNotu(e.target.value)}
+                    className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
+                    rows={2}
+                    placeholder="Montaj için özel notunuz varsa belirtebilirsiniz"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Ürün Listesi */}
             <div className="bg-dark-300 rounded-lg p-4 border border-gray-700">
@@ -437,25 +617,44 @@ export default function SepetPage() {
                 {adresler.map((adres) => (
                   <div
                     key={adres.id}
-                    className={`p-3 rounded-lg cursor-pointer border transition-colors ${
+                    className={`p-3 rounded-lg cursor-pointer border transition-colors flex justify-between items-center ${
                       secilenFaturaAdresi === adres.id
                         ? 'border-primary bg-dark-200'
                         : 'border-gray-700 hover:border-gray-600'
                     } ${faturaAdresiAyni && teslimatTipi === 'adres' ? 'opacity-50 cursor-not-allowed' : ''}`}
                     onClick={() => !faturaAdresiAyni && handleFaturaAdresiChange(adres.id)}
                   >
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1">
-                        <p className="font-medium text-white">{adres.baslik}</p>
-                        <p className="text-sm text-gray-400 mt-1">{adres.isim}</p>
-                        <p className="text-sm text-gray-400">{adres.adres}</p>
-                        <p className="text-sm text-gray-400">{adres.sehir}</p>
-                        <p className="text-sm text-gray-400">{adres.telefon}</p>
-                      </div>
+                    <div>
+                      <p className="font-medium text-white">{adres.baslik}</p>
+                      <p className="text-sm text-gray-400 mt-1">{adres.isim}</p>
+                      <p className="text-sm text-gray-400">{adres.adres}</p>
+                      <p className="text-sm text-gray-400">{adres.sehir}</p>
+                      <p className="text-sm text-gray-400">{adres.telefon}</p>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        type="button"
+                        className="text-primary hover:text-yellow-400"
+                        onClick={e => { e.stopPropagation(); setEditAdres(adres); }}
+                        title="Düzenle"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        type="button"
+                        className="text-red-400 hover:text-red-600"
+                        onClick={e => { e.stopPropagation(); handleAdresSil(adres.id); }}
+                        title="Sil"
+                      >
+                        <FaTrashAlt />
+                      </button>
                     </div>
                   </div>
                 ))}
-                <button className="w-full py-2 text-center text-primary hover:text-red-400 transition-colors">
+                <button
+                  className="w-full py-2 text-center text-primary hover:text-red-400 transition-colors"
+                  onClick={() => setAdresFormOpen('fatura')}
+                >
                   + Yeni Adres Ekle
                 </button>
               </div>

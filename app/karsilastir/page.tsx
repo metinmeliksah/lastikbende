@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FaShoppingCart, FaHome, FaChevronLeft } from 'react-icons/fa';
 import { createClient } from '@supabase/supabase-js';
+import { useCart } from '../contexts/CartContext';
+import { toast } from 'react-hot-toast';
 
 // Supabase client oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -19,18 +21,24 @@ interface Product {
   marka: string;
   cap_inch: string;
   mevsim: string;
-  saglik_durumu: number;
-  genislik_mm: string;
-  profil: string;
+  saglik_durumu: string;
+  genislik_mm: number;
+  profil: number;
   yapi: string;
-  yuk_endeksi: string;
+  yuk_endeksi: number;
   hiz_endeksi: string;
   urun_resmi_0: string;
   stok: number;
   fiyat: number;
   indirimli_fiyat: number;
-  magaza_isim: string;
-  magaza_sehir: string;
+  magaza: {
+    id: number;
+    isim: string;
+    sehir: string;
+    adres: string;
+    rating: number;
+  };
+  stok_id: number;
 }
 
 export default function KarsilastirPage() {
@@ -38,6 +46,7 @@ export default function KarsilastirPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { sepeteEkle } = useCart();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -93,12 +102,22 @@ export default function KarsilastirPage() {
           // Mağaza bilgisini çek
           const { data: magazaData, error: magazaError } = await supabase
             .from('sellers')
-            .select('isim, sehir')
+            .select(`
+              id,
+              isim,
+              sehir,
+              adres
+            `)
             .eq('id', stok.magaza_id)
             .single();
             
-          if (magazaError || !magazaData) {
-            console.error(`Mağaza bilgisi ID ${stok.magaza_id} bulunamadı:`, magazaError);
+          if (magazaError) {
+            console.error(`Mağaza verisi çekilirken hata (ID: ${stok.magaza_id}):`, magazaError);
+            return null;
+          }
+          
+          if (!magazaData) {
+            console.error(`Mağaza bulunamadı (ID: ${stok.magaza_id})`);
             return null;
           }
           
@@ -119,8 +138,14 @@ export default function KarsilastirPage() {
             stok: stok.stok_adet,
             fiyat: stok.fiyat,
             indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat,
-            magaza_isim: magazaData.isim,
-            magaza_sehir: magazaData.sehir
+            magaza: {
+              id: magazaData.id,
+              isim: magazaData.isim,
+              sehir: magazaData.sehir,
+              adres: magazaData.adres || '',
+              rating: 4.5 // Varsayılan değer
+            },
+            stok_id: stok.stok_id
           };
         });
         
@@ -144,17 +169,49 @@ export default function KarsilastirPage() {
     fetchProducts();
   }, [searchParams]);
 
-  // Sağlık durumu renklendirmesi
-  const getHealthColor = (health: number) => {
-    if (health === 100) return 'bg-green-500 text-white'; // Sıfır için yeşil
-    if (health >= 70) return 'bg-green-500 text-white'; // İyi durum için yeşil
-    if (health >= 40) return 'bg-yellow-500 text-white'; // Orta durum için sarı
-    return 'bg-red-500 text-white'; // Kötü durum için kırmızı
+  // Sağlık durumu rengini belirle
+  const getHealthColor = (saglik: string) => {
+    const saglikNum = parseInt(saglik);
+    if (saglikNum === 100) return 'bg-green-500';
+    if (saglikNum >= 80) return 'bg-green-400';
+    if (saglikNum >= 60) return 'bg-yellow-500';
+    if (saglikNum >= 40) return 'bg-orange-500';
+    return 'bg-red-500';
   };
 
   // Sepete ekleme işlemi
   const handleAddToCart = (product: Product) => {
-    alert(`${product.model} sepete eklendi.`);
+    // Stok bilgisini çek ve sepete ekle
+    const fetchStokAndAddToCart = async () => {
+      try {
+        const { data: stokData, error } = await supabase
+          .from('stok')
+          .select('stok_id')
+          .eq('urun_id', product.urun_id)
+          .single();
+
+        if (error || !stokData) {
+          toast.error('Ürün bilgisi alınamadı');
+          return;
+        }
+
+        sepeteEkle({
+          id: product.urun_id,
+          isim: product.model,
+          ebat: product.cap_inch,
+          fiyat: Number(product.indirimli_fiyat),
+          adet: 1,
+          resim: product.urun_resmi_0,
+          stok_id: stokData.stok_id
+        });
+        
+        toast.success('Ürün sepete eklendi');
+      } catch (err) {
+        toast.error('Ürün sepete eklenirken bir hata oluştu');
+      }
+    };
+
+    fetchStokAndAddToCart();
   };
 
   return (
@@ -217,7 +274,7 @@ export default function KarsilastirPage() {
                             {product.marka}
                           </span>
                           <span className={`text-xs ${getHealthColor(product.saglik_durumu)} px-2 py-1 rounded`}>
-                            {product.saglik_durumu === 100 ? 'Sıfır' : `%${product.saglik_durumu}`}
+                            {product.saglik_durumu === "100" ? "Sıfır" : `%${product.saglik_durumu}`}
                           </span>
                         </div>
                       </th>
@@ -250,8 +307,8 @@ export default function KarsilastirPage() {
                     <td className="p-4 text-gray-300 font-medium">Mağaza</td>
                     {products.map(product => (
                       <td key={`${product.urun_id}-store`} className="p-4 text-center">
-                        <div className="text-white">{product.magaza_isim}</div>
-                        <div className="text-gray-400 text-sm">{product.magaza_sehir}</div>
+                        <div className="text-white">{product.magaza.isim}</div>
+                        <div className="text-gray-400 text-sm">{product.magaza.sehir}</div>
                       </td>
                     ))}
                   </tr>

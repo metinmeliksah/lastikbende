@@ -7,6 +7,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useCart } from '../contexts/CartContext';
+import { toast } from 'react-hot-toast';
 
 // Supabase client oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -149,10 +151,18 @@ export default function UrunlerPage() {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        // Stok tablosundan tüm ürünleri çek ve stok_id'ye göre sırala
+        // Önce stok verilerini çek
         const { data: stokData, error: stokError } = await supabase
           .from('stok')
-          .select('*, urundetay(*), sellers(*)')
+          .select(`
+            *,
+            urundetay (*),
+            seller:magaza_id (
+              id,
+              isim,
+              sehir
+            )
+          `)
           .order('stok_id', { ascending: true });
 
         if (stokError) {
@@ -170,16 +180,16 @@ export default function UrunlerPage() {
         const productData = stokData.map(stok => ({
           urun_id: stok.urun_id,
           stok_id: stok.stok_id,
-          model: stok.urundetay.model || "İsimsiz Ürün",
-          marka: stok.urundetay.marka || "Bilinmiyor",
-          cap_inch: stok.urundetay.cap_inch || "",
-          mevsim: stok.urundetay.mevsim || "Belirtilmemiş",
+          model: stok.urundetay?.model || "İsimsiz Ürün",
+          marka: stok.urundetay?.marka || "Bilinmiyor",
+          cap_inch: stok.urundetay?.cap_inch || "",
+          mevsim: stok.urundetay?.mevsim || "Belirtilmemiş",
           saglik_durumu: stok.saglik_durumu || 0,
-          urun_resmi_0: stok.urundetay.urun_resmi_0 || "/placeholder-tire.jpg",
+          urun_resmi_0: stok.urundetay?.urun_resmi_0 || "/placeholder-tire.jpg",
           stok: stok.stok_adet || 0,
           magaza_id: stok.magaza_id,
-          magaza_isim: stok.sellers.isim || "Bilinmiyor",
-          magaza_sehir: stok.sellers.sehir || "Belirtilmemiş",
+          magaza_isim: stok.seller?.isim || "Bilinmiyor",
+          magaza_sehir: stok.seller?.sehir || "Belirtilmemiş",
           fiyat: stok.fiyat || 0,
           indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat || 0
         }));
@@ -557,11 +567,20 @@ export default function UrunlerPage() {
 
   // Ürün kartı bileşeni
   const ProductCard = ({ product, toggleCompare, compareList }: { product: Product, toggleCompare: (id: number) => void, compareList: number[] }) => {
+    const { sepeteEkle } = useCart();
     const isInCompareList = compareList.includes(product.urun_id);
     
-    // Sepete ekleme işlemi
     const handleAddToCart = () => {
-      alert(`${product.model} sepete eklendi.`);
+      sepeteEkle({
+        id: product.urun_id,
+        isim: product.model,
+        ebat: `${product.cap_inch} inç`,
+        fiyat: Number(product.indirimli_fiyat),
+        adet: 1,
+        resim: product.urun_resmi_0,
+        stok_id: product.stok_id
+      });
+      toast.success('Ürün sepete eklendi');
     };
 
     return (

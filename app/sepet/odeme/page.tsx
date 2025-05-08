@@ -203,11 +203,50 @@ const OdemePage = () => {
       toast.error('Lütfen sözleşmeleri kabul ediniz.');
       return;
     }
+
+    if (!sepetVerisi) {
+      toast.error('Sepet verisi bulunamadı.');
+      return;
+    }
     
     try {
-      // Simüle edilmiş başarılı sipariş yanıtı
-      const siparisNo = Math.random().toString(36).substring(2, 15);
+      // Sipariş numarası oluştur
+      const siparisNo = Math.random().toString(36).substring(2, 15).toUpperCase();
+      
+      // Sipariş verilerini hazırla
+      const siparisVerisi = {
+        ...sepetVerisi,
+        siparisNo,
+        durum: 'siparis_alindi',
+        odemeYontemi: paymentMethod,
+        odemeBilgileri: paymentMethod === 'credit-card' ? {
+          ...paymentFormData,
+          cardNumber: paymentFormData.cardNumber.replace(/\s/g, ''),
+          cardType
+        } : null
+      };
+
+      // Siparişi kaydet
+      const response = await fetch('/api/siparis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(siparisVerisi),
+        credentials: 'include'
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Sipariş oluşturulurken bir hata oluştu');
+      }
+
+      // Sipariş numarasını localStorage'a kaydet
       localStorage.setItem('siparisNo', siparisNo);
+      
+      // Sepet verisini temizle
+      localStorage.removeItem('sepetVerisi');
       
       // Başarılı sipariş durumunda onay sayfasına yönlendir
       router.push('/sepet/odeme/onay');
