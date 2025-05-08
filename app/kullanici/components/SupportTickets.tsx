@@ -426,7 +426,10 @@ export default function SupportTickets({ userId }: { userId: string }) {
                   <div>
                     <div className="text-sm text-gray-300 mb-2 font-semibold">Açıklama</div>
                     <div
-                      ref={el => descriptionRefs.current[ticket.id] = el}
+                      ref={(el) => {
+                        descriptionRefs.current[ticket.id] = el;
+                        return undefined;
+                      }}
                       className={`text-gray-200 mb-2 ${!expandedDescriptions[ticket.id] ? 'line-clamp-3' : ''}`}
                     >
                       {ticket.description}

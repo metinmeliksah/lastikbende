@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
-import { Save, Lock, User } from 'lucide-react';
+import { Save, Lock, User, Mail, UserCircle, KeyRound, KeySquare, Check, AlertCircle } from 'lucide-react';
 
 interface ManagerData {
   id: string;
@@ -126,10 +126,15 @@ export default function YoneticiAyarlar() {
       <h1 className="text-2xl font-bold text-gray-900">Ayarlar</h1>
 
       {message.text && (
-        <div className={`p-4 rounded-lg ${
+        <div className={`p-4 rounded-lg flex items-start ${
           message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
         }`}>
-          {message.text}
+          {message.type === 'success' ? (
+            <Check className="w-5 h-5 mr-2 flex-shrink-0" />
+          ) : (
+            <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+          )}
+          <span>{message.text}</span>
         </div>
       )}
 
@@ -146,49 +151,64 @@ export default function YoneticiAyarlar() {
               <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
                 Adınız
               </label>
-              <input
-                type="text"
-                id="first_name"
-                value={formData.first_name}
-                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <UserCircle className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="first_name"
+                  value={formData.first_name}
+                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                  className="pl-10 w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
             </div>
 
             <div>
               <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
                 Soyadınız
               </label>
-              <input
-                type="text"
-                id="last_name"
-                value={formData.last_name}
-                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <UserCircle className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="last_name"
+                  value={formData.last_name}
+                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                  className="pl-10 w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
             </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 E-posta Adresi
               </label>
-              <input
-                type="email"
-                id="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="email"
+                  id="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="pl-10 w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white ${
-                loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+              className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white transition-colors ${
+                loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
               <Save className="w-4 h-4" />
@@ -209,49 +229,64 @@ export default function YoneticiAyarlar() {
               <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
                 Mevcut Parola
               </label>
-              <input
-                type="password"
-                id="currentPassword"
-                value={passwordData.currentPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <KeyRound className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="password"
+                  id="currentPassword"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  className="pl-10 w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
             </div>
 
             <div>
               <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
                 Yeni Parola
               </label>
-              <input
-                type="password"
-                id="newPassword"
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <KeySquare className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="password"
+                  id="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  className="pl-10 w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                 Yeni Parola (Tekrar)
               </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <KeySquare className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  className="pl-10 w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white ${
-                loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+              className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white transition-colors ${
+                loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
               <Lock className="w-4 h-4" />

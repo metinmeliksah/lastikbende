@@ -9,12 +9,18 @@ export async function signInManager(email: string, password: string) {
   try {
     const { data, error } = await supabase
       .from('managers')
-      .select('id, email, first_name, last_name, position')
+      .select('id, email, first_name, last_name, position, durum')
       .eq('email', email)
       .eq('password', password)
       .single();
 
     if (error) throw error;
+    
+    // Durum kontrolü yap
+    if (data && data.durum === false) {
+      return { data: null, error: "Hesabınız askıya alınmıştır. Erişiminiz kısıtlandı." };
+    }
+    
     return { data, error: null };
   } catch (error) {
     return { data: null, error };

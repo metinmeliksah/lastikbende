@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
-import { Search, Eye, Calendar, Clock, X, Paperclip, MessageSquare } from 'lucide-react';
+import { Search, Eye, Calendar, Clock, X, Paperclip, MessageSquare, Archive, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 
 interface SupportTicket {
@@ -108,6 +108,33 @@ export default function DestekPage() {
     open: tickets.filter(t => t.status === 'Açık').length,
     pending: tickets.filter(t => t.status === 'Beklemede').length,
     closed: tickets.filter(t => t.status === 'Kapalı').length
+  };
+
+  // Durum güncelleme fonksiyonu
+  const handleStatusChange = async (ticketId: number, newStatus: 'Açık' | 'Beklemede' | 'Kapalı') => {
+    try {
+      const { error } = await supabase
+        .from('support_tickets')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', ticketId);
+
+      if (error) throw error;
+      
+      // Başarılı güncelleme sonrası verileri yeniden çek
+      await fetchTickets();
+      
+      // Modalda görüntülenen bileti güncelle
+      if (selectedTicket && selectedTicket.id === ticketId) {
+        setSelectedTicket({...selectedTicket, status: newStatus});
+      }
+      
+    } catch (error) {
+      console.error('Durum güncellenirken hata:', error);
+      alert('Durum güncellenirken bir hata oluştu.');
+    }
   };
 
   return (
@@ -309,6 +336,76 @@ export default function DestekPage() {
                           Cevap Yaz
                         </span>
                       </button>
+                      
+                      {/* Durum düğmeleri */}
+                      {ticket.status === 'Açık' && (
+                        <>
+                          <button
+                            onClick={() => handleStatusChange(ticket.id, 'Beklemede')}
+                            className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors group relative"
+                          >
+                            <Clock className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
+                              Beklemeye Al
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(ticket.id, 'Kapalı')}
+                            className="p-1.5 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors group relative"
+                          >
+                            <Archive className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
+                              Kapat
+                            </span>
+                          </button>
+                        </>
+                      )}
+                      
+                      {ticket.status === 'Beklemede' && (
+                        <>
+                          <button
+                            onClick={() => handleStatusChange(ticket.id, 'Açık')}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group relative"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
+                              Açık Duruma Getir
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(ticket.id, 'Kapalı')}
+                            className="p-1.5 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors group relative"
+                          >
+                            <Archive className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
+                              Kapat
+                            </span>
+                          </button>
+                        </>
+                      )}
+                      
+                      {ticket.status === 'Kapalı' && (
+                        <>
+                          <button
+                            onClick={() => handleStatusChange(ticket.id, 'Açık')}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group relative"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
+                              Açık Duruma Getir
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(ticket.id, 'Beklemede')}
+                            className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors group relative"
+                          >
+                            <Clock className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
+                              Beklemeye Al
+                            </span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
