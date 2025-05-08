@@ -7,7 +7,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCart } from '@/contexts/CartContext';
 
 // Supabase client oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -55,18 +54,13 @@ interface Product {
   cap_inch: string;
   mevsim: string;
   saglik_durumu: number;
-  genislik_mm: string;
-  profil: string;
-  yapi: string;
-  yuk_endeksi: string;
-  hiz_endeksi: string;
   urun_resmi_0: string;
   stok: number;
-  fiyat: number;
-  indirimli_fiyat: number;
+  magaza_id: number;
   magaza_isim: string;
   magaza_sehir: string;
-  magaza_id: number;
+  fiyat: number;
+  indirimli_fiyat: number;
 }
 
 export default function UrunlerPage() {
@@ -93,8 +87,7 @@ export default function UrunlerPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
 
-  const { addToCart } = useCart();
-
+  // URL'den filtreleri ve sayfa numarasını al
   useEffect(() => {
     // URL'den parametreleri al
     const mevsimParam = searchParams.get('mevsim');
@@ -155,19 +148,12 @@ export default function UrunlerPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      console.log('FETCH START');
       try {
         // Stok tablosundan tüm ürünleri çek ve stok_id'ye göre sırala
         const { data: stokData, error: stokError } = await supabase
           .from('stok')
-          .select(`
-            *,
-            urundetay:urun_id(*),
-            sellers:magaza_id(*)
-          `)
+          .select('*, urundetay(*), sellers(*)')
           .order('stok_id', { ascending: true });
-        console.log('stokData:', stokData);
-        console.log('stokError:', stokError);
 
         if (stokError) {
           console.error('Stok verisi çekilirken hata oluştu:', stokError);
@@ -179,49 +165,24 @@ export default function UrunlerPage() {
           setLoading(false);
           return;
         }
-        // Mağaza bilgilerini çek
-        const productDataPromises = stokData.map(async (stok) => {
-          try {
-            const { data: magazaData, error: magazaError } = await supabase
-              .from('sellers')
-              .select('id, isim, sehir')
-              .eq('id', stok.magaza_id)
-              .single();
 
-            if (magazaError || !magazaData) {
-              return null;
-            }
-
-            return {
-              urun_id: stok.urun_id,
-              stok_id: stok.stok_id,
-              model: stok.urundetay.model || "İsimsiz Ürün",
-              marka: stok.urundetay.marka || "Bilinmiyor",
-              cap_inch: stok.urundetay.cap_inch || "",
-              mevsim: stok.urundetay.mevsim || "Belirtilmemiş",
-              saglik_durumu: stok.saglik_durumu || 0,
-              genislik_mm: stok.urundetay.genislik_mm || "",
-              profil: stok.urundetay.profil || "",
-              yapi: stok.urundetay.yapi || "",
-              yuk_endeksi: stok.urundetay.yuk_endeksi || "",
-              hiz_endeksi: stok.urundetay.hiz_endeksi || "",
-              urun_resmi_0: stok.urundetay.urun_resmi_0 || "/images/placeholder-tire.jpg",
-              stok: stok.stok_adet || 0,
-              fiyat: stok.fiyat || 0,
-              indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat || 0,
-              magaza_isim: magazaData.isim || "Bilinmiyor",
-              magaza_sehir: magazaData.sehir || "Belirtilmemiş",
-              magaza_id: stok.magaza_id
-            };
-          } catch (err) {
-            console.error(`Ürün işlenirken hata:`, err);
-            return null;
-          }
-        });
-
-        const productData = (await Promise.all(productDataPromises)).filter(
-          (product): product is Product => product !== null
-        );
+        // Ürün verilerini stok_id'ye göre düzenle
+        const productData = stokData.map(stok => ({
+          urun_id: stok.urun_id,
+          stok_id: stok.stok_id,
+          model: stok.urundetay.model || "İsimsiz Ürün",
+          marka: stok.urundetay.marka || "Bilinmiyor",
+          cap_inch: stok.urundetay.cap_inch || "",
+          mevsim: stok.urundetay.mevsim || "Belirtilmemiş",
+          saglik_durumu: stok.saglik_durumu || 0,
+          urun_resmi_0: stok.urundetay.urun_resmi_0 || "/placeholder-tire.jpg",
+          stok: stok.stok_adet || 0,
+          magaza_id: stok.magaza_id,
+          magaza_isim: stok.sellers.isim || "Bilinmiyor",
+          magaza_sehir: stok.sellers.sehir || "Belirtilmemiş",
+          fiyat: stok.fiyat || 0,
+          indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat || 0
+        }));
 
         // Benzersiz markaları al
         const uniqueBrands = Array.from(new Set(productData.map(p => p.marka))).sort();
@@ -600,23 +561,7 @@ export default function UrunlerPage() {
     
     // Sepete ekleme işlemi
     const handleAddToCart = () => {
-      addToCart(
-        {
-          id: product.urun_id,
-          model: product.model,
-          genislik_mm: Number(product.genislik_mm),
-          profil: Number(product.profil),
-          cap_inch: Number(product.cap_inch),
-          urun_resmi_0: product.urun_resmi_0
-        },
-        {
-          id: product.magaza_id,
-          name: product.magaza_isim,
-          city: product.magaza_sehir
-        },
-        1,
-        product.indirimli_fiyat
-      );
+      alert(`${product.model} sepete eklendi.`);
     };
 
     return (
@@ -629,7 +574,6 @@ export default function UrunlerPage() {
                 alt={product.model}
                 width={200}
                 height={200}
-                priority={true}
                 className="object-contain w-full h-full"
                 style={{ objectFit: 'cover', width: '100%', height: '100%' }}
               />
@@ -952,7 +896,7 @@ export default function UrunlerPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                   {displayedProducts.map((product) => (
                     <ProductCard 
-                      key={`${product.urun_id}-${product.magaza_id}`} 
+                      key={product.urun_id} 
                       product={product} 
                       toggleCompare={toggleCompare}
                       compareList={compareList}

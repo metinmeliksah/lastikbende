@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FaShoppingCart, FaHome, FaChevronLeft } from 'react-icons/fa';
 import { createClient } from '@supabase/supabase-js';
-import { useCart } from '@/contexts/CartContext';
 
 // Supabase client oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -39,7 +38,6 @@ export default function KarsilastirPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -156,22 +154,7 @@ export default function KarsilastirPage() {
 
   // Sepete ekleme işlemi
   const handleAddToCart = (product: Product) => {
-    addToCart(
-      {
-        id: product.urun_id,
-        model: product.model,
-        genislik_mm: Number(product.genislik_mm),
-        profil: Number(product.profil),
-        cap_inch: Number(product.cap_inch),
-        urun_resmi_0: product.urun_resmi_0
-      },
-      {
-        id: product.magaza_id,
-        name: product.magaza_isim,
-        city: product.magaza_sehir
-      },
-      1
-    );
+    alert(`${product.model} sepete eklendi.`);
   };
 
   return (
