@@ -89,6 +89,8 @@ export default function UrunlerPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
 
+  const { sepeteEkle, sepetUrunler } = useCart();
+
   // URL'den filtreleri ve sayfa numarasını al
   useEffect(() => {
     // URL'den parametreleri al
@@ -567,22 +569,8 @@ export default function UrunlerPage() {
 
   // Ürün kartı bileşeni
   const ProductCard = ({ product, toggleCompare, compareList }: { product: Product, toggleCompare: (id: number) => void, compareList: number[] }) => {
-    const { sepeteEkle } = useCart();
     const isInCompareList = compareList.includes(product.urun_id);
     
-    const handleAddToCart = () => {
-      sepeteEkle({
-        id: product.urun_id,
-        isim: product.model,
-        ebat: `${product.cap_inch} inç`,
-        fiyat: Number(product.indirimli_fiyat),
-        adet: 1,
-        resim: product.urun_resmi_0,
-        stok_id: product.stok_id
-      });
-      toast.success('Ürün sepete eklendi');
-    };
-
     return (
       <div className="bg-dark-300 rounded-lg overflow-hidden border border-dark-100 transition-transform hover:transform hover:scale-[1.01] flex flex-col h-full">
         <div className="relative">
@@ -672,7 +660,9 @@ export default function UrunlerPage() {
                   Detaylar
                 </Link>
                 <button
-                  onClick={handleAddToCart}
+                  onClick={() => {
+                    handleAddToCart(product);
+                  }}
                   className={`bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm transition-colors flex items-center ${product.stok <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                   disabled={product.stok <= 0}
                 >
@@ -685,6 +675,30 @@ export default function UrunlerPage() {
         </div>
       </div>
     );
+  };
+
+  // Sepete ekleme fonksiyonu
+  const handleAddToCart = (product: Product) => {
+    // Sepette aynı ürün var mı kontrol et
+    const existingItem = sepetUrunler.find(item => item.stok_id === product.stok_id);
+    const sepettekiAdet = existingItem ? existingItem.adet : 0;
+    
+    // Eğer sepetteki adet + eklenecek miktar stok limitini aşıyorsa
+    if (sepettekiAdet + 1 > product.stok) {
+      toast.error(`Bu üründen maksimum ${product.stok} adet ekleyebilirsiniz. Sepetinizde zaten ${sepettekiAdet} adet var.`);
+      return;
+    }
+    
+    // Stok limiti aşılmıyorsa sepete ekle
+    sepeteEkle({
+      id: 0, // Backend tarafında otomatik üretilecek
+      isim: product.model,
+      ebat: product.cap_inch || '',
+      fiyat: Number(product.indirimli_fiyat),
+      adet: 1,
+      resim: product.urun_resmi_0,
+      stok_id: product.stok_id
+    });
   };
 
   return (

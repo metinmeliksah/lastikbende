@@ -1,196 +1,209 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase';
+import { useAdres } from '../contexts/AdresContext';
+import { Adres } from '../types';
+import { toast } from 'react-hot-toast';
 
 interface AdresFormProps {
-  initialValues?: {
-    id?: number;
-    adres_baslik?: string;
-    adres?: string;
-    sehir?: string;
-    ilce?: string;
-    telefon?: string;
-    adres_tipi?: 'fatura' | 'teslimat';
-  };
-  onSubmit: (data: any) => void;
+  tip: 'fatura' | 'teslimat';
+  initialValues?: Adres;
+  onSuccess?: (data: Adres) => void;
   onCancel?: () => void;
-  isEdit?: boolean;
 }
 
-const AdresForm: React.FC<AdresFormProps> = ({ initialValues = {}, onSubmit, onCancel, isEdit }) => {
+type AdresFormData = Omit<Adres, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
+
+// Type guard function to validate address data
+function isValidAdres(item: unknown): item is Adres {
+  const address = item as Record<string, unknown>;
+  return (
+    typeof address.id === 'number' &&
+    typeof address.user_id === 'string' &&
+    typeof address.adres_baslik === 'string' &&
+    typeof address.adres === 'string' &&
+    typeof address.sehir === 'string' &&
+    typeof address.ilce === 'string' &&
+    typeof address.telefon === 'string' &&
+    (address.adres_tipi === 'fatura' || address.adres_tipi === 'teslimat')
+  );
+}
+
+export default function AdresForm({ tip, initialValues, onSuccess, onCancel }: AdresFormProps) {
   const router = useRouter();
   const supabase = getSupabaseClient();
-  const [form, setForm] = useState({
-    adres_baslik: initialValues.adres_baslik || '',
-    adres: initialValues.adres || '',
-    sehir: initialValues.sehir || '',
-    ilce: initialValues.ilce || '',
-    telefon: initialValues.telefon || '',
-    adres_tipi: initialValues.adres_tipi || 'teslimat',
+  const { adresEkle, adresGuncelle } = useAdres();
+  const [form, setForm] = useState<AdresFormData>({
+    adres_baslik: initialValues?.adres_baslik || '',
+    adres: initialValues?.adres || '',
+    sehir: initialValues?.sehir || '',
+    ilce: initialValues?.ilce || '',
+    telefon: initialValues?.telefon || '',
+    adres_tipi: tip
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    
+    // Telefon numarası validasyonu
+    const phoneRegex = /^(05)[0-9][0-9][1-9]([0-9]){6}$/;
+    if (!phoneRegex.test(form.telefon.replace(/\s+/g, ''))) {
+      toast.error('Geçerli bir telefon numarası giriniz (05XX XXX XX XX)');
+      return;
+    }
     
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      let savedAddress: Adres;
       
-      if (sessionError) {
-        throw new Error('Oturum bilgisi alınamadı: ' + sessionError.message);
-      }
-
-      if (!session) {
-        throw new Error('Oturum bulunamadı. Lütfen tekrar giriş yapın.');
-      }
-
-      const method = isEdit ? 'PUT' : 'POST';
-      const res = await fetch('/api/user/address', {
-        method,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify(isEdit ? { ...form, id: initialValues.id } : form),
-        credentials: 'include'
-      });
-
-      const data = await res.json();
-      
-      if (!res.ok) {
-        if (res.status === 401) {
-          // Yönlendirme yapmadan önce hata mesajını göster
-          throw new Error('Oturum süresi dolmuş olabilir. Lütfen tekrar giriş yapın.');
+      if (initialValues?.id) {
+        await adresGuncelle(initialValues.id, form);
+        const { data } = await supabase
+          .from('adres')
+          .select('*')
+          .eq('id', initialValues.id)
+          .single();
+          
+        if (!data || !isValidAdres(data)) {
+          throw new Error('Invalid address data returned from database');
         }
-        throw new Error(data.error || 'Bir hata oluştu');
+        
+        savedAddress = data;
+        toast.success('Adres başarıyla güncellendi');
+      } else {
+        savedAddress = await adresEkle(form);
+        toast.success('Adres başarıyla eklendi');
       }
-
-      if (!data.success) {
-        throw new Error(data.error || 'Adres kaydedilemedi');
-      }
-
-      onSubmit(data.data);
-    } catch (err: any) {
-      console.error('Form submission error:', err);
-      setError(err.message);
       
-      // Sadece gerçekten oturum hatası varsa yönlendir
-      if (err.message.includes('Oturum süresi dolmuş') || err.message.includes('Oturum bulunamadı')) {
-        setTimeout(() => {
-          router.replace('/kullanici/giris');
-        }, 2000); // Kullanıcının hata mesajını görmesi için 2 saniye bekle
-      }
-    } finally {
-      setLoading(false);
+      onSuccess?.(savedAddress);
+    } catch (error) {
+      console.error('Form gönderilirken hata:', error);
+      toast.error('Adres kaydedilirken bir hata oluştu');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-dark-300 p-4 rounded-lg border border-gray-700">
-      {error && (
-        <div className="bg-red-900/50 border border-red-500 text-red-100 px-4 py-2 rounded">
-          {error}
-        </div>
-      )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h2 className="text-xl font-semibold text-white mb-4 text-center">
+        {initialValues ? 'Adresi Düzenle' : 'Yeni Adres Ekle'}
+      </h2>
+      
       <div>
-        <label className="block text-sm font-medium text-gray-400 mb-1">Adres Başlığı</label>
+        <label className="block text-sm font-medium text-gray-400 mb-1">
+          Adres Başlığı *
+        </label>
         <input
           type="text"
-          name="adres_baslik"
           value={form.adres_baslik}
-          onChange={handleChange}
-          className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
-          placeholder="Ev, İş, vb."
+          onChange={(e) => setForm({ ...form, adres_baslik: e.target.value })}
+          className="w-full bg-dark-400 border border-gray-700 rounded-lg py-2 px-3 text-white"
+          placeholder="Örn: Ev, İş"
           required
         />
       </div>
+
       <div>
-        <label className="block text-sm font-medium text-gray-400 mb-1">Adres</label>
+        <label className="block text-sm font-medium text-gray-400 mb-1">
+          Adres *
+        </label>
         <textarea
-          name="adres"
           value={form.adres}
-          onChange={handleChange}
-          className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
-          rows={2}
+          onChange={(e) => setForm({ ...form, adres: e.target.value })}
+          className="w-full bg-dark-400 border border-gray-700 rounded-lg py-2 px-3 text-white"
+          rows={3}
+          placeholder="Açık adres"
           required
         />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">Şehir</label>
+          <label className="block text-sm font-medium text-gray-400 mb-1">
+            Şehir *
+          </label>
           <input
             type="text"
-            name="sehir"
             value={form.sehir}
-            onChange={handleChange}
-            className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
+            onChange={(e) => setForm({ ...form, sehir: e.target.value })}
+            className="w-full bg-dark-400 border border-gray-700 rounded-lg py-2 px-3 text-white"
             required
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">İlçe</label>
+          <label className="block text-sm font-medium text-gray-400 mb-1">
+            İlçe *
+          </label>
           <input
             type="text"
-            name="ilce"
             value={form.ilce}
-            onChange={handleChange}
-            className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
+            onChange={(e) => setForm({ ...form, ilce: e.target.value })}
+            className="w-full bg-dark-400 border border-gray-700 rounded-lg py-2 px-3 text-white"
             required
           />
         </div>
       </div>
+
       <div>
-        <label className="block text-sm font-medium text-gray-400 mb-1">Telefon</label>
+        <label className="block text-sm font-medium text-gray-400 mb-1">
+          Telefon *
+        </label>
         <input
-          type="text"
-          name="telefon"
+          type="tel"
           value={form.telefon}
-          onChange={handleChange}
-          className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
-          placeholder="05xx xxx xx xx"
+          onChange={(e) => setForm({ ...form, telefon: e.target.value })}
+          className="w-full bg-dark-400 border border-gray-700 rounded-lg py-2 px-3 text-white"
+          placeholder="05XX XXX XX XX"
           required
         />
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-400 mb-1">Adres Tipi</label>
-        <select
-          name="adres_tipi"
-          value={form.adres_tipi}
-          onChange={handleChange}
-          className="w-full bg-dark-400 border border-gray-700 rounded-lg p-2 text-white"
-        >
-          <option value="teslimat">Teslimat</option>
-          <option value="fatura">Fatura</option>
-        </select>
+      
+      <div className="pt-2">
+        <label className="block text-sm font-medium text-gray-400 mb-3">
+          Adres Tipi *
+        </label>
+        <div className="flex space-x-4">
+          <label className="flex items-center">
+            <input
+              type="radio"
+              value="teslimat"
+              checked={form.adres_tipi === 'teslimat'}
+              onChange={() => setForm({ ...form, adres_tipi: 'teslimat' })}
+              className="mr-2 text-primary bg-dark-300 border-gray-700"
+            />
+            <span className="text-white">Teslimat Adresi</span>
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              value="fatura"
+              checked={form.adres_tipi === 'fatura'}
+              onChange={() => setForm({ ...form, adres_tipi: 'fatura' })}
+              className="mr-2 text-primary bg-dark-300 border-gray-700"
+            />
+            <span className="text-white">Fatura Adresi</span>
+          </label>
+        </div>
       </div>
-      <div className="flex gap-2 justify-end">
+
+      <div className="flex justify-end space-x-3 pt-2">
         {onCancel && (
-          <button 
-            type="button" 
-            onClick={onCancel} 
-            className="px-4 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-700"
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 bg-dark-300 text-white border border-gray-700 rounded-lg hover:bg-dark-200 transition-colors"
           >
             İptal
           </button>
         )}
         <button
           type="submit"
-          className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-red-600 transition-colors disabled:opacity-50"
-          disabled={loading}
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
         >
-          {loading ? 'Kaydediliyor...' : isEdit ? 'Güncelle' : 'Kaydet'}
+          {initialValues ? 'Adresi Güncelle' : 'Adresi Kaydet'}
         </button>
       </div>
     </form>
   );
-};
-
-export default AdresForm; 
+} 

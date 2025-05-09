@@ -46,7 +46,7 @@ export default function KarsilastirPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { sepeteEkle } = useCart();
+  const { sepeteEkle, sepetUrunler } = useCart();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -181,37 +181,27 @@ export default function KarsilastirPage() {
 
   // Sepete ekleme işlemi
   const handleAddToCart = (product: Product) => {
-    // Stok bilgisini çek ve sepete ekle
-    const fetchStokAndAddToCart = async () => {
-      try {
-        const { data: stokData, error } = await supabase
-          .from('stok')
-          .select('stok_id')
-          .eq('urun_id', product.urun_id)
-          .single();
-
-        if (error || !stokData) {
-          toast.error('Ürün bilgisi alınamadı');
-          return;
-        }
-
-        sepeteEkle({
-          id: product.urun_id,
-          isim: product.model,
-          ebat: product.cap_inch,
-          fiyat: Number(product.indirimli_fiyat),
-          adet: 1,
-          resim: product.urun_resmi_0,
-          stok_id: stokData.stok_id
-        });
-        
-        toast.success('Ürün sepete eklendi');
-      } catch (err) {
-        toast.error('Ürün sepete eklenirken bir hata oluştu');
-      }
-    };
-
-    fetchStokAndAddToCart();
+    // Sepette aynı ürün var mı kontrol et
+    const existingItem = sepetUrunler.find(item => item.stok_id === product.stok_id);
+    const sepettekiAdet = existingItem ? existingItem.adet : 0;
+    
+    // Eğer sepetteki adet + eklenecek miktar stok limitini aşıyorsa
+    if (sepettekiAdet + 1 > product.stok) {
+      toast.error(`Bu üründen maksimum ${product.stok} adet ekleyebilirsiniz. Sepetinizde zaten ${sepettekiAdet} adet var.`);
+      return;
+    }
+    
+    sepeteEkle({
+      id: 0, // Backend tarafında otomatik üretilecek
+      isim: product.model,
+      ebat: product.cap_inch || '',
+      fiyat: Number(product.indirimli_fiyat),
+      adet: 1,
+      resim: product.urun_resmi_0,
+      stok_id: product.stok_id
+    });
+    
+    toast.success('Ürün sepete eklendi');
   };
 
   return (

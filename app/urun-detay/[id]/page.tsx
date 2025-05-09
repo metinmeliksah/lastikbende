@@ -176,7 +176,7 @@ const dummyProducts = [
 ];
 
 export default function UrunDetayPage({ params }: { params: Params }) {
-  const { sepeteEkle } = useCart();
+  const { sepeteEkle, sepetUrunler } = useCart();
   const [fullProduct, setFullProduct] = useState<FullProduct | null>(null);
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -584,8 +584,18 @@ export default function UrunDetayPage({ params }: { params: Params }) {
   const handleAddToCart = () => {
     if (!selectedShop || !fullProduct) return;
 
+    // Sepette aynı ürün var mı kontrol et
+    const existingItem = sepetUrunler.find(item => item.stok_id === selectedShop.stok_id);
+    const sepettekiAdet = existingItem ? existingItem.adet : 0;
+    
+    // Eğer sepetteki adet + eklenecek miktar stok limitini aşıyorsa
+    if (sepettekiAdet + quantity > selectedShop.stock) {
+      toast.error(`Bu üründen maksimum ${selectedShop.stock} adet ekleyebilirsiniz. Sepetinizde zaten ${sepettekiAdet} adet var.`);
+      return;
+    }
+
     sepeteEkle({
-      id: fullProduct.product.urun_id,
+      id: 0, // Backend tarafında otomatik üretilecek
       isim: fullProduct.product.model,
       ebat: `${fullProduct.product.cap_inch} inç`,
       fiyat: Number(selectedShop.indirimli_fiyat),

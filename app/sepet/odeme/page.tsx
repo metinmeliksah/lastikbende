@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CreditCard, Building2, FileText, Check } from 'lucide-react';
+import { CreditCard, Building2, FileText, Check, CreditCardIcon } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
+import './style.css';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 type PaymentMethod = 'credit-card' | 'bank-transfer';
 type CardType = 'visa' | 'mastercard' | 'amex' | 'troy' | null;
@@ -43,6 +45,11 @@ interface TeslimatBilgileri {
     sehir: string;
     telefon: string;
   } | null;
+  montajBilgisi: {
+    tarih: string;
+    saat: string;
+    not?: string;
+  } | null;
 }
 
 interface SepetVerisi {
@@ -70,6 +77,7 @@ interface SiparisResponse {
 
 const OdemePage = () => {
   const router = useRouter();
+  const { user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit-card');
   const [isAgreementAccepted, setIsAgreementAccepted] = useState(false);
   const [cardType, setCardType] = useState<CardType>(null);
@@ -84,32 +92,36 @@ const OdemePage = () => {
   });
 
   useEffect(() => {
+    // Kullanıcı giriş yapmamışsa giriş sayfasına yönlendir
+    if (!user) {
+      toast.error('Ödeme işlemi için lütfen giriş yapın');
+      router.push('/kullanici/giris');
+      return;
+    }
+
     // Sepet verisini localStorage'dan al
     const sepetData = localStorage.getItem('sepetVerisi');
     if (sepetData) {
       setSepetVerisi(JSON.parse(sepetData));
     }
 
-    // Mesafeli satış sözleşmesi metnini al
+    // Mesafeli satış sözleşmesi metnini API'den al
     fetch('/api/sozlesme/mesafeli-satis')
       .then(res => res.text())
       .then(metin => setSozlesmeMetni(metin))
       .catch(err => console.error('Sözleşme metni alınamadı:', err));
-  }, []);
+  }, [user, router]);
 
   const isFormValid = () => {
     if (paymentMethod === 'credit-card') {
       const { cardNumber, cardHolder, expiryDate, cvv } = paymentFormData;
-      const isAmex = cardNumber.startsWith('3');
-      const validCardLength = isAmex ? cardNumber.replace(/\s/g, '').length === 15 : cardNumber.replace(/\s/g, '').length === 16;
-      const validCvvLength = isAmex ? cvv.length === 4 : cvv.length === 3;
       
+      // Basitleştirilmiş validasyon - sadece boş alanları kontrol edelim
       return (
-        validCardLength &&
+        cardNumber.trim().length > 0 &&
         cardHolder.trim().length > 0 &&
-        /^\d{2}\/\d{2}$/.test(expiryDate) &&
-        validCvvLength &&
-        cardType !== null
+        expiryDate.trim().length > 0 &&
+        cvv.trim().length > 0
       );
     }
     return true;
@@ -194,72 +206,112 @@ const OdemePage = () => {
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isFormValid()) {
-      toast.error('Lütfen tüm alanları doğru şekilde doldurunuz.');
-      return;
-    }
-
     if (!isAgreementAccepted) {
-      toast.error('Lütfen sözleşmeleri kabul ediniz.');
+      toast.error('Lütfen mesafeli satış sözleşmesini kabul ediniz.');
       return;
     }
 
-    if (!sepetVerisi) {
-      toast.error('Sepet verisi bulunamadı.');
-      return;
-    }
+    // Yükleniyor durumunu göstermek için bir toast mesajı
+    const loadingToast = toast.loading('Ödeme işlemi yapılıyor...');
     
     try {
-      // Sipariş numarası oluştur
-      const siparisNo = Math.random().toString(36).substring(2, 15).toUpperCase();
-      
-      // Sipariş verilerini hazırla
-      const siparisVerisi = {
-        ...sepetVerisi,
-        siparisNo,
-        durum: 'siparis_alindi',
-        odemeYontemi: paymentMethod,
-        odemeBilgileri: paymentMethod === 'credit-card' ? {
-          ...paymentFormData,
-          cardNumber: paymentFormData.cardNumber.replace(/\s/g, ''),
-          cardType
-        } : null
+      // İstek verisini hazırla ve logla
+      const requestData = {
+        teslimatTipi: sepetVerisi?.teslimatBilgileri.tip,
+        teslimatAdresiId: sepetVerisi?.teslimatBilgileri.teslimatAdresi?.id,
+        faturaAdresiId: sepetVerisi?.faturaAdresi.id,
+        montajBilgisi: sepetVerisi?.teslimatBilgileri.montajBilgisi,
+        magazaId: sepetVerisi?.teslimatBilgileri.magaza?.id,
+        urunler: sepetVerisi?.urunler.map(urun => ({
+          stok_id: urun.id,
+          adet: urun.adet,
+          fiyat: urun.fiyat
+        })),
+        odemeBilgisi: {
+          yontem: paymentMethod,
+          tutar: sepetVerisi?.genelToplam
+        }
       };
-
-      // Siparişi kaydet
-      const response = await fetch('/api/siparis', {
+      
+      console.log('Sipariş isteği gönderiliyor:', JSON.stringify(requestData, null, 2));
+      
+      // Sipariş oluştur
+      const siparisResponse = await fetch('/api/siparis/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(siparisVerisi),
-        credentials: 'include'
+        body: JSON.stringify(requestData)
       });
 
-      const result = await response.json();
+      toast.dismiss(loadingToast);
 
-      if (!result.success) {
-        throw new Error(result.error || 'Sipariş oluşturulurken bir hata oluştu');
+      // Yanıtı kontrol et
+      const responseData: SiparisResponse = await siparisResponse.json();
+      console.log('Sipariş API yanıtı:', responseData);
+      
+      if (!responseData.success) {
+        toast.error(responseData.error || 'Siparişiniz oluşturulamadı.');
+        return;
       }
 
-      // Sipariş numarasını localStorage'a kaydet
-      localStorage.setItem('siparisNo', siparisNo);
+      // Başarılı işlem sonrası
+      const redirectParams = new URLSearchParams({
+        siparisNo: responseData.siparisNo || `SIP-${Date.now().toString().slice(-8)}`,
+        yontem: paymentMethod
+      });
       
-      // Sepet verisini temizle
-      localStorage.removeItem('sepetVerisi');
+      localStorage.removeItem('sepetVerisi'); // Sepeti boşalt
+      toast.success('Siparişiniz başarıyla oluşturuldu');
       
-      // Başarılı sipariş durumunda onay sayfasına yönlendir
-      router.push('/sepet/odeme/onay');
+      router.push(`/sepet/odeme/onay?${redirectParams.toString()}`);
     } catch (error) {
-      toast.error('Sipariş oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
-      console.error('Sipariş oluşturma hatası:', error);
+      toast.dismiss(loadingToast);
+      console.error('İşlem sırasında hata:', error);
+      
+      toast.error('Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+    }
+  };
+
+  // Kart Tipi İkonu Bileşeni
+  const CardTypeIcon = ({ type }: { type: CardType }) => {
+    if (!type) return null;
+    
+    switch (type) {
+      case 'visa':
+        return (
+          <div className="text-white font-bold text-xl">
+            <span className="italic">VISA</span>
+          </div>
+        );
+      case 'mastercard':
+        return (
+          <div className="text-white font-bold flex items-center">
+            <div className="w-8 h-8 bg-red-500 rounded-full opacity-80 mr-1"></div>
+            <div className="w-8 h-8 bg-yellow-500 rounded-full opacity-80 -ml-4"></div>
+          </div>
+        );
+      case 'troy':
+        return (
+          <div className="text-white font-bold text-xl">
+            <span>TROY</span>
+          </div>
+        );
+      case 'amex':
+        return (
+          <div className="text-white font-bold text-xl">
+            <span>AMEX</span>
+          </div>
+        );
+      default:
+        return null;
     }
   };
 
   return (
-    <main className="min-h-screen bg-dark-400 pt-8">
-      <div className="container mx-auto px-4 py-6">
-        <h1 className="text-3xl font-bold text-white mb-6">Ödeme</h1>
+    <main className="min-h-screen bg-dark-400 pt-20">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-white mb-8">Ödeme</h1>
 
         {/* Sipariş Özeti */}
         {sepetVerisi && (
@@ -272,13 +324,11 @@ const OdemePage = () => {
               <div className="space-y-4">
                 {sepetVerisi.urunler.map((urun) => (
                   <div key={urun.id} className="flex items-center gap-4 border-b border-gray-700 pb-4">
-                    <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-800">
-                      <Image
-                        src={urun.resim}
-                        alt={urun.isim}
-                        fill
-                        className="object-cover"
-                      />
+                    <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center">
+                      {/* Resim yerine basit bir placeholder */}
+                      <div className="text-gray-600 font-bold text-sm text-center">
+                        {urun.isim.substring(0, 2).toUpperCase()}
+                      </div>
                     </div>
                     <div className="flex-1">
                       <h3 className="text-white font-medium">{urun.isim}</h3>
@@ -354,29 +404,23 @@ const OdemePage = () => {
                 </div>
               </div>
 
-              {/* Kart Önizleme */}
+              {/* Kart Önizleme - dinamik resimler yerine statik SVG içerikleri kullanacağız */}
               {paymentMethod === 'credit-card' && (
-                <div className="mb-6 relative">
-                  <div className={`w-full max-w-md mx-auto h-56 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 rounded-xl p-6 relative overflow-hidden transition-all duration-500 shadow-xl ${
-                    cardSide === 'back' ? 'transform rotate-y-180' : ''
-                  }`}>
-                    {cardSide === 'front' ? (
+                <div className="mb-6 relative card-container">
+                  <div 
+                    className={`w-full max-w-md mx-auto h-56 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 rounded-xl p-6 relative overflow-hidden transition-all duration-500 shadow-xl ${
+                      cardSide === 'back' ? 'card-flip-back' : ''
+                    }`}
+                  >
+                    <div className="card-front">
                       <div className="flex flex-col justify-between h-full relative">
                         <div className="flex items-center gap-2">
                           <div className="w-12 h-9 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-md flex items-center justify-center">
                             <div className="w-8 h-6 border-2 border-yellow-300/50 rounded-sm"></div>
                           </div>
-                          {cardType && (
-                            <div className="absolute top-0 right-0">
-                              <Image
-                                src={`/card-logos/${cardType}.svg`}
-                                alt={cardType}
-                                width={60}
-                                height={40}
-                                className="object-contain"
-                              />
-                            </div>
-                          )}
+                          <div className="absolute top-0 right-0">
+                            <CardTypeIcon type={cardType} />
+                          </div>
                         </div>
                         <div className="space-y-6">
                           <div className="text-white text-2xl tracking-[0.2em] text-center font-mono">
@@ -398,8 +442,10 @@ const OdemePage = () => {
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className="h-full flex flex-col justify-center transform rotate-y-180">
+                    </div>
+                    
+                    <div className="card-back">
+                      <div className="h-full flex flex-col justify-center">
                         <div className="w-full h-12 bg-black mb-6" />
                         <div className="bg-gradient-to-r from-gray-200 to-white h-12 relative">
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-white px-4 py-1 text-gray-900 tracking-widest font-mono">
@@ -407,7 +453,8 @@ const OdemePage = () => {
                           </div>
                         </div>
                       </div>
-                    )}
+                    </div>
+                    
                     <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
                   </div>
                 </div>

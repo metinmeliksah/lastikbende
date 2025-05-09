@@ -6,21 +6,14 @@ import { cookies } from 'next/headers';
 async function getUserIdFromRequest(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
-    const authHeader = request.headers.get('Authorization');
+    const { data: { session }, error } = await supabase.auth.getSession();
     
-    if (!authHeader?.startsWith('Bearer ')) {
-      return null;
-    }
-
-    const token = authHeader.split(' ')[1];
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    
-    if (error || !user?.id) {
+    if (error || !session?.user?.id) {
       console.error('Auth error:', error);
       return null;
     }
     
-    return user.id;
+    return session.user.id;
   } catch (error) {
     console.error('Error getting user:', error);
     return null;
