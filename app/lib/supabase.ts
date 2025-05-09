@@ -9,7 +9,7 @@ export async function signInManager(email: string, password: string) {
   try {
     const { data, error } = await supabase
       .from('managers')
-      .select('id, email, first_name, last_name, position, durum')
+      .select('id, email, ad, soyad, role, durum')
       .eq('email', email)
       .eq('password', password)
       .single();
@@ -31,7 +31,7 @@ export async function getManagerData(email: string) {
   try {
     const { data, error } = await supabase
       .from('managers')
-      .select('id, email, first_name, last_name, position')
+      .select('id, email, ad, soyad, role')
       .eq('email', email)
       .single();
 

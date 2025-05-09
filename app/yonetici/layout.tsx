@@ -5,8 +5,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import YoneticiHeader from './components/YoneticiHeader';
 import YoneticiFooter from './components/YoneticiFooter';
 import YoneticiSidebar from './components/YoneticiSidebar';
-import YoneticiLoginHeader from './components/YoneticiLoginHeader';
-import YoneticiLoginFooter from './components/YoneticiLoginFooter';
 import { Inter } from 'next/font/google';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -40,6 +38,12 @@ export default function YoneticiLayout({
   // Client-side rendering sırasında sunucu tarafında render edilmiş içerikle eşleşmeyen içerik oluşturmamak için
   const [isMounted, setIsMounted] = useState(false);
   const [managerData, setManagerData] = useState<any>(null);
+
+  // Giriş sayfası ve alt path'lerinde hiçbir state, effect, sidebar, header, footer render etme!
+  const isLoginPage = pathname?.startsWith('/yonetici/giris');
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   // Ana sayfa navbar ve footer'ı gizle ve arka plan rengini değiştir
   useEffect(() => {
@@ -177,20 +181,12 @@ export default function YoneticiLayout({
     };
   }, [checkMobile]);
 
-  // Giriş sayfası mı kontrolü için memoized değer
-  const isLoginPage = useMemo(() => pathname === '/yonetici/giris', [pathname]);
-
   // Yetkili olmayan kullanıcıları giriş sayfasına yönlendir
   useEffect(() => {
     if (!isMounted) return;
     
     // Giriş sayfasında layout kontrolü yapma
     if (pathname === '/yonetici/giris') {
-      // Eğer giriş sayfasındaysa ve managerData varsa ana sayfaya yönlendir
-      const storedData = localStorage.getItem('managerData');
-      if (storedData) {
-        router.push('/yonetici');
-      }
       return;
     }
 
@@ -208,25 +204,11 @@ export default function YoneticiLayout({
       localStorage.removeItem('managerData');
       router.push('/yonetici/giris');
     }
-  }, [pathname, isMounted]);
+  }, [pathname, isMounted, router]);
 
   // Client tarafında monte edilene kadar boş div göster (hydration hatasını engeller)
   if (!isMounted) {
     return <div suppressHydrationWarning />;
-  }
-
-  if (isLoginPage) {
-    return (
-      <div className={`${inter.className} min-h-screen bg-[#F8F9FD] flex flex-col yonetici-panel-active`} suppressHydrationWarning data-yonetici-layout="true">
-        <YoneticiLoginHeader />
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-md">
-            {children}
-          </div>
-        </div>
-        <YoneticiLoginFooter />
-      </div>
-    )
   }
 
   return (

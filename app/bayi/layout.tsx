@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import BayiHeader from './components/BayiHeader';
 import BayiFooter from './components/BayiFooter';
 import BayiSidebar from './components/BayiSidebar';
-import BayiLoginHeader from './components/BayiLoginHeader';
-import BayiLoginFooter from './components/BayiLoginFooter';
 import { Inter } from 'next/font/google';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -27,11 +25,19 @@ export default function BayiLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [notifications, setNotifications] = useState<number>(2);
   // Client-side rendering sırasında sunucu tarafında render edilmiş içerikle eşleşmeyen içerik oluşturmamak için
   const [isMounted, setIsMounted] = useState(false);
+  const [bayiData, setBayiData] = useState(null);
+
+  // Giriş sayfası ve alt path'lerinde hiçbir state, effect, sidebar, header, footer render etme!
+  const isLoginPage = pathname?.startsWith('/bayi/giris');
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   // Ana sayfa navbar ve footer'ı gizle ve arka plan rengini değiştir
   useEffect(() => {
@@ -169,43 +175,41 @@ export default function BayiLayout({
     };
   }, [checkMobile]);
 
-  // Giriş sayfası mı kontrolü için memoized değer
-  const isLoginPage = useMemo(() => pathname === '/bayi/giris', [pathname]);
-
   // Yetkili olmayan kullanıcıları giriş sayfasına yönlendir
   useEffect(() => {
     if (!isMounted) return;
     
-    // TODO: Burada auth kontrolü yapılacak
-    const isAuthenticated = true; // Örnek değer
-    if (!isAuthenticated && pathname !== '/bayi/giris') {
-      window.location.href = '/bayi/giris';
+    // Giriş sayfasında layout kontrolü yapma
+    if (pathname === '/bayi/giris') {
+      return;
     }
-  }, [pathname, isMounted]);
+
+    // LocalStorage'dan bayi verilerini kontrol et
+    const storedData = localStorage.getItem('bayiSession') || sessionStorage.getItem('bayiSession');
+    if (!storedData) {
+      router.push('/bayi/giris');
+      return;
+    }
+
+    try {
+      const data = JSON.parse(storedData);
+      setBayiData(data);
+    } catch (error) {
+      localStorage.removeItem('bayiSession');
+      sessionStorage.removeItem('bayiSession');
+      router.push('/bayi/giris');
+    }
+  }, [pathname, isMounted, router]);
 
   // Client tarafında monte edilene kadar boş div göster (hydration hatasını engeller)
   if (!isMounted) {
     return <div suppressHydrationWarning />;
   }
 
-  if (isLoginPage) {
-    return (
-      <div className={`${inter.className} min-h-screen bg-[#F8F9FD] flex flex-col bayi-panel-active`} suppressHydrationWarning data-bayi-layout="true">
-        <BayiLoginHeader />
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-md">
-            {children}
-          </div>
-        </div>
-        <BayiLoginFooter />
-      </div>
-    )
-  }
-
   return (
     <div className={`${inter.className} min-h-screen bg-[#F8F9FD] flex bayi-panel-active`} suppressHydrationWarning data-bayi-layout="true">
       {/* Sidebar */}
-      <MemoizedBayiSidebar isSidebarOpen={isSidebarOpen} />
+      <MemoizedBayiSidebar isSidebarOpen={isSidebarOpen} bayiData={bayiData} />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
@@ -214,11 +218,12 @@ export default function BayiLayout({
           notifications={notifications} 
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}
+          bayiData={bayiData}
         />
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto bayi-content">
-          <div className="py-4">
+          <div className="container mx-auto px-6 py-8">
             {children}
           </div>
         </main>
