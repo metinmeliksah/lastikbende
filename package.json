@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "postbuild": "next-sitemap"
   },
   "dependencies": {
     "@azure/cognitiveservices-computervision": "^8.2.0",
@@ -43,6 +44,7 @@
     "next": "^14.2.26",
     "next-auth": "^4.24.11",
     "next-intl": "^4.0.2",
+    "next-sitemap": "^4.2.3",
     "openai": "^4.91.1",
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.16.0",
