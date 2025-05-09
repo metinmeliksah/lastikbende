@@ -70,13 +70,22 @@ const menuItems: MenuItem[] = [
 
 interface BayiSidebarProps {
   isSidebarOpen: boolean;
+  bayiData: any;
 }
 
-export default function BayiSidebar({ isSidebarOpen }: BayiSidebarProps) {
+export default function BayiSidebar({ isSidebarOpen, bayiData }: BayiSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const [bayiAdi, setBayiAdi] = useState("İstanbul Lastik A.Ş.");
+  const [bayiAdi, setBayiAdi] = useState("Bayi Portal");
+
+  useEffect(() => {
+    if (bayiData?.seller?.name) {
+      setBayiAdi(bayiData.seller.name);
+    } else if (bayiData?.user?.seller_id) {
+      setBayiAdi(`Bayi #${bayiData.user.seller_id}`);
+    }
+  }, [bayiData]);
 
   // Gruplanan menü öğeleri
   const groupedMenuItems = menuItems.reduce((acc, item) => {
