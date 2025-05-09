@@ -1,9 +1,8 @@
 'use client';
 
-import YoneticiLoginHeader from '../components/YoneticiLoginHeader';
-import YoneticiLoginFooter from '../components/YoneticiLoginFooter';
 import { Inter } from 'next/font/google';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -12,79 +11,97 @@ export default function YoneticiGirisLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Ana sayfa navbar ve footer'ı gizle ve body'e CSS sınıfı ekle
+  const router = useRouter();
+
   useEffect(() => {
-    if (typeof document === 'undefined') return;
-    
-    // Ana sayfanın navbar ve footer elementlerini seç ve gizle
-    const mainNavbar = document.querySelector('nav:not(.yonetici-nav)');
-    const mainFooter = document.querySelector('footer:not(.yonetici-footer)');
-    const mainLayout = document.querySelector('main');
-    
-    // Stil eklemek için fonksiyon
-    const hideElement = (element: Element | null) => {
-      if (element) {
-        (element as HTMLElement).style.display = 'none';
+    // Giriş yapılmışsa ana sayfaya yönlendir
+    const storedData = localStorage.getItem('managerData');
+    if (storedData) {
+      router.push('/yonetici');
+      return;
+    }
+
+    if (typeof window === 'undefined') return;
+
+    // Ana site ve yönetici modüllerini gizle
+    const hideElements = () => {
+      // Ana site elementlerini gizle
+      const mainNavbar = document.querySelector('nav:not(.yonetici-nav)');
+      const mainFooter = document.querySelector('footer:not(.yonetici-footer)');
+      const mainLayout = document.querySelector('main');
+
+      // Yönetici modüllerini tamamen kaldır
+      const yoneticiElements = document.querySelectorAll('.yonetici-sidebar, .yonetici-header, .yonetici-footer');
+      yoneticiElements.forEach(element => {
+        if (element && element.parentNode) {
+          element.parentNode.removeChild(element);
+        }
+      });
+
+      // Ana site elementlerini gizle
+      if (mainNavbar) (mainNavbar as HTMLElement).style.display = 'none';
+      if (mainFooter) (mainFooter as HTMLElement).style.display = 'none';
+      
+      if (mainLayout?.classList.contains('pt-20')) {
+        mainLayout.classList.remove('pt-20');
+        (mainLayout as HTMLElement).style.paddingTop = '0';
       }
+
+      // Body stillerini ayarla
+      document.body.classList.remove('yonetici-panel-active');
+      document.body.classList.add('yonetici-giris-active');
+      document.body.style.setProperty('background-color', '#F8F9FD', 'important');
+      document.body.style.setProperty('padding-top', '0', 'important');
+      document.body.style.setProperty('margin-top', '0', 'important');
     };
 
-    // Stil kaldırmak için fonksiyon
-    const showElement = (element: Element | null) => {
-      if (element) {
-        (element as HTMLElement).style.display = '';
+    // İlk yüklemede ve DOM değişikliklerinde elementleri gizle/kaldır
+    hideElements();
+    const observer = new MutationObserver((mutations) => {
+      const hasNewYoneticiElements = mutations.some(mutation => 
+        Array.from(mutation.addedNodes).some(node => 
+          node instanceof Element && 
+          (node.classList.contains('yonetici-sidebar') || 
+           node.classList.contains('yonetici-header') || 
+           node.classList.contains('yonetici-footer'))
+        )
+      );
+
+      if (hasNewYoneticiElements) {
+        hideElements();
       }
-    };
-    
-    // Ana sayfa elemanlarını gizle
-    hideElement(mainNavbar);
-    hideElement(mainFooter);
-    
-    // Yönetici panel modüllerini DOM'dan tamamen kaldır
-    const yoneticiHeader = document.querySelector('.yonetici-header');
-    const yoneticiFooter = document.querySelector('.yonetici-footer');
-    const yoneticiSidebar = document.querySelector('.yonetici-sidebar');
-    if (yoneticiHeader && yoneticiHeader.parentNode) yoneticiHeader.parentNode.removeChild(yoneticiHeader);
-    if (yoneticiFooter && yoneticiFooter.parentNode) yoneticiFooter.parentNode.removeChild(yoneticiFooter);
-    if (yoneticiSidebar && yoneticiSidebar.parentNode) yoneticiSidebar.parentNode.removeChild(yoneticiSidebar);
-    
-    // Body elementine sınıf ekle
-    document.body.classList.add('yonetici-panel-active');
-    document.body.style.setProperty('background-color', '#F8F9FD', 'important');
-    document.body.style.setProperty('color', '#1f2937', 'important');
-    document.body.style.setProperty('padding-top', '0', 'important');
-    document.body.style.setProperty('margin-top', '0', 'important');
-    
-    // Root main elementi içinde padding varsa temizle
-    if (mainLayout) {
-      if (mainLayout.classList.contains('pt-20')) {
-        mainLayout.classList.remove('pt-20');
-      }
-      (mainLayout as HTMLElement).style.paddingTop = '0';
-    }
-    
-    // Temizlik işlevi
+    });
+
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true 
+    });
+
     return () => {
-      showElement(mainNavbar);
-      showElement(mainFooter);
-      document.body.classList.remove('yonetici-panel-active');
-      document.body.style.removeProperty('background-color');
-      document.body.style.removeProperty('color');
-      document.body.style.removeProperty('padding-top');
-      document.body.style.removeProperty('margin-top');
+      observer.disconnect();
+      const mainNavbar = document.querySelector('nav:not(.yonetici-nav)');
+      const mainFooter = document.querySelector('footer:not(.yonetici-footer)');
+      const mainLayout = document.querySelector('main');
+
+      // Ana site elementlerini göster
+      if (mainNavbar) (mainNavbar as HTMLElement).style.display = '';
+      if (mainFooter) (mainFooter as HTMLElement).style.display = '';
+      
       if (mainLayout && !mainLayout.classList.contains('pt-20')) {
         mainLayout.classList.add('pt-20');
         (mainLayout as HTMLElement).style.removeProperty('padding-top');
       }
+
+      document.body.classList.remove('yonetici-giris-active');
+      document.body.style.removeProperty('background-color');
+      document.body.style.removeProperty('padding-top');
+      document.body.style.removeProperty('margin-top');
     };
-  }, []);
+  }, [router]);
 
   return (
-    <div className={`${inter.className} min-h-screen flex flex-col bg-gray-50`}>
-      <YoneticiLoginHeader />
-      <main className="flex-1 flex items-center justify-center p-4">
-        {children}
-      </main>
-      <YoneticiLoginFooter />
+    <div className={`${inter.className} min-h-screen flex items-center justify-center bg-[#F8F9FD] p-4`}>
+      {children}
     </div>
   );
 } 
