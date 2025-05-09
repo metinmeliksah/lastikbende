@@ -7,6 +7,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useCart } from '../contexts/CartContext';
+import { toast } from 'react-hot-toast';
 
 // Supabase client oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -87,6 +89,8 @@ export default function UrunlerPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
 
+  const { sepeteEkle, sepetUrunler } = useCart();
+
   // URL'den filtreleri ve sayfa numarasını al
   useEffect(() => {
     // URL'den parametreleri al
@@ -149,10 +153,18 @@ export default function UrunlerPage() {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        // Stok tablosundan tüm ürünleri çek ve stok_id'ye göre sırala
+        // Önce stok verilerini çek
         const { data: stokData, error: stokError } = await supabase
           .from('stok')
-          .select('*, urundetay(*), sellers(*)')
+          .select(`
+            *,
+            urundetay (*),
+            seller:magaza_id (
+              id,
+              isim,
+              sehir
+            )
+          `)
           .order('stok_id', { ascending: true });
 
         if (stokError) {
@@ -170,16 +182,16 @@ export default function UrunlerPage() {
         const productData = stokData.map(stok => ({
           urun_id: stok.urun_id,
           stok_id: stok.stok_id,
-          model: stok.urundetay.model || "İsimsiz Ürün",
-          marka: stok.urundetay.marka || "Bilinmiyor",
-          cap_inch: stok.urundetay.cap_inch || "",
-          mevsim: stok.urundetay.mevsim || "Belirtilmemiş",
+          model: stok.urundetay?.model || "İsimsiz Ürün",
+          marka: stok.urundetay?.marka || "Bilinmiyor",
+          cap_inch: stok.urundetay?.cap_inch || "",
+          mevsim: stok.urundetay?.mevsim || "Belirtilmemiş",
           saglik_durumu: stok.saglik_durumu || 0,
-          urun_resmi_0: stok.urundetay.urun_resmi_0 || "/placeholder-tire.jpg",
+          urun_resmi_0: stok.urundetay?.urun_resmi_0 || "/placeholder-tire.jpg",
           stok: stok.stok_adet || 0,
           magaza_id: stok.magaza_id,
-          magaza_isim: stok.sellers.isim || "Bilinmiyor",
-          magaza_sehir: stok.sellers.sehir || "Belirtilmemiş",
+          magaza_isim: stok.seller?.isim || "Bilinmiyor",
+          magaza_sehir: stok.seller?.sehir || "Belirtilmemiş",
           fiyat: stok.fiyat || 0,
           indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat || 0
         }));
@@ -559,11 +571,6 @@ export default function UrunlerPage() {
   const ProductCard = ({ product, toggleCompare, compareList }: { product: Product, toggleCompare: (id: number) => void, compareList: number[] }) => {
     const isInCompareList = compareList.includes(product.urun_id);
     
-    // Sepete ekleme işlemi
-    const handleAddToCart = () => {
-      alert(`${product.model} sepete eklendi.`);
-    };
-
     return (
       <div className="bg-dark-300 rounded-lg overflow-hidden border border-dark-100 transition-transform hover:transform hover:scale-[1.01] flex flex-col h-full">
         <div className="relative">
@@ -653,7 +660,9 @@ export default function UrunlerPage() {
                   Detaylar
                 </Link>
                 <button
-                  onClick={handleAddToCart}
+                  onClick={() => {
+                    handleAddToCart(product);
+                  }}
                   className={`bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm transition-colors flex items-center ${product.stok <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                   disabled={product.stok <= 0}
                 >
@@ -666,6 +675,30 @@ export default function UrunlerPage() {
         </div>
       </div>
     );
+  };
+
+  // Sepete ekleme fonksiyonu
+  const handleAddToCart = (product: Product) => {
+    // Sepette aynı ürün var mı kontrol et
+    const existingItem = sepetUrunler.find(item => item.stok_id === product.stok_id);
+    const sepettekiAdet = existingItem ? existingItem.adet : 0;
+    
+    // Eğer sepetteki adet + eklenecek miktar stok limitini aşıyorsa
+    if (sepettekiAdet + 1 > product.stok) {
+      toast.error(`Bu üründen maksimum ${product.stok} adet ekleyebilirsiniz. Sepetinizde zaten ${sepettekiAdet} adet var.`);
+      return;
+    }
+    
+    // Stok limiti aşılmıyorsa sepete ekle
+    sepeteEkle({
+      id: 0, // Backend tarafında otomatik üretilecek
+      isim: product.model,
+      ebat: product.cap_inch || '',
+      fiyat: Number(product.indirimli_fiyat),
+      adet: 1,
+      resim: product.urun_resmi_0,
+      stok_id: product.stok_id
+    });
   };
 
   return (
