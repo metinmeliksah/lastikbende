@@ -29,6 +29,7 @@ export default function YoneticiGiris() {
         } else {
           setError('Giriş bilgileri hatalı');
         }
+        setIsLoading(false);
         return;
       }
 
@@ -38,7 +39,6 @@ export default function YoneticiGiris() {
       }
     } catch (err) {
       setError('Bir hata oluştu. Lütfen tekrar deneyin.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -52,7 +52,7 @@ export default function YoneticiGiris() {
             alt="LastikBende"
             width={55}
             height={55}
-            className="rounded-lg"
+            className="rounded-lg shadow-sm bg-blue-600 p-1"
           />
         </div>
         <h1 className="text-2xl font-bold text-gray-800">Yönetici Giriş Paneli</h1>

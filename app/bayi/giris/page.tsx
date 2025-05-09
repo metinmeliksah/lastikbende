@@ -75,7 +75,7 @@ export default function BayiGiris() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+    <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md mx-auto">
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">
           <Image
