@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, LogIn, Lock, Mail, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { signInSeller } from '@/app/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function BayiGiris() {
   const router = useRouter();
@@ -15,6 +16,23 @@ export default function BayiGiris() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState('');
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    async function fetchLogo() {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('logo_url_bayi')
+        .single();
+
+      if (!error && data?.logo_url_bayi) {
+        setLogoUrl(data.logo_url_bayi);
+      }
+    }
+
+    fetchLogo();
+  }, [supabase]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,13 +58,15 @@ export default function BayiGiris() {
     <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md mx-auto">
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">
-          <Image
-            src="https://npqvsvfkmrrbbkxxkrpl.supabase.co/storage/v1/object/public/logo//logo.png"
-            alt="LastikBende"
-            width={130} 
-            height={55}
-            className="rounded-lg" 
-          />
+          {logoUrl && (
+            <Image
+              src={logoUrl}
+              alt="LastikBende"
+              width={130} 
+              height={55}
+              className="rounded-lg" 
+            />
+          )}
         </div>
         <h1 className="text-2xl font-bold text-gray-800">Bayi Giriş Paneli</h1>
         <p className="text-gray-600 mt-2">Bayi hesabınıza giriş yapın</p>

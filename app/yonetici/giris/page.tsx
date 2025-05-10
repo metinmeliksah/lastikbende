@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Link from 'next/link';
 import { Eye, EyeOff, LogIn, Lock, Mail, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 import { signInManager } from '@/app/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function YoneticiGiris() {
   const router = useRouter();
@@ -12,48 +14,60 @@ export default function YoneticiGiris() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    async function fetchLogo() {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('logo_url_yonetici')
+        .single();
+
+      if (!error && data?.logo_url_yonetici) {
+        setLogoUrl(data.logo_url_yonetici);
+      }
+    }
+
+    fetchLogo();
+  }, [supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError(null);
 
     try {
-      const { data, error } = await signInManager(email, password);
-
-      if (error) {
-        if (typeof error === 'string') {
-          setError(error);
-        } else {
-          setError('Giriş bilgileri hatalı');
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      if (data) {
-        localStorage.setItem('managerData', JSON.stringify(data));
+      const result = await signInManager(email, password);
+      
+      if (result.success) {
+        localStorage.setItem('managerData', JSON.stringify(result.data));
         router.push('/yonetici');
+      } else {
+        setError(result.error);
       }
-    } catch (err) {
-      setError('Bir hata oluştu. Lütfen tekrar deneyin.');
+    } catch (error: any) {
+      setError(error.message || 'Giriş yapılırken bir hata oluştu');
+    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+    <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md mx-auto">
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">
-          <Image
-            src="https://npqvsvfkmrrbbkxxkrpl.supabase.co/storage/v1/object/public/logo//logo.png"
-            alt="LastikBende"
-            width={130}
-            height={55}
-            className="rounded-lg shadow-sm-600 p-1"
-          />
+          {logoUrl && (
+            <Image
+              src={logoUrl}
+              alt="LastikBende"
+              width={130} 
+              height={55}
+              className="rounded-lg" 
+            />
+          )}
         </div>
         <h1 className="text-2xl font-bold text-gray-800">Yönetici Giriş Paneli</h1>
         <p className="text-gray-600 mt-2">Yönetici hesabınıza giriş yapın</p>

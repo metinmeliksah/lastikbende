@@ -97,6 +97,13 @@ export default function BayiLayout({
     };
   }, [isMounted]);
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-panel', 'bayi');
+    return () => {
+      document.documentElement.removeAttribute('data-panel');
+    };
+  }, []);
+
   // Hydration için bekleme
   if (!isMounted) {
     return null;

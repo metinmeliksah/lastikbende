@@ -15,6 +15,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface MenuItem {
   title: string;
@@ -71,6 +72,8 @@ export default function YoneticiSidebar({ isSidebarOpen, managerData }: Yonetici
   const pathname = usePathname();
   const router = useRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const [logoUrl, setLogoUrl] = useState('');
+  const supabase = createClientComponentClient();
 
   // Gruplanan menü öğeleri
   const groupedMenuItems = menuItems.reduce((acc, item) => {
@@ -92,6 +95,21 @@ export default function YoneticiSidebar({ isSidebarOpen, managerData }: Yonetici
       }
     }
   }, [isSidebarOpen]);
+
+  useEffect(() => {
+    async function fetchLogo() {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('logo_url_yonetici')
+        .single();
+
+      if (!error && data?.logo_url_yonetici) {
+        setLogoUrl(data.logo_url_yonetici);
+      }
+    }
+
+    fetchLogo();
+  }, [supabase]);
 
   // Çıkış yapma fonksiyonu
   const handleLogout = () => {
@@ -115,14 +133,15 @@ export default function YoneticiSidebar({ isSidebarOpen, managerData }: Yonetici
       <div className="flex flex-col h-full">
         <div className="p-6">
           <div className="flex justify-center mb-4">
-          <Image
-              src="https://npqvsvfkmrrbbkxxkrpl.supabase.co/storage/v1/object/public/logo//logo.png"
-              alt="LastikBende"
-              width={130}
-              height={55}
-              className="rounded"
-            />
-
+            {logoUrl && (
+              <Image
+                src={logoUrl}
+                alt="LastikBende"
+                width={130}
+                height={55}
+                className="rounded-lg"
+              />
+            )}
           </div>
           <div className="mb-8 border-t border-gray-100 pt-2">
           </div>
