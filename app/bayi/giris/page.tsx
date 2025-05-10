@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, LogIn, Lock, Mail, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
+import { signInSeller } from '@/app/lib/supabase';
 
 export default function BayiGiris() {
   const router = useRouter();
@@ -22,53 +22,15 @@ export default function BayiGiris() {
     setError(null);
 
     try {
-      // Önce seller_managers tablosundan kullanıcıyı kontrol et
-      const { data: managerData, error: managerError } = await supabase
-        .from('seller_managers')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .single();
-
-      if (managerError) {
-        throw new Error('Giriş bilgileri hatalı');
-      }
-
-      if (!managerData) {
-        throw new Error('Giriş bilgileri hatalı');
-      }
-
-      // Durum kontrolü
-      if (!managerData.durum) {
-        throw new Error('Hesabınız askıya alınmıştır. Lütfen yönetici ile iletişime geçin.');
-      }
-
-      // Giriş başarılı, session'a kullanıcı bilgilerini kaydet
-      const session = {
-        user: {
-          id: managerData.id,
-          email: managerData.email,
-          first_name: managerData.first_name,
-          last_name: managerData.last_name,
-          seller_id: managerData.seller_id
-        }
-      };
-
-      // Session'ı localStorage'a kaydet
-      if (rememberMe) {
-        localStorage.setItem('bayiSession', JSON.stringify(session));
+      const result = await signInSeller(email, password);
+      
+      if (result.success) {
+        router.push('/bayi');
       } else {
-        sessionStorage.setItem('bayiSession', JSON.stringify(session));
+        setError(result.error);
       }
-
-      // Bayi paneline yönlendir
-      router.push('/bayi');
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError('Bir hata oluştu. Lütfen tekrar deneyin.');
-      }
+    } catch (error: any) {
+      setError(error.message || 'Giriş yapılırken bir hata oluştu');
     } finally {
       setLoading(false);
     }
@@ -79,9 +41,9 @@ export default function BayiGiris() {
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">
           <Image
-            src="/logo.png"
-            alt="LastikBende" 
-            width={55} 
+            src="https://npqvsvfkmrrbbkxxkrpl.supabase.co/storage/v1/object/public/logo//logo.png"
+            alt="LastikBende"
+            width={130} 
             height={55}
             className="rounded-lg" 
           />

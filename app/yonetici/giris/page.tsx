@@ -48,11 +48,11 @@ export default function YoneticiGiris() {
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">
           <Image
-            src="/logo.png"
+            src="https://npqvsvfkmrrbbkxxkrpl.supabase.co/storage/v1/object/public/logo//logo.png"
             alt="LastikBende"
-            width={55}
+            width={130}
             height={55}
-            className="rounded-lg shadow-sm bg-blue-600 p-1"
+            className="rounded-lg shadow-sm-600 p-1"
           />
         </div>
         <h1 className="text-2xl font-bold text-gray-800">Yönetici Giriş Paneli</h1>
