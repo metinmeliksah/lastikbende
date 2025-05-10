@@ -136,10 +136,6 @@ export default function BayiSidebar({ isSidebarOpen, bayiData }: BayiSidebarProp
             />
           </div>
           <div className="mb-8 border-t border-gray-100 pt-2">
-            <span className="text-sm font-medium text-purple-600 block">
-              {bayiAdi}
-            </span>
-            <span className="text-xs text-gray-500">Bayi Portalı</span>
           </div>
 
           <div className="space-y-8">
