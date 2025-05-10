@@ -41,9 +41,9 @@ export default function BayiGiris() {
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">
           <Image
-            src="/logo.png"
+            src="https://npqvsvfkmrrbbkxxkrpl.supabase.co/storage/v1/object/public/logo//logo.png"
             alt="LastikBende"
-            width={55} 
+            width={130} 
             height={55}
             className="rounded-lg" 
           />
