@@ -78,24 +78,36 @@ export default function BayiSidebar({ sellerData }: BayiSidebarProps) {
   const router = useRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [bayiAdi, setBayiAdi] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    async function fetchBayiData() {
-      if (!sellerData?.bayi?.id) return;
+    async function fetchData() {
+      // Bayi bilgilerini çek
+      if (sellerData?.bayi?.id) {
+        const { data: bayiData, error: bayiError } = await supabase
+          .from('sellers')
+          .select('isim')
+          .eq('id', sellerData.bayi.id)
+          .single();
 
-      const { data: bayiData, error } = await supabase
-        .from('sellers')
-        .select('isim')
-        .eq('id', sellerData.bayi.id)
+        if (!bayiError && bayiData) {
+          setBayiAdi(bayiData.isim);
+        }
+      }
+
+      // Logo URL'sini çek
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('settings')
+        .select('logo_url_bayi')
         .single();
 
-      if (!error && bayiData) {
-        setBayiAdi(bayiData.isim);
+      if (!settingsError && settingsData?.logo_url_bayi) {
+        setLogoUrl(settingsData.logo_url_bayi);
       }
     }
 
-    fetchBayiData();
+    fetchData();
   }, [sellerData, supabase]);
 
   // Gruplanan menü öğeleri
@@ -120,13 +132,15 @@ export default function BayiSidebar({ sellerData }: BayiSidebarProps) {
       <div className="flex flex-col h-full">
         <div className="p-6">
           <div className="flex justify-center mb-4">
-            <Image
-              src="https://npqvsvfkmrrbbkxxkrpl.supabase.co/storage/v1/object/public/logo//logo.png"
-              alt="LastikBende"
-              width={130}
-              height={55}
-              className="rounded-lg"
-            />
+            {logoUrl && (
+              <Image
+                src={logoUrl}
+                alt="LastikBende"
+                width={130}
+                height={55}
+                className="rounded-lg"
+              />
+            )}
           </div>
           <div className="text-center text-purple-600 font-medium mb-6">
             {bayiAdi}
