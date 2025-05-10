@@ -55,8 +55,7 @@ export default function BayiHeader({ notifications, isSidebarOpen, setIsSidebarO
               <span className="text-sm font-medium text-purple-600">{initials}</span>
             </div>
             <div className="hidden md:block">
-              <div className="text-sm font-medium text-gray-900">{fullName}</div>
-              <div className="text-xs text-gray-500">Bayi Yöneticisi</div>
+              <div className="text-sm font-medium text-gray-900">Ahmet Yılmaz</div>
             </div>
           </div>
         </div>

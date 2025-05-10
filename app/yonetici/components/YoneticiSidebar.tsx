@@ -115,14 +115,13 @@ export default function YoneticiSidebar({ isSidebarOpen, managerData }: Yonetici
       <div className="flex flex-col h-full">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-2">
-            <Image
-              src="/logo.png"
+          <Image
+              src="https://npqvsvfkmrrbbkxxkrpl.supabase.co/storage/v1/object/public/logo//logo.png"
               alt="LastikBende"
-              width={32}
-              height={32}
+              width={185}
+              height={30}
               className="rounded"
             />
-            <span className="text-xl font-semibold text-gray-900">LastikBende</span>
           </div>
           <div className="mb-8 border-t border-gray-100 pt-2">
           </div>

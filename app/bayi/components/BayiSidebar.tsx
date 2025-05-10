@@ -77,7 +77,7 @@ export default function BayiSidebar({ isSidebarOpen, bayiData }: BayiSidebarProp
   const pathname = usePathname();
   const router = useRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const [bayiAdi, setBayiAdi] = useState("Bayi Portal");
+  const [bayiAdi, setBayiAdi] = useState("Elazığ Lastik Bayi");
 
   useEffect(() => {
     if (bayiData?.seller?.name) {
@@ -128,13 +128,12 @@ export default function BayiSidebar({ isSidebarOpen, bayiData }: BayiSidebarProp
         <div className="p-6">
           <div className="flex items-center gap-2 mb-2">
             <Image
-              src="/logo.png"
+              src="https://npqvsvfkmrrbbkxxkrpl.supabase.co/storage/v1/object/public/logo//logo.png"
               alt="LastikBende"
-              width={32}
-              height={32}
+              width={185}
+              height={30}
               className="rounded"
             />
-            <span className="text-xl font-semibold text-gray-900">LastikBende</span>
           </div>
           <div className="mb-8 border-t border-gray-100 pt-2">
             <span className="text-sm font-medium text-purple-600 block">
