@@ -120,6 +120,13 @@ export default function YoneticiLayout({
     };
   }, [isMounted]);
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-panel', 'yonetici');
+    return () => {
+      document.documentElement.removeAttribute('data-panel');
+    };
+  }, []);
+
   // Hydration için bekleme
   if (!isMounted) {
     return null;
