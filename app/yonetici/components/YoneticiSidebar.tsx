@@ -122,6 +122,7 @@ export default function YoneticiSidebar({ isSidebarOpen, managerData }: Yonetici
               height={30}
               className="rounded"
             />
+
           </div>
           <div className="mb-8 border-t border-gray-100 pt-2">
           </div>
