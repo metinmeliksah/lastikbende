@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Bell, Search, Menu, X, Settings, LogOut, User, ChevronDown } from 'lucide-react';
+import { Bell, Search, Menu, X, Settings, LogOut, User, ChevronDown, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 interface YoneticiHeaderProps {
@@ -38,7 +38,11 @@ export default function YoneticiHeader({ notifications, isSidebarOpen, setIsSide
               <Menu className="w-6 h-6" />
             )}
           </button>
-
+  
+          <Link href="/" className="flex items-center text-gray-700 hover:text-gray-900">
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            <span>Ana Siteye Dön</span>
+          </Link>
         </div>
 
         <div className="flex items-center gap-4">
