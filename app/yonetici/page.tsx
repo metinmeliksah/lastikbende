@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
-import { Users, ShoppingBag, MessageSquare, TrendingUp, ChevronRight } from 'lucide-react';
+import { Users, ShoppingBag, MessageSquare, TrendingUp, ChevronRight, Clock, CheckCircle2, Truck } from 'lucide-react';
 import Link from 'next/link';
 
 interface DashboardData {
   totalDealers: number;
   totalMembers: number;
   totalTickets: number;
+  totalOrders: number;
   newDealers: {
     id: number;
     isim: string;
@@ -25,6 +26,22 @@ interface DashboardData {
       last_name: string;
     };
   }[];
+  recentOrders: {
+    id: number;
+    created_at: string;
+    user_id: string;
+    magaza_id: number;
+    montaj_bayi_id: number | null;
+    durum: string;
+    genel_toplam: number;
+    user: {
+      first_name: string;
+      last_name: string;
+    };
+    sellers: {
+      isim: string;
+    };
+  }[];
 }
 
 export default function YoneticiPage() {
@@ -33,8 +50,10 @@ export default function YoneticiPage() {
     totalDealers: 0,
     totalMembers: 0,
     totalTickets: 0,
+    totalOrders: 0,
     newDealers: [],
-    recentTickets: []
+    recentTickets: [],
+    recentOrders: []
   });
 
   useEffect(() => {
@@ -86,15 +105,38 @@ export default function YoneticiPage() {
         .order('created_at', { ascending: false })
         .limit(5);
 
+      // Son siparişler
+      const { data: recentOrders } = await supabase
+        .from('siparis')
+        .select(`
+          *,
+          user:user_id (
+            first_name,
+            last_name
+          ),
+          sellers:magaza_id (
+            isim
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      // Toplam sipariş sayısı
+      const { count: orderCount } = await supabase
+        .from('siparis')
+        .select('*', { count: 'exact', head: true });
+
       setDashboardData({
         totalDealers: dealerCount || 0,
         totalMembers: memberCount || 0,
         totalTickets: ticketCount || 0,
+        totalOrders: orderCount || 0,
         newDealers: (newDealers || []) as DashboardData['newDealers'],
         recentTickets: (recentTickets || []).map(ticket => ({
           ...ticket,
           user: Array.isArray(ticket.user) ? ticket.user[0] : ticket.user
-        })) as DashboardData['recentTickets']
+        })) as DashboardData['recentTickets'],
+        recentOrders: (recentOrders || []) as DashboardData['recentOrders']
       });
     } catch (error) {
       console.error('Dashboard verileri yüklenirken hata:', error);
@@ -103,7 +145,6 @@ export default function YoneticiPage() {
     }
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat('tr-TR', {
       day: '2-digit',
@@ -112,7 +153,10 @@ export default function YoneticiPage() {
     }).format(new Date(dateString));
   };
 
-  // Get status color
+  const formatParaBirimi = (tutar: number) => {
+    return tutar.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺';
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Açık':
@@ -123,6 +167,44 @@ export default function YoneticiPage() {
         return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getDurumBadgeClass = (durum: string) => {
+    switch (durum) {
+      case 'siparis_alindi':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'siparis_onaylandi':
+        return 'bg-blue-100 text-blue-700';
+      case 'siparis_hazirlaniyor':
+        return 'bg-purple-100 text-purple-700';
+      case 'siparis_teslimatta':
+        return 'bg-indigo-100 text-indigo-700';
+      case 'siparis_tamamlandi':
+        return 'bg-green-100 text-green-700';
+      case 'siparis_iptal':
+        return 'bg-red-100 text-red-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getDurumText = (durum: string, siparis?: any) => {
+    switch (durum) {
+      case 'siparis_alindi':
+        return 'Sipariş Alındı';
+      case 'siparis_onaylandi':
+        return 'Onaylandı';
+      case 'siparis_hazirlaniyor':
+        return 'Hazırlanıyor';
+      case 'siparis_teslimatta':
+        return siparis?.montaj_bayi_id === null ? 'Sipariş Kargoda' : 'Montaja Hazır';
+      case 'siparis_tamamlandi':
+        return 'Tamamlandı';
+      case 'siparis_iptal':
+        return 'İptal Edildi';
+      default:
+        return durum;
     }
   };
 
@@ -141,6 +223,7 @@ export default function YoneticiPage() {
             </div>
           </div>
         </div>
+
         <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-4">
             <div className="bg-green-50 p-3 rounded-lg">
@@ -152,6 +235,7 @@ export default function YoneticiPage() {
             </div>
           </div>
         </div>
+
         <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-4">
             <div className="bg-yellow-50 p-3 rounded-lg">
@@ -163,6 +247,7 @@ export default function YoneticiPage() {
             </div>
           </div>
         </div>
+
         <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-4">
             <div className="bg-purple-50 p-3 rounded-lg">
@@ -170,7 +255,7 @@ export default function YoneticiPage() {
             </div>
             <div>
               <div className="text-sm font-medium text-gray-700">Toplam Sipariş</div>
-              <div className="text-2xl font-bold text-gray-900">0</div>
+              <div className="text-2xl font-bold text-gray-900">{dashboardData.totalOrders}</div>
             </div>
           </div>
         </div>
@@ -266,8 +351,59 @@ export default function YoneticiPage() {
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="p-6 text-center text-gray-700">
-            Sipariş modülü yakında eklenecek
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Sipariş No</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Müşteri</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Bayi</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Tarih</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Tutar</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Durum</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                    </td>
+                  </tr>
+                ) : dashboardData.recentOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-8 text-gray-500">
+                      Henüz sipariş bulunmuyor
+                    </td>
+                  </tr>
+                ) : (
+                  dashboardData.recentOrders.map((siparis) => (
+                    <tr key={siparis.id} className="hover:bg-gray-50">
+                      <td className="py-4 px-6 text-sm font-medium text-gray-900">
+                        #{siparis.id}
+                      </td>
+                      <td className="py-4 px-6 text-sm text-gray-900">
+                        {siparis.user.first_name} {siparis.user.last_name}
+                      </td>
+                      <td className="py-4 px-6 text-sm text-gray-900">
+                        {siparis.sellers.isim}
+                      </td>
+                      <td className="py-4 px-6 text-sm text-gray-700">
+                        {formatDate(siparis.created_at)}
+                      </td>
+                      <td className="py-4 px-6 text-sm font-medium text-gray-900">
+                        {formatParaBirimi(siparis.genel_toplam)}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getDurumBadgeClass(siparis.durum)}`}>
+                          {getDurumText(siparis.durum, siparis)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
