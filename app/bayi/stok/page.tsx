@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { PencilIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '../../contexts/AuthContext';
+import { useBayi } from '../../contexts/BayiContext';
 
 // Supabase client
 const supabase = createClient(
@@ -30,6 +30,10 @@ interface StokData {
     marka: any;
     model: any;
     mevsim: any;
+    genislik_mm: any;
+    profil: any;
+    yapi: any;
+    cap_inch: any;
   };
 }
 
@@ -60,7 +64,7 @@ interface UrunDetay {
 }
 
 export default function StokPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { bayiData, loading: bayiLoading } = useBayi();
   const [stoklar, setStoklar] = useState<StokItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [duzenleModal, setDuzenleModal] = useState(false);
@@ -73,34 +77,20 @@ export default function StokPage() {
   });
 
   console.log('StokPage Bileşeni Yüklendi:', {
-    authLoading,
-    userMevcut: !!user,
-    userBilgileri: user ? {
-      id: user.id,
-      email: user.email
-    } : null
+    bayiLoading,
+    bayiMevcut: !!bayiData,
+    bayiBilgileri: bayiData
   });
 
   useEffect(() => {
-    console.log('useEffect Tetiklendi');
-    const sellerData = localStorage.getItem('sellerData');
-    
-    if (!sellerData) {
-      console.log('Satıcı verisi bulunamadı');
-      return;
+    if (!bayiLoading && bayiData?.bayi_id) {
+      console.log('Stok verilerini yükleme başlıyor - Bayi ID:', bayiData.bayi_id);
+      fetchStoklar(bayiData.bayi_id.toString());
     }
+  }, [bayiLoading, bayiData]);
 
-    const seller = JSON.parse(sellerData);
-    console.log('Satıcı verisi:', seller);
-    
-    if (seller && seller.bayi_id) {
-      console.log('Stok verilerini yükleme başlıyor - Satıcı ID:', seller.bayi_id);
-      fetchStoklar(seller.bayi_id.toString());
-    }
-  }, []);
-
-  const fetchStoklar = async (sellerId: string) => {
-    console.log('fetchStoklar Fonksiyonu Başladı - Satıcı ID:', sellerId);
+  const fetchStoklar = async (bayiId: string) => {
+    console.log('fetchStoklar Fonksiyonu Başladı - Bayi ID:', bayiId);
     try {
       const { data: stokData, error: stokError } = await supabase
         .from('stok')
@@ -116,10 +106,14 @@ export default function StokPage() {
           urundetay!inner (
             marka,
             model,
-            mevsim
+            mevsim,
+            genislik_mm,
+            profil,
+            yapi,
+            cap_inch
           )
         `)
-        .eq('magaza_id', sellerId)
+        .eq('magaza_id', bayiId)
         .order('guncellenme_tarihi', { ascending: false });
 
       if (stokError) {
@@ -150,10 +144,10 @@ export default function StokPage() {
           marka: String(stok.urundetay.marka),
           model: String(stok.urundetay.model),
           mevsim: String(stok.urundetay.mevsim),
-          genislik_mm: 0,
-          profil: 0,
-          yapi: '',
-          cap_inch: 0
+          genislik_mm: Number(stok.urundetay.genislik_mm),
+          profil: Number(stok.urundetay.profil),
+          yapi: String(stok.urundetay.yapi),
+          cap_inch: Number(stok.urundetay.cap_inch)
         }
       }));
 
@@ -214,41 +208,45 @@ export default function StokPage() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full">
+          <table className="min-w-full table-fixed">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ürün Adı</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mevsim</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fiyat</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İndirimli Fiyat</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sağlık Durumu</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Son Güncelleme</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+                <th className="w-12 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th className="w-48 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ürün Adı</th>
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ebat</th>
+                <th className="w-24 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mevsim</th>
+                <th className="w-24 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fiyat</th>
+                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İnd. Fiyat</th>
+                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sağlık</th>
+                <th className="w-16 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                <th className="w-36 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Güncelleme</th>
+                <th className="w-24 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={10} className="px-3 py-4 text-center text-gray-500">
                     Yükleniyor...
                   </td>
                 </tr>
               ) : stoklar.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={10} className="px-3 py-4 text-center text-gray-500">
                     Henüz stok kaydı bulunmuyor.
                   </td>
                 </tr>
               ) : (
                 stoklar.map((stok) => (
                   <tr key={stok.stok_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{stok.stok_id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {stok.urun.marka} {stok.urun.model} {formatEbat(stok.urun)}
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">{stok.stok_id}</td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {stok.urun.marka} {stok.urun.model}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {stok.urun.genislik_mm}/{stok.urun.profil}{stok.urun.yapi}{stok.urun.cap_inch}
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm">
                       <span className={`inline-flex px-2 py-1 text-xs rounded-full font-medium ${
                         stok.urun.mevsim === 'Yaz' 
                           ? 'bg-green-100 text-green-700' 
@@ -259,11 +257,11 @@ export default function StokPage() {
                         {stok.urun.mevsim}
                       </span>
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{stok.fiyat.toLocaleString('tr-TR')} ₺</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">{stok.fiyat.toLocaleString('tr-TR')} ₺</td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                       {stok.indirimli_fiyat ? `${stok.indirimli_fiyat.toLocaleString('tr-TR')} ₺` : '-'}
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm">
                       <span className={`inline-flex px-2 py-1 text-xs rounded-full font-medium ${
                         stok.saglik_durumu >= 80 
                           ? 'bg-green-100 text-green-700' 
@@ -276,14 +274,14 @@ export default function StokPage() {
                         %{stok.saglik_durumu}
                     </span>
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{stok.stok_adet}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">{stok.stok_adet}</td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                       {new Date(stok.guncellenme_tarihi).toLocaleString('tr-TR')}
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm">
                       <button 
                         onClick={() => handleDuzenle(stok)}
-                        className="inline-flex items-center px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                        className="inline-flex items-center px-2 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
                       >
                         <PencilIcon className="w-4 h-4 mr-1" />
                         Düzenle
