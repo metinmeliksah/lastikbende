@@ -7,6 +7,7 @@ import BayiFooter from './components/BayiFooter';
 import BayiSidebar from './components/BayiSidebar';
 import { Inter } from 'next/font/google';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { AuthProvider } from '../contexts/AuthContext';
 
 // Ana layout font tanımı
 const inter = Inter({ subsets: ['latin'] });
@@ -116,17 +117,19 @@ export default function BayiLayout({
 
   // Panel sayfaları için ana layout
   return (
-    <div className={`${inter.className} min-h-screen bg-[#F8F9FD] flex`}>
-      <BayiSidebar sellerData={sellerData} />
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        <BayiHeader sellerData={sellerData} />
-        <main className="flex-1 overflow-auto">
-          <div className="container mx-auto px-6 py-8">
-            {children}
-          </div>
-        </main>
-        <BayiFooter />
+    <AuthProvider>
+      <div className={`${inter.className} min-h-screen bg-[#F8F9FD] flex`}>
+        <BayiSidebar sellerData={sellerData} />
+        <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+          <BayiHeader sellerData={sellerData} />
+          <main className="flex-1 overflow-auto">
+            <div className="container mx-auto px-6 py-8">
+              {children}
+            </div>
+          </main>
+          <BayiFooter />
+        </div>
       </div>
-    </div>
+    </AuthProvider>
   );
 } 
