@@ -149,9 +149,9 @@ export default function SiparislerPage() {
   };
 
   // İstatistikler
-  const bekleyenSiparisler = siparisler.filter(s => s.durum === 'siparis_alindi').length;
-  const hazirlananSiparisler = siparisler.filter(s => s.durum === 'siparis_onaylandi').length;
-  const kargodakiSiparisler = siparisler.filter(s => s.durum === 'siparis_kargoda').length;
+  const bekleyenSiparisler = siparisler.filter(s => s.durum === 'siparis_alindi' || s.durum === 'siparis_onaylandi').length;
+  const hazirlananSiparisler = siparisler.filter(s => s.durum === 'siparis_hazirlaniyor').length;
+  const teslimatSiparisler = siparisler.filter(s => s.durum === 'siparis_teslimatta').length;
   const tamamlananSiparisler = siparisler.filter(s => s.durum === 'siparis_tamamlandi').length;
 
   // Filtreleme
@@ -172,10 +172,10 @@ export default function SiparislerPage() {
         return 'bg-yellow-100 text-yellow-700';
       case 'siparis_onaylandi':
         return 'bg-blue-100 text-blue-700';
-      case 'siparis_kargoda':
-        return 'bg-indigo-100 text-indigo-700';
-      case 'siparis_teslimatta':
+      case 'siparis_hazirlaniyor':
         return 'bg-purple-100 text-purple-700';
+      case 'siparis_teslimatta':
+        return 'bg-indigo-100 text-indigo-700';
       case 'siparis_tamamlandi':
         return 'bg-green-100 text-green-700';
       case 'siparis_iptal':
@@ -185,16 +185,16 @@ export default function SiparislerPage() {
     }
   }, []);
 
-  const getDurumText = useCallback((durum: string) => {
+  const getDurumText = useCallback((durum: string, siparis?: SiparisData) => {
     switch (durum) {
       case 'siparis_alindi':
         return 'Sipariş Alındı';
       case 'siparis_onaylandi':
         return 'Onaylandı';
-      case 'siparis_kargoda':
-        return 'Kargoda';
+      case 'siparis_hazirlaniyor':
+        return 'Hazırlanıyor';
       case 'siparis_teslimatta':
-        return 'Teslimatta';
+        return siparis?.montaj_bayi_id === null ? 'Sipariş Kargoda' : 'Montaja Hazır';
       case 'siparis_tamamlandi':
         return 'Tamamlandı';
       case 'siparis_iptal':
@@ -232,7 +232,7 @@ export default function SiparislerPage() {
           <h3>Sipariş Bilgileri</h3>
           <p><strong>Sipariş No:</strong> #${siparis.id}</p>
           <p><strong>Tarih:</strong> ${formatTarih(siparis.created_at)}</p>
-          <p><strong>Durum:</strong> ${getDurumText(siparis.durum)}</p>
+          <p><strong>Durum:</strong> ${getDurumText(siparis.durum, siparis)}</p>
         </div>
 
         <div style="margin-bottom: 20px;">
@@ -310,7 +310,7 @@ export default function SiparislerPage() {
                 <h4>Sipariş Bilgileri</h4>
                 <div class="grid">
                   <div>Tarih: ${formatTarih(siparis.created_at)}</div>
-                  <div>Durum: ${getDurumText(siparis.durum)}</div>
+                  <div>Durum: ${getDurumText(siparis.durum, siparis)}</div>
                 </div>
               </div>
 
@@ -413,7 +413,7 @@ export default function SiparislerPage() {
             <option value="Tümü">Tüm Durumlar</option>
             <option value="siparis_alindi">Sipariş Alındı</option>
             <option value="siparis_onaylandi">Onaylandı</option>
-            <option value="siparis_kargoda">Kargoda</option>
+            <option value="siparis_hazirlaniyor">Hazırlanıyor</option>
             <option value="siparis_teslimatta">Teslimatta</option>
             <option value="siparis_tamamlandi">Tamamlandı</option>
             <option value="siparis_iptal">İptal Edildi</option>
@@ -445,23 +445,23 @@ export default function SiparislerPage() {
         {/* Hazırlanıyor */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 rounded-lg bg-blue-50">
-              <ShoppingBag className="w-6 h-6 text-blue-600" />
+            <div className="p-3 rounded-lg bg-purple-50">
+              <ShoppingBag className="w-6 h-6 text-purple-600" />
             </div>
-            <span className="text-xl font-bold text-blue-600">{hazirlananSiparisler}</span>
+            <span className="text-xl font-bold text-purple-600">{hazirlananSiparisler}</span>
           </div>
           <h3 className="text-sm font-medium text-gray-500">Hazırlanan Siparişler</h3>
         </div>
 
-        {/* Kargoda */}
+        {/* Teslim Aşamasında */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 rounded-lg bg-indigo-50">
               <Truck className="w-6 h-6 text-indigo-600" />
             </div>
-            <span className="text-xl font-bold text-indigo-600">{kargodakiSiparisler}</span>
+            <span className="text-xl font-bold text-indigo-600">{teslimatSiparisler}</span>
           </div>
-          <h3 className="text-sm font-medium text-gray-500">Kargodaki Siparişler</h3>
+          <h3 className="text-sm font-medium text-gray-500">Teslim Aşamasındaki Siparişler</h3>
         </div>
 
         {/* Tamamlanan */}
@@ -532,7 +532,7 @@ export default function SiparislerPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs rounded-full font-medium ${getDurumBadgeClass(siparis.durum)}`}>
-                        {getDurumText(siparis.durum)}
+                        {getDurumText(siparis.durum, siparis)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
@@ -564,9 +564,19 @@ export default function SiparislerPage() {
                           </button>
                         )}
 
-                        {siparis.durum === 'siparis_onaylandi' && !siparis.montaj_bayi_id && (
+                        {siparis.durum === 'siparis_onaylandi' && (
                           <button
-                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_kargoda')}
+                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_hazirlaniyor')}
+                            className="p-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100"
+                            title="Siparişi Hazırla"
+                          >
+                            <ShoppingBag className="w-4 h-4" />
+                          </button>
+                        )}
+
+                        {siparis.durum === 'siparis_hazirlaniyor' && !siparis.montaj_bayi_id && (
+                          <button
+                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_teslimatta')}
                             className="p-1.5 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100"
                             title="Kargoya Ver"
                           >
@@ -574,23 +584,13 @@ export default function SiparislerPage() {
                           </button>
                         )}
 
-                        {siparis.durum === 'siparis_onaylandi' && siparis.montaj_bayi_id && (
+                        {siparis.durum === 'siparis_hazirlaniyor' && siparis.montaj_bayi_id && (
                           <button
                             onClick={() => handleDurumGuncelle(siparis.id, 'siparis_teslimatta')}
                             className="p-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100"
                             title="Mağazada Teslime Hazır"
                           >
                             <Store className="w-4 h-4" />
-                          </button>
-                        )}
-
-                        {siparis.durum === 'siparis_kargoda' && (
-                          <button
-                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_tamamlandi')}
-                            className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100"
-                            title="Siparişi Tamamla"
-                          >
-                            <CheckSquare className="w-4 h-4" />
                           </button>
                         )}
 
@@ -665,7 +665,7 @@ export default function SiparislerPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Sipariş Durumu</p>
-                    <p className="font-medium">{getDurumText(secilenSiparis.durum)}</p>
+                    <p className="font-medium">{getDurumText(secilenSiparis.durum, secilenSiparis)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Sipariş Tarihi</p>

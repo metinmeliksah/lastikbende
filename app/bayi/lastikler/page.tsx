@@ -68,13 +68,13 @@ export default function LastiklerPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Lastikler</h1>
-        <Link
-          href="/bayi/lastik-ekle"
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-        >
+          <Link 
+            href="/bayi/lastik-ekle"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
           <PlusIcon className="w-5 h-5" />
-          <span>Yeni Lastik</span>
-        </Link>
+            <span>Yeni Lastik</span>
+          </Link>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -114,19 +114,19 @@ export default function LastiklerPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{formatEbat(lastik)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{lastik.yuk_endeksi}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{lastik.hiz_endeksi}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`inline-flex px-2 py-1 text-xs rounded-full font-medium ${
-                        lastik.mevsim === 'Yaz' 
-                          ? 'bg-green-100 text-green-700' 
-                          : lastik.mevsim === 'Kış' 
-                            ? 'bg-blue-100 text-blue-700' 
-                            : 'bg-purple-100 text-purple-700'
-                      }`}>
-                        {lastik.mevsim}
-                      </span>
-                    </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span className={`inline-flex px-2 py-1 text-xs rounded-full font-medium ${
+                      lastik.mevsim === 'Yaz' 
+                        ? 'bg-green-100 text-green-700' 
+                        : lastik.mevsim === 'Kış' 
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'bg-purple-100 text-purple-700'
+                    }`}>
+                      {lastik.mevsim}
+                    </span>
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                      <button
+                      <button 
                         onClick={() => handleDetay(lastik)}
                         className="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                       >
@@ -140,27 +140,27 @@ export default function LastiklerPage() {
                         <PlusIcon className="w-4 h-4 mr-1" />
                         Stok Ekle
                       </Link>
-                    </td>
-                  </tr>
+                  </td>
+                </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
-      </div>
-
+          </div>
+          
       {/* Detay Modal */}
       {detayModal && secilenLastik && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-4xl w-full">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-800">Lastik Detayları</h2>
-              <button
+            <button 
                 onClick={() => setDetayModal(false)}
                 className="p-1 hover:bg-gray-100 rounded-full"
-              >
+            >
                 <XMarkIcon className="w-6 h-6 text-gray-500" />
-              </button>
+            </button>
             </div>
             
             <div className="grid grid-cols-2 gap-4 mb-6">
@@ -218,17 +218,17 @@ export default function LastiklerPage() {
                 ))}
               </div>
             </div>
-
+            
             <div className="flex justify-end">
-              <button
+            <button 
                 onClick={() => setDetayModal(false)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
+            >
                 Kapat
-              </button>
-            </div>
+            </button>
           </div>
         </div>
+      </div>
       )}
     </div>
   );
