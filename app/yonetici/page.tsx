@@ -130,46 +130,46 @@ export default function YoneticiPage() {
     <div className="space-y-6">
       {/* Özet Kartları */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-4">
             <div className="bg-blue-50 p-3 rounded-lg">
               <Users className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <div className="text-sm text-gray-500">Toplam Bayi</div>
+              <div className="text-sm font-medium text-gray-700">Toplam Bayi</div>
               <div className="text-2xl font-bold text-gray-900">{dashboardData.totalDealers}</div>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-4">
             <div className="bg-green-50 p-3 rounded-lg">
               <Users className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <div className="text-sm text-gray-500">Toplam Üye</div>
+              <div className="text-sm font-medium text-gray-700">Toplam Üye</div>
               <div className="text-2xl font-bold text-gray-900">{dashboardData.totalMembers}</div>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-4">
             <div className="bg-yellow-50 p-3 rounded-lg">
               <MessageSquare className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
-              <div className="text-sm text-gray-500">Destek Talepleri</div>
+              <div className="text-sm font-medium text-gray-700">Destek Talepleri</div>
               <div className="text-2xl font-bold text-gray-900">{dashboardData.totalTickets}</div>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-4">
             <div className="bg-purple-50 p-3 rounded-lg">
               <ShoppingBag className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <div className="text-sm text-gray-500">Toplam Sipariş</div>
+              <div className="text-sm font-medium text-gray-700">Toplam Sipariş</div>
               <div className="text-2xl font-bold text-gray-900">0</div>
             </div>
           </div>
@@ -178,33 +178,33 @@ export default function YoneticiPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Yeni Eklenen Bayiler */}
-        <div className="bg-white rounded-xl shadow-sm">
-          <div className="p-6 flex items-center justify-between border-b border-gray-100">
+        <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-6 flex items-center justify-between border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Yeni Eklenen Bayiler</h2>
             <Link 
               href="/yonetici/bayiler"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+              className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1 transition-colors"
             >
               Tümünü Gör
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-200">
             {loading ? (
-              <div className="p-6 text-center text-gray-500">Yükleniyor...</div>
+              <div className="p-6 text-center text-gray-700">Yükleniyor...</div>
             ) : dashboardData.newDealers.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">Henüz bayi eklenmemiş</div>
+              <div className="p-6 text-center text-gray-700">Henüz bayi eklenmemiş</div>
             ) : (
               dashboardData.newDealers.map((dealer) => (
-                <div key={dealer.id} className="p-4 hover:bg-gray-50">
+                <div key={dealer.id} className="p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium text-gray-900">{dealer.isim}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-700">
                         {dealer.sehir}
                       </div>
                     </div>
-                    <div className="text-sm text-gray-500">{formatDate(dealer.created_at)}</div>
+                    <div className="text-sm font-medium text-gray-700">{formatDate(dealer.created_at)}</div>
                   </div>
                 </div>
               ))
@@ -213,29 +213,29 @@ export default function YoneticiPage() {
         </div>
 
         {/* Son Destek Talepleri */}
-        <div className="bg-white rounded-xl shadow-sm">
-          <div className="p-6 flex items-center justify-between border-b border-gray-100">
+        <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-6 flex items-center justify-between border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Son Destek Talepleri</h2>
             <Link 
               href="/yonetici/destek"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+              className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1 transition-colors"
             >
               Tümünü Gör
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-200">
             {loading ? (
-              <div className="p-6 text-center text-gray-500">Yükleniyor...</div>
+              <div className="p-6 text-center text-gray-700">Yükleniyor...</div>
             ) : dashboardData.recentTickets.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">Henüz destek talebi yok</div>
+              <div className="p-6 text-center text-gray-700">Henüz destek talebi yok</div>
             ) : (
               dashboardData.recentTickets.map((ticket) => (
-                <div key={ticket.id} className="p-4 hover:bg-gray-50">
+                <div key={ticket.id} className="p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium text-gray-900">{ticket.title}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-700">
                         {ticket.user?.first_name} {ticket.user?.last_name}
                       </div>
                     </div>
@@ -245,7 +245,7 @@ export default function YoneticiPage() {
                       }`}>
                         {ticket.status}
                       </span>
-                      <div className="text-sm text-gray-500">{formatDate(ticket.created_at)}</div>
+                      <div className="text-sm font-medium text-gray-700">{formatDate(ticket.created_at)}</div>
                     </div>
                   </div>
                 </div>
@@ -255,18 +255,18 @@ export default function YoneticiPage() {
         </div>
 
         {/* Son Siparişler */}
-        <div className="bg-white rounded-xl shadow-sm lg:col-span-2">
-          <div className="p-6 flex items-center justify-between border-b border-gray-100">
+        <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow lg:col-span-2">
+          <div className="p-6 flex items-center justify-between border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Son Siparişler</h2>
             <Link 
               href="/yonetici/siparisler"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+              className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1 transition-colors"
             >
               Tümünü Gör
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-gray-700">
             Sipariş modülü yakında eklenecek
           </div>
         </div>

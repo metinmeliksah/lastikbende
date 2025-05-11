@@ -15,7 +15,9 @@ import {
   CheckCircle,
   XCircle,
   Printer,
-  RotateCcw
+  RotateCcw,
+  Store,
+  CheckSquare
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -203,19 +205,17 @@ export default function SiparislerPage() {
   }, []);
 
   // Sipariş durumu güncelleme fonksiyonu
-  const handleDurumGuncelle = async (siparis: SiparisData, yeniDurum: string) => {
+  const handleDurumGuncelle = async (siparisId: number, yeniDurum: string) => {
     try {
       const { error } = await supabase
         .from('siparis')
         .update({ durum: yeniDurum })
-        .eq('id', siparis.id);
+        .eq('id', siparisId);
 
       if (error) throw error;
 
       // Siparişleri yeniden yükle
-      if (bayiData?.bayi_id) {
-        fetchSiparisler(bayiData.bayi_id);
-      }
+      fetchSiparisler(bayiData?.bayi_id || 0);
     } catch (error) {
       console.error('Sipariş durumu güncellenirken hata:', error);
     }
@@ -553,68 +553,75 @@ export default function SiparislerPage() {
                           <Printer className="w-4 h-4" />
                         </button>
 
-                        {siparis.durum !== 'siparis_tamamlandi' && (
-                          <>
-                            {siparis.durum === 'siparis_iptal' ? (
-                              <button
-                                onClick={() => handleDurumGuncelle(siparis, 'siparis_alindi')}
-                                className="p-1.5 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100"
-                                title="Siparişi Geri Al"
-                              >
-                                <RotateCcw className="w-4 h-4" />
-                              </button>
-                            ) : (
-                              <>
-                                {siparis.durum === 'siparis_alindi' && (
-                                  <button
-                                    onClick={() => handleDurumGuncelle(siparis, 'siparis_onaylandi')}
-                                    className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
-                                    title="Siparişi Onayla"
-                                  >
-                                    <CheckCircle className="w-4 h-4" />
-                                  </button>
-                                )}
+                        {/* Durum güncelleme butonları */}
+                        {siparis.durum === 'siparis_alindi' && (
+                          <button
+                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_onaylandi')}
+                            className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                            title="Siparişi Onayla"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                        )}
 
-                                {siparis.durum === 'siparis_onaylandi' && !siparis.montaj_bayi_id && (
-                                  <button
-                                    onClick={() => handleDurumGuncelle(siparis, 'siparis_kargoda')}
-                                    className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100"
-                                    title="Kargoya Ver"
-                                  >
-                                    <Truck className="w-4 h-4" />
-                                  </button>
-                                )}
+                        {siparis.durum === 'siparis_onaylandi' && !siparis.montaj_bayi_id && (
+                          <button
+                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_kargoda')}
+                            className="p-1.5 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100"
+                            title="Kargoya Ver"
+                          >
+                            <Truck className="w-4 h-4" />
+                          </button>
+                        )}
 
-                                {siparis.durum === 'siparis_onaylandi' && siparis.montaj_bayi_id && (
-                                  <button
-                                    onClick={() => handleDurumGuncelle(siparis, 'siparis_teslimatta')}
-                                    className="p-1.5 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100"
-                                    title="Teslime Hazır"
-                                  >
-                                    <ShoppingBag className="w-4 h-4" />
-                                  </button>
-                                )}
+                        {siparis.durum === 'siparis_onaylandi' && siparis.montaj_bayi_id && (
+                          <button
+                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_teslimatta')}
+                            className="p-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100"
+                            title="Mağazada Teslime Hazır"
+                          >
+                            <Store className="w-4 h-4" />
+                          </button>
+                        )}
 
-                                {siparis.durum === 'siparis_teslimatta' && (
-                                  <button
-                                    onClick={() => handleDurumGuncelle(siparis, 'siparis_tamamlandi')}
-                                    className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100"
-                                    title="Siparişi Tamamla"
-                                  >
-                                    <CheckCircle className="w-4 h-4" />
-                                  </button>
-                                )}
+                        {siparis.durum === 'siparis_kargoda' && (
+                          <button
+                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_tamamlandi')}
+                            className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100"
+                            title="Siparişi Tamamla"
+                          >
+                            <CheckSquare className="w-4 h-4" />
+                          </button>
+                        )}
 
-                                <button
-                                  onClick={() => handleDurumGuncelle(siparis, 'siparis_iptal')}
-                                  className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
-                                  title="Siparişi İptal Et"
-                                >
-                                  <XCircle className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </>
+                        {siparis.durum === 'siparis_teslimatta' && (
+                          <button
+                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_tamamlandi')}
+                            className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100"
+                            title="Siparişi Tamamla"
+                          >
+                            <CheckSquare className="w-4 h-4" />
+                          </button>
+                        )}
+
+                        {siparis.durum !== 'siparis_iptal' && siparis.durum !== 'siparis_tamamlandi' && (
+                          <button
+                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_iptal')}
+                            className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                            title="Siparişi İptal Et"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        )}
+
+                        {siparis.durum === 'siparis_iptal' && (
+                          <button
+                            onClick={() => handleDurumGuncelle(siparis.id, 'siparis_alindi')}
+                            className="p-1.5 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100"
+                            title="Siparişi Geri Al"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </button>
                         )}
                       </div>
                     </td>
