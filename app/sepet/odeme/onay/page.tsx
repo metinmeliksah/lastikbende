@@ -27,7 +27,14 @@ const OdemeOnayPage = () => {
         
         // API endpointini güncelliyoruz - siparisNo yerine siparisId kullanmalıyız
         // Ancak şu an siparisNo bilgisi geldiği için önceki uyumluluğu koruyoruz
-        const response = await fetch(`/api/siparis?siparisId=${siparisNo}`);
+        const response = await fetch(`/api/siparis?siparisId=${siparisNo}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache' // Önbelleği devre dışı bırak
+          },
+          credentials: 'include' // Cookie'leri dahil et
+        });
         
         if (!response.ok) {
           throw new Error('Sipariş detayları alınamadı');
@@ -177,7 +184,7 @@ const OdemeOnayPage = () => {
           {/* Butonlar */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/siparislerim"
+              href="/kullanici"
               className="bg-primary hover:bg-primary/90 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
             >
               Siparişlerim

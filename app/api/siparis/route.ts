@@ -157,45 +157,67 @@ export async function PUT(request: NextRequest) {
 
 // Sipariş detaylarını getir
 export async function GET(request: NextRequest) {
-  const userId = await getUserIdFromRequest();
-  if (!userId) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const siparisId = request.nextUrl.searchParams.get('siparisId'); // siparisNo yerine siparisId kullanılmalı
-  if (!siparisId) {
-    return NextResponse.json(
-      { success: false, error: 'Sipariş ID gerekli' },
-      { status: 400 }
-    );
-  }
-
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const userId = await getUserIdFromRequest();
+    if (!userId) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Oturum kontrolü başarısız. Lütfen giriş yapınız.' 
+      }, { status: 401 });
+    }
 
-    const { data: siparis, error: siparisError } = await supabase
+    const siparisId = request.nextUrl.searchParams.get('siparisId');
+    if (!siparisId) {
+      return NextResponse.json(
+        { success: false, error: 'Sipariş ID gerekli' },
+        { status: 400 }
+      );
+    }
+
+    console.log(`Sipariş detayı çekiliyor. SiparisId: ${siparisId}, UserId: ${userId}`);
+
+    const supabase = createRouteHandlerClient({ cookies });
+    let query = supabase
       .from('siparis')
       .select(`
         *,
         siparis_urunleri (
           *
         )
-      `)
-      .eq('id', siparisId) // siparis_no yerine id kullanılmalı
+      `);
+
+    // Eğer siparisId bir UUID ise doğrudan ID ile sorgula
+    if (siparisId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      query = query.eq('id', siparisId);
+    } else {
+      // Değilse siparis_no ile sorgula (eski format)
+      query = query.eq('siparis_no', siparisId);
+    }
+
+    const { data: siparis, error: siparisError } = await query
       .eq('user_id', userId)
       .single();
 
-    if (siparisError) throw siparisError;
+    if (siparisError) {
+      console.error('Sipariş getirme hatası:', siparisError);
+      return NextResponse.json(
+        { success: false, error: 'Sipariş bulunamadı' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
       data: siparis
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Sipariş detayı getirme hatası:', error);
     return NextResponse.json(
-      { success: false, error: 'Sipariş detayları alınırken bir hata oluştu' },
+      { 
+        success: false, 
+        error: 'Sipariş detayları alınırken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata') 
+      },
       { status: 500 }
     );
   }
