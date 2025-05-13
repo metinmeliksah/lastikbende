@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import SearchBar from './components/SearchBar';
 import SearchFilters from './components/SearchFilters';
 import SearchResults from './components/SearchResults';
@@ -14,7 +16,10 @@ interface SearchFilters {
 }
 
 export default function SearchPage() {
-  const [query, setQuery] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const query = searchParams.get('q') || '';
+  const [searchQuery, setSearchQuery] = useState(query);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     categories: [],
@@ -23,41 +28,29 @@ export default function SearchPage() {
     sortBy: 'relevance',
   });
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
 
-  const handleSearch = async (searchQuery: string) => {
-    setQuery(searchQuery);
-    setLoading(true);
-    
-    // Örnek arama sonuçları - gerçek uygulamada API'den gelecek
-    const mockResults: SearchResult[] = [
-      {
-        id: '1',
-        title: 'iPhone 14 Pro',
-        description: 'Apple iPhone 14 Pro 256GB Uzay Siyahı',
-        imageUrl: '/images/iphone.jpg',
-        url: '/urun/iphone-14-pro',
-        price: 64999,
-        category: 'Elektronik',
-        tags: ['Apple', 'Telefon', 'iOS'],
-      },
-      {
-        id: '2',
-        title: 'Samsung Galaxy S23',
-        description: 'Samsung Galaxy S23 Ultra 512GB Phantom Black',
-        imageUrl: '/images/samsung.jpg',
-        url: '/urun/samsung-s23',
-        price: 52999,
-        category: 'Elektronik',
-        tags: ['Samsung', 'Telefon', 'Android'],
-      },
-      // Daha fazla örnek sonuç eklenebilir
-    ];
+  useEffect(() => {
+    const fetchResults = async () => {
+      setLoading(true);
+      // Burada arama sonuçlarını getiren API çağrısı yapılacak
+      // Örnek: const { data } = await supabase.from('products').textSearch('name', query)
+      setLoading(false);
+    };
 
-    setResults(mockResults);
-    setLoading(false);
-    setHasMore(false); // Örnek için false, gerçek uygulamada API yanıtına göre belirlenecek
+    if (query) {
+      fetchResults();
+    } else {
+      setLoading(false);
+    }
+  }, [query]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/arama?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
   const handleLoadMore = async () => {
@@ -71,44 +64,52 @@ export default function SearchPage() {
   const handleFilterChange = (newFilters: SearchFilters) => {
     setFilters(newFilters);
     // Filtreleri uygulayarak yeni arama yapılacak
-    handleSearch(query);
+    handleSearch(new Event('submit'));
   };
 
   return (
-    <div className="min-h-screen bg-dark-300">
-      <div className="h-16" /> {/* Header için boşluk */}
-      <main className="container mx-auto px-4 py-6">
+    <div className="min-h-screen pt-20 bg-dark-400">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <SearchBar
-            onSearch={handleSearch}
-            onFilterClick={() => setShowFilters(true)}
-            initialQuery={query}
-          />
+          <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+            <div className="flex items-center bg-dark-300 rounded-lg p-2 border border-dark-100">
+              <input
+                type="text"
+                placeholder="Arama yapın..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent border-none text-gray-300 placeholder-gray-500 focus:outline-none px-2"
+              />
+              <button 
+                type="submit"
+                className="p-2 text-gray-300 hover:text-primary transition-colors duration-200"
+              >
+                <MagnifyingGlassIcon className="h-6 w-6" />
+              </button>
+            </div>
+          </form>
         </div>
 
-        {showFilters && (
-          <SearchFilters
-            onClose={() => setShowFilters(false)}
-            onApplyFilters={handleFilterChange}
-          />
-        )}
-
-        <div className="mt-8">
+        <div className="mt-4">
           {query && (
-            <div className="mb-4 text-gray-400">
-              <span className="font-medium text-white">{results.length}</span> sonuç
-              bulundu
+            <h1 className="text-2xl font-bold text-gray-100 mb-6">
+              "{query}" için arama sonuçları
+            </h1>
+          )}
+          
+          {loading ? (
+            <div className="text-gray-300">Yükleniyor...</div>
+          ) : results.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {/* Arama sonuçları burada listelenecek */}
+            </div>
+          ) : (
+            <div className="text-center text-gray-300">
+              {query ? 'Sonuç bulunamadı.' : 'Arama yapmak için yukarıdaki arama kutusunu kullanın.'}
             </div>
           )}
-
-          <SearchResults
-            results={results}
-            loading={loading}
-            hasMore={hasMore}
-            onLoadMore={handleLoadMore}
-          />
         </div>
-      </main>
+      </div>
     </div>
   );
 } 

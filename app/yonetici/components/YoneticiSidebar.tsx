@@ -15,6 +15,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface MenuItem {
   title: string;
@@ -71,6 +72,8 @@ export default function YoneticiSidebar({ isSidebarOpen, managerData }: Yonetici
   const pathname = usePathname();
   const router = useRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const [logoUrl, setLogoUrl] = useState('');
+  const supabase = createClientComponentClient();
 
   // Gruplanan menü öğeleri
   const groupedMenuItems = menuItems.reduce((acc, item) => {
@@ -93,6 +96,21 @@ export default function YoneticiSidebar({ isSidebarOpen, managerData }: Yonetici
     }
   }, [isSidebarOpen]);
 
+  useEffect(() => {
+    async function fetchLogo() {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('logo_url_yonetici')
+        .single();
+
+      if (!error && data?.logo_url_yonetici) {
+        setLogoUrl(data.logo_url_yonetici);
+      }
+    }
+
+    fetchLogo();
+  }, [supabase]);
+
   // Çıkış yapma fonksiyonu
   const handleLogout = () => {
     // LocalStorage'dan yönetici verilerini temizle
@@ -114,15 +132,16 @@ export default function YoneticiSidebar({ isSidebarOpen, managerData }: Yonetici
     >
       <div className="flex flex-col h-full">
         <div className="p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Image
-              src="/logo.png"
-              alt="LastikBende"
-              width={32}
-              height={32}
-              className="rounded"
-            />
-            <span className="text-xl font-semibold text-gray-900">LastikBende</span>
+          <div className="flex justify-center mb-4">
+            {logoUrl && (
+              <Image
+                src={logoUrl}
+                alt="LastikBende"
+                width={130}
+                height={55}
+                className="rounded-lg"
+              />
+            )}
           </div>
           <div className="mb-8 border-t border-gray-100 pt-2">
           </div>
