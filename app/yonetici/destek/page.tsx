@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
-import { Search, Eye, Calendar, Clock, X, Paperclip, MessageSquare } from 'lucide-react';
+import { Search, Eye, Calendar, Clock, X, Paperclip, MessageSquare, Archive, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 
 interface SupportTicket {
@@ -110,10 +110,61 @@ export default function DestekPage() {
     closed: tickets.filter(t => t.status === 'Kapalı').length
   };
 
+  // Durum güncelleme fonksiyonu
+  const handleStatusChange = async (ticketId: number, newStatus: 'Açık' | 'Beklemede' | 'Kapalı') => {
+    try {
+      const { error } = await supabase
+        .from('support_tickets')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', ticketId);
+
+      if (error) throw error;
+      
+      // Başarılı güncelleme sonrası verileri yeniden çek
+      await fetchTickets();
+      
+      // Modalda görüntülenen bileti güncelle
+      if (selectedTicket && selectedTicket.id === ticketId) {
+        setSelectedTicket({...selectedTicket, status: newStatus});
+      }
+      
+    } catch (error) {
+      console.error('Durum güncellenirken hata:', error);
+      alert('Durum güncellenirken bir hata oluştu.');
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Destek Talepleri</h1>
+        
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Talep ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm w-full sm:w-64 text-gray-900 placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-colors"
+            />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+          </div>
+          
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'Açık' | 'Beklemede' | 'Kapalı')}
+            className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-colors cursor-pointer"
+          >
+            <option value="all">Tüm Durumlar</option>
+            <option value="Açık">Açık</option>
+            <option value="Beklemede">Beklemede</option>
+            <option value="Kapalı">Kapalı</option>
+          </select>
+        </div>
       </div>
 
       {/* Özet Kartları */}
@@ -142,180 +193,109 @@ export default function DestekPage() {
         </div>
       </div>
 
-      {/* Arama ve Filtreler */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Talep ara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setStatusFilter('all')}
-              className={`px-4 py-2 rounded-lg ${
-                statusFilter === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              Tümü
-            </button>
-            <button
-              onClick={() => setStatusFilter('Açık')}
-              className={`px-4 py-2 rounded-lg ${
-                statusFilter === 'Açık'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {getStatusInfo('Açık').text}
-            </button>
-            <button
-              onClick={() => setStatusFilter('Beklemede')}
-              className={`px-4 py-2 rounded-lg ${
-                statusFilter === 'Beklemede'
-                  ? 'bg-yellow-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {getStatusInfo('Beklemede').text}
-            </button>
-            <button
-              onClick={() => setStatusFilter('Kapalı')}
-              className={`px-4 py-2 rounded-lg ${
-                statusFilter === 'Kapalı'
-                  ? 'bg-gray-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {getStatusInfo('Kapalı').text}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Talepler Tablosu */}
-      <div className="bg-white rounded-xl shadow-sm">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Talep ID
-              </th>
-              <th className="w-[25%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Konu
-              </th>
-              <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Üye
-              </th>
-              <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tarih
-              </th>
-              <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Öncelik
-              </th>
-              <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Durum
-              </th>
-              <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                İşlemler
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-gray-500">
-                  Yükleniyor...
-                </td>
+      {/* Destek Talepleri Tablosu */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Talep No</th>
+                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Konu</th>
+                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Müşteri</th>
+                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Tarih</th>
+                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">Durum</th>
+                <th className="text-right py-4 px-6 text-sm font-semibold text-gray-900">İşlemler</th>
               </tr>
-            ) : filteredTickets.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-gray-500">
-                  Destek talebi bulunamadı
-                </td>
-              </tr>
-            ) : (
-              filteredTickets.map((ticket) => (
-                <tr key={ticket.id} className="hover:bg-gray-50">
-                  <td className="px-3 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">#{ticket.id}</div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className="text-sm font-medium text-gray-900 truncate max-w-[300px]">
-                      {ticket.title}
-                    </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className="text-sm text-gray-900">
-                      {ticket.user.first_name} {ticket.user.last_name}
-                    </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Calendar className="w-3 h-3 flex-shrink-0" />
-                        <span className="whitespace-nowrap">{formatDate(ticket.created_at)}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Clock className="w-3 h-3 flex-shrink-0" />
-                        <span className="whitespace-nowrap">Son: {formatDate(ticket.updated_at)}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      getPriorityInfo(ticket.priority).color
-                    }`}>
-                      {getPriorityInfo(ticket.priority).text}
-                    </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      getStatusInfo(ticket.status).color
-                    }`}>
-                      {getStatusInfo(ticket.status).text}
-                    </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedTicket(ticket);
-                          setIsViewModalOpen(true);
-                        }}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group relative"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                          Görüntüle
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          // Cevap yazma işlemi için yönlendirme yapılacak
-                          window.location.href = `/yonetici/destek/yanit/${ticket.id}`;
-                        }}
-                        className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors group relative"
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                          Cevap Yaz
-                        </span>
-                      </button>
-                    </div>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : filteredTickets.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8 text-gray-700">
+                    Destek talebi bulunamadı
+                  </td>
+                </tr>
+              ) : (
+                filteredTickets.map((ticket) => (
+                  <tr key={ticket.id} className="hover:bg-gray-50">
+                    <td className="py-4 px-6 text-gray-900">#{ticket.id}</td>
+                    <td className="py-4 px-6">
+                      <div className="font-medium text-gray-900">{ticket.title}</div>
+                      <div className="text-sm text-gray-700 mt-0.5">{ticket.description.substring(0, 100)}...</div>
+                    </td>
+                    <td className="py-4 px-6 text-gray-900">{ticket.user.first_name} {ticket.user.last_name}</td>
+                    <td className="py-4 px-6 text-gray-700">
+                      {new Date(ticket.created_at).toLocaleDateString('tr-TR')}
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusInfo(ticket.status).color}`}>
+                        {getStatusInfo(ticket.status).text}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex justify-end items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedTicket(ticket);
+                            setIsViewModalOpen(true);
+                          }}
+                          className="p-1.5 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                          title="Detay"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        {ticket.attachments && ticket.attachments.length > 0 && (
+                          <button
+                            onClick={() => {
+                              // Cevap yazma işlemi için yönlendirme yapılacak
+                              window.location.href = `/yonetici/destek/yanit/${ticket.id}`;
+                            }}
+                            className="p-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                            title="Ekler"
+                          >
+                            <Paperclip className="w-4 h-4" />
+                          </button>
+                        )}
+                        {ticket.status !== 'Kapalı' && (
+                          <>
+                            <button
+                              onClick={() => handleStatusChange(ticket.id, 'Beklemede')}
+                              className="p-1.5 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors"
+                              title="Beklemede"
+                            >
+                              <Clock className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(ticket.id, 'Kapalı')}
+                              className="p-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+                              title="Tamamla"
+                            >
+                              <Archive className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                        {ticket.status === 'Kapalı' && (
+                          <button
+                            onClick={() => handleStatusChange(ticket.id, 'Açık')}
+                            className="p-1.5 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors"
+                            title="Yeniden Aç"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Görüntüleme Modalı */}

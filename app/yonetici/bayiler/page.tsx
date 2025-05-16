@@ -288,7 +288,7 @@ export default function Bayiler() {
               placeholder="Bayi ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 w-full px-4 py-2.5 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
             />
           </div>
           <div className="flex gap-2">
@@ -328,29 +328,29 @@ export default function Bayiler() {
 
       {/* Bayiler Tablosu */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+        <div className="overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200 table-fixed">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
                   ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
                   Firma
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
                   İletişim
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   Şehir
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Kayıt Tarihi
+                <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  Kayıt
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                   Durum
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
                   İşlemler
                 </th>
               </tr>
@@ -371,56 +371,54 @@ export default function Bayiler() {
               ) : (
                 filteredSellers.map((seller) => (
                   <tr key={seller.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-2 py-4 text-sm text-gray-900 truncate">
                       #{seller.id}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{seller.isim}</div>
+                    <td className="px-2 py-4">
+                      <div className="text-sm font-medium text-gray-900 truncate" title={seller.isim}>{seller.isim}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-2 py-4">
                       <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Phone className="w-4 h-4" />
+                        <div className="flex items-center gap-1 text-xs text-gray-600 truncate" title={formatPhoneNumber(seller.telefon)}>
+                          <Phone className="w-3 h-3 flex-shrink-0" />
                           {formatPhoneNumber(seller.telefon)}
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Mail className="w-4 h-4" />
+                        <div className="flex items-center gap-1 text-xs text-gray-600 truncate" title={seller.email}>
+                          <Mail className="w-3 h-3 flex-shrink-0" />
                           {seller.email}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4" />
+                    <td className="px-2 py-4">
+                      <div className="flex items-center gap-1 text-sm text-gray-600 truncate" title={seller.sehir}>
+                        <MapPin className="w-3 h-3 flex-shrink-0" />
                         {seller.sehir}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4" />
+                    <td className="px-2 py-4">
+                      <div className="flex items-center gap-1 text-xs text-gray-600 truncate" title={formatDate(seller.created_at)}>
+                        <Calendar className="w-3 h-3 flex-shrink-0" />
                         {formatDate(seller.created_at)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    <td className="px-2 py-4">
+                      <div className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${
                         seller.durum ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
                         {seller.durum ? 'Aktif' : 'Pasif'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
+                    <td className="px-2 py-4">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => {
                             setSelectedSeller(seller);
                             setIsViewModalOpen(true);
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group relative"
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Görüntüle"
                         >
                           <Eye className="w-4 h-4" />
-                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                            Görüntüle
-                          </span>
                         </button>
                         <button
                           onClick={() => {
@@ -428,12 +426,10 @@ export default function Bayiler() {
                             setEditForm(seller);
                             setIsEditModalOpen(true);
                           }}
-                          className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors group relative"
+                          className="p-1 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                          title="Düzenle"
                         >
                           <Edit className="w-4 h-4" />
-                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                            Düzenle
-                          </span>
                         </button>
                         <button
                           onClick={() => {
@@ -441,32 +437,26 @@ export default function Bayiler() {
                             fetchManagers(seller.id);
                             setIsManagersModalOpen(true);
                           }}
-                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors group relative"
+                          className="p-1 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          title="Yetkililer"
                         >
                           <Users className="w-4 h-4" />
-                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                            Yetkililer
-                          </span>
                         </button>
                         {seller.durum ? (
                           <button
                             onClick={() => handleStatusChange(seller.id, false)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors group relative"
+                            className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Askıya Al"
                           >
                             <Ban className="w-4 h-4" />
-                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                              Askıya Al
-                            </span>
                           </button>
                         ) : (
                           <button
                             onClick={() => handleStatusChange(seller.id, true)}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors group relative"
+                            className="p-1 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Aktifleştir"
                           >
                             <CheckCircle className="w-4 h-4" />
-                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                              Aktifleştir
-                            </span>
                           </button>
                         )}
                       </div>
@@ -707,7 +697,7 @@ export default function Bayiler() {
                 </button>
               </div>
 
-              <div className="mb-4">
+              <div className="mb-4 flex justify-between items-center">
                 <Link
                   href={`/yonetici/bayiler/yetkili-ekle/${selectedSeller.id}`}
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
@@ -717,23 +707,23 @@ export default function Bayiler() {
                 </Link>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+              <div className="overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200 table-fixed">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                         Ad Soyad
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                         Telefon
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Email
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                         Durum
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                         İşlemler
                       </th>
                     </tr>
@@ -741,35 +731,44 @@ export default function Bayiler() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {managers.map((manager) => (
                       <tr key={manager.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-2 py-3 text-sm truncate" title={`${manager.ad} ${manager.soyad}`}>
                           {manager.ad} {manager.soyad}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-2 py-3 text-sm truncate" title={formatPhoneNumber(manager.telefon)}>
                           {formatPhoneNumber(manager.telefon)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-2 py-3 text-sm truncate" title={manager.email}>
                           {manager.email}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        <td className="px-2 py-3">
+                          <div className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${
                             manager.durum ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                           }`}>
                             {manager.durum ? 'Aktif' : 'Pasif'}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
+                        <td className="px-2 py-3">
+                          <div className="flex items-center gap-1">
+                            <Link
+                              href={`/yonetici/bayiler/yetkili-duzenle/${manager.id}`}
+                              className="p-1 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                              title="Düzenle"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Link>
                             {manager.durum ? (
                               <button
                                 onClick={() => handleManagerStatusChange(manager.id, false)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Pasif Yap"
                               >
                                 <Ban className="w-4 h-4" />
                               </button>
                             ) : (
                               <button
                                 onClick={() => handleManagerStatusChange(manager.id, true)}
-                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                className="p-1 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                title="Aktif Yap"
                               >
                                 <CheckCircle className="w-4 h-4" />
                               </button>

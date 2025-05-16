@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { supabase } from '@/app/lib/supabase';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, LogIn, Lock, Mail, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
+import { signInSeller } from '@/app/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function BayiGiris() {
   const router = useRouter();
@@ -15,6 +16,23 @@ export default function BayiGiris() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState('');
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    async function fetchLogo() {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('logo_url_bayi')
+        .single();
+
+      if (!error && data?.logo_url_bayi) {
+        setLogoUrl(data.logo_url_bayi);
+      }
+    }
+
+    fetchLogo();
+  }, [supabase]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,69 +40,33 @@ export default function BayiGiris() {
     setError(null);
 
     try {
-      // Önce seller_managers tablosundan kullanıcıyı kontrol et
-      const { data: managerData, error: managerError } = await supabase
-        .from('seller_managers')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .single();
-
-      if (managerError) {
-        throw new Error('Giriş bilgileri hatalı');
-      }
-
-      if (!managerData) {
-        throw new Error('Giriş bilgileri hatalı');
-      }
-
-      // Durum kontrolü
-      if (!managerData.durum) {
-        throw new Error('Hesabınız askıya alınmıştır. Lütfen yönetici ile iletişime geçin.');
-      }
-
-      // Giriş başarılı, session'a kullanıcı bilgilerini kaydet
-      const session = {
-        user: {
-          id: managerData.id,
-          email: managerData.email,
-          first_name: managerData.first_name,
-          last_name: managerData.last_name,
-          seller_id: managerData.seller_id
-        }
-      };
-
-      // Session'ı localStorage'a kaydet
-      if (rememberMe) {
-        localStorage.setItem('bayiSession', JSON.stringify(session));
+      const result = await signInSeller(email, password);
+      
+      if (result.success) {
+        router.push('/bayi');
       } else {
-        sessionStorage.setItem('bayiSession', JSON.stringify(session));
+        setError(result.error);
       }
-
-      // Bayi paneline yönlendir
-      router.push('/bayi');
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError('Bir hata oluştu. Lütfen tekrar deneyin.');
-      }
+    } catch (error: any) {
+      setError(error.message || 'Giriş yapılırken bir hata oluştu');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+    <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md mx-auto">
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">
-          <Image
-            src="/logo.png"
-            alt="LastikBende" 
-            width={55} 
-            height={55}
-            className="rounded-lg" 
-          />
+          {logoUrl && (
+            <Image
+              src={logoUrl}
+              alt="LastikBende"
+              width={130} 
+              height={55}
+              className="rounded-lg" 
+            />
+          )}
         </div>
         <h1 className="text-2xl font-bold text-gray-800">Bayi Giriş Paneli</h1>
         <p className="text-gray-600 mt-2">Bayi hesabınıza giriş yapın</p>

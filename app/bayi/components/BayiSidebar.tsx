@@ -15,6 +15,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface MenuItem {
   title: string;
@@ -25,58 +26,83 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   {
-    title: 'Dashboard',
+    title: 'Ana Sayfa',
     path: '/bayi',
     icon: <LayoutDashboard className="w-5 h-5" />,
-    section: 'HOME'
+    section: 'ANA MENÜ'
   },
   {
     title: 'Gelir Takibi',
     path: '/bayi/gelir',
     icon: <CircleDollarSign className="w-5 h-5" />,
-    section: 'HOME'
+    section: 'ANA MENÜ'
   },
   {
     title: 'Lastik Tablosu',
     path: '/bayi/lastikler',
     icon: <Table2 className="w-5 h-5" />,
-    section: 'UTILITIES'
+    section: 'ÜRÜN YÖNETİMİ'
   },
   {
     title: 'Lastik Ekle',
     path: '/bayi/lastik-ekle',
     icon: <FormInput className="w-5 h-5" />,
-    section: 'UTILITIES'
+    section: 'ÜRÜN YÖNETİMİ'
   },
   {
     title: 'Stok Yönetimi',
     path: '/bayi/stok',
     icon: <Box className="w-5 h-5" />,
-    section: 'UTILITIES'
+    section: 'ÜRÜN YÖNETİMİ'
   },
   {
     title: 'Siparişler',
     path: '/bayi/siparisler',
     icon: <ShoppingCart className="w-5 h-5" />,
-    section: 'MANAGEMENT'
-  },
-  {
-    title: 'Raporlar',
-    path: '/bayi/raporlar',
-    icon: <BarChart3 className="w-5 h-5" />,
-    section: 'MANAGEMENT'
+    section: 'SİPARİŞ YÖNETİMİ'
   }
 ];
 
 interface BayiSidebarProps {
-  isSidebarOpen: boolean;
+  sellerData: any;
 }
 
-export default function BayiSidebar({ isSidebarOpen }: BayiSidebarProps) {
+export default function BayiSidebar({ sellerData }: BayiSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const [bayiAdi, setBayiAdi] = useState("İstanbul Lastik A.Ş.");
+  const [bayiAdi, setBayiAdi] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    async function fetchData() {
+      // Bayi bilgilerini çek
+      if (sellerData?.bayi?.id) {
+        const { data: bayiData, error: bayiError } = await supabase
+          .from('sellers')
+          .select('isim')
+          .eq('id', sellerData.bayi.id)
+          .single();
+
+        if (!bayiError && bayiData) {
+          setBayiAdi(bayiData.isim);
+        }
+      }
+
+      // Logo URL'sini çek
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('settings')
+        .select('logo_url_bayi')
+        .single();
+
+      if (!settingsError && settingsData?.logo_url_bayi) {
+        setLogoUrl(settingsData.logo_url_bayi);
+      }
+    }
+
+    fetchData();
+  }, [sellerData, supabase]);
 
   // Gruplanan menü öğeleri
   const groupedMenuItems = menuItems.reduce((acc, item) => {
@@ -87,18 +113,6 @@ export default function BayiSidebar({ isSidebarOpen }: BayiSidebarProps) {
     return acc;
   }, {} as Record<string, MenuItem[]>);
 
-  // DOM hatasını önlemek için sidebar'ın görünürlüğünü değiştirirken 
-  // uygulanacak animasyon
-  useEffect(() => {
-    if (sidebarRef.current) {
-      if (isSidebarOpen) {
-        sidebarRef.current.style.transform = 'translateX(0)';
-      } else {
-        sidebarRef.current.style.transform = 'translateX(-100%)';
-      }
-    }
-  }, [isSidebarOpen]);
-
   // Çıkış yapma fonksiyonu
   const handleLogout = () => {
     // Güvenli yönlendirme
@@ -108,32 +122,25 @@ export default function BayiSidebar({ isSidebarOpen }: BayiSidebarProps) {
   };
 
   return (
-    <aside 
-      ref={sidebarRef}
-      className={`bayi-nav
-        fixed inset-y-0 left-0 z-50 w-64 bg-white transition-transform duration-200 ease-in-out
-        md:relative md:translate-x-0 border-r border-gray-100
-      `}
-    >
+    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
       <div className="flex flex-col h-full">
         <div className="p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Image
-              src="/logo.png"
-              alt="LastikBende"
-              width={32}
-              height={32}
-              className="rounded"
-            />
-            <span className="text-xl font-semibold text-gray-900">LastikBende</span>
+          <div className="flex justify-center mb-4">
+            {logoUrl && (
+              <Image
+                src={logoUrl}
+                alt="LastikBende"
+                width={130}
+                height={55}
+                className="rounded-lg"
+              />
+            )}
+          </div>
+          <div className="text-center text-purple-600 font-medium mb-6">
+            {bayiAdi}
           </div>
           <div className="mb-8 border-t border-gray-100 pt-2">
-            <span className="text-sm font-medium text-purple-600 block">
-              {bayiAdi}
-            </span>
-            <span className="text-xs text-gray-500">Bayi Portalı</span>
           </div>
-
           <div className="space-y-8">
             {Object.entries(groupedMenuItems).map(([section, items]) => (
               <div key={section}>

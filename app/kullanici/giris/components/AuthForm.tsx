@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import ErrorMessage from './ErrorMessage';
 import { getSupabaseClient } from '@/lib/supabase';
+import Link from 'next/link';
 
 interface AuthFormProps {
   isLogin: boolean;
-  onToggle: () => void;
 }
 
-export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
+export default function AuthForm({ isLogin }: AuthFormProps) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -356,22 +356,33 @@ export default function AuthForm({ isLogin, onToggle }: AuthFormProps) {
           </div>
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-primary text-white py-2 rounded-md hover:bg-red-600 transition-colors"
-        >
-          {isLogin ? 'Giriş Yap' : 'Üye Ol'}
-        </button>
-      </form>
+        <div className="flex flex-col space-y-4">
+          <button
+            type="submit"
+            className="w-full bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg transition-colors duration-200"
+          >
+            {isLogin ? 'Giriş Yap' : 'Üye Ol'}
+          </button>
 
-      <div className="mt-4 text-center">
-        <button
-          onClick={onToggle}
-          className="text-primary hover:text-red-500 transition-colors"
-        >
-          {isLogin ? 'Hesabınız yok mu? Üye olun' : 'Zaten üye misiniz? Giriş yapın'}
-        </button>
-      </div>
+          <div className="text-center text-sm text-gray-400">
+            {isLogin ? (
+              <div>
+                Hesabınız yok mu?{' '}
+                <Link href="/kullanici/kayit" className="text-primary hover:text-primary/90 transition-colors">
+                  Üye olun
+                </Link>
+              </div>
+            ) : (
+              <div>
+                Zaten hesabınız var mı?{' '}
+                <Link href="/kullanici/giris" className="text-primary hover:text-primary/90 transition-colors">
+                  Giriş yapın
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </form>
 
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-400">

@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Link from 'next/link';
 import { Eye, EyeOff, LogIn, Lock, Mail, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 import { signInManager } from '@/app/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function YoneticiGiris() {
   const router = useRouter();
@@ -12,53 +14,69 @@ export default function YoneticiGiris() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    async function fetchLogo() {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('logo_url_yonetici')
+        .single();
+
+      if (!error && data?.logo_url_yonetici) {
+        setLogoUrl(data.logo_url_yonetici);
+      }
+    }
+
+    fetchLogo();
+  }, [supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError(null);
 
     try {
-      const { data, error } = await signInManager(email, password);
-
-      if (error) {
-        setError('Giriş bilgileri hatalı');
-        return;
-      }
-
-      if (data) {
-        localStorage.setItem('managerData', JSON.stringify(data));
+      const result = await signInManager(email, password);
+      
+      if (result.success) {
+        localStorage.setItem('managerData', JSON.stringify(result.data));
         router.push('/yonetici');
+      } else {
+        setError(result.error);
       }
-    } catch (err) {
-      setError('Bir hata oluştu. Lütfen tekrar deneyin.');
+    } catch (error: any) {
+      setError(error.message || 'Giriş yapılırken bir hata oluştu');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+    <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md mx-auto">
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">
-          <Image
-            src="/logo.png"
-            alt="LastikBende"
-            width={55}
-            height={55}
-            className="rounded-lg"
-          />
+          {logoUrl && (
+            <Image
+              src={logoUrl}
+              alt="LastikBende"
+              width={130} 
+              height={55}
+              className="rounded-lg" 
+            />
+          )}
         </div>
-        <h1 className="text-2xl font-bold text-gray-800">Yönetici Giriş Paneli</h1>
-        <p className="text-gray-600 mt-2">Yönetici hesabınıza giriş yapın</p>
+        <h1 className="text-2xl font-bold text-gray-900">Yönetici Giriş Paneli</h1>
+        <p className="text-sm font-medium text-gray-700 mt-2">Yönetici hesabınıza giriş yapın</p>
       </div>
 
       {error && (
         <div className="bg-red-50 text-red-700 p-4 rounded-lg flex items-start mb-6">
           <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
-          <span>{error}</span>
+          <span className="font-medium">{error}</span>
         </div>
       )}
 
@@ -77,7 +95,7 @@ export default function YoneticiGiris() {
               type="email"
               autoComplete="email"
               required
-              className="pl-10 block w-full border border-gray-300 rounded-lg py-3 px-4 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 block w-full border border-gray-300 rounded-lg py-3 px-4 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
               placeholder="admin@lastikbende.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -96,27 +114,25 @@ export default function YoneticiGiris() {
             <input
               id="password"
               name="password"
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               required
-              className="pl-10 block w-full border border-gray-300 rounded-lg py-3 px-4 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-10 block w-full border border-gray-300 rounded-lg py-3 px-4 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+              ) : (
+                <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+              )}
+            </button>
           </div>
         </div>
 
@@ -126,36 +142,41 @@ export default function YoneticiGiris() {
               id="remember-me"
               name="remember-me"
               type="checkbox"
-              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
               checked={rememberMe}
-              onChange={() => setRememberMe(!rememberMe)}
+              onChange={(e) => setRememberMe(e.target.checked)}
             />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-              Beni hatırla
+            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer">
+              Beni Hatırla
             </label>
+          </div>
+          <div className="text-sm">
+            <Link href="/yonetici/sifremi-unuttum" className="font-medium text-purple-600 hover:text-purple-700 transition-colors">
+              Şifremi Unuttum
+            </Link>
           </div>
         </div>
 
         <div>
           <button
             type="submit"
-            className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-              isLoading ? 'opacity-75 cursor-not-allowed' : ''
-            }`}
             disabled={isLoading}
+            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <LogIn className="w-5 h-5 mr-2" />
+              <>
+                <LogIn className="w-5 h-5 mr-2" />
+                Giriş Yap
+              </>
             )}
-            {isLoading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
           </button>
         </div>
       </form>
 
       <div className="mt-6 pt-6 border-t border-gray-200">
-        <div className="text-center text-sm text-gray-600">
+        <div className="text-center text-sm font-medium text-gray-700">
           Yönetici erişimi sadece yetkili kişilere açıktır.
         </div>
       </div>
