@@ -79,22 +79,22 @@ export default function Footer() {
             <h3 className="text-lg font-semibold text-white mb-4">Sıkça Sorulan Sorular</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/sikca-sorulan-sorular#lastik-omru" className="group">
-                  <p className="text-gray-400 group-hover:text-primary transition-colors">Lastiğimin ömrü ne kadardır?</p>
+                <Link href="/sss" className="group">
+                  <p className="text-gray-400 group-hover:text-primary transition-colors">Hangi araçlar için hangi lastikler uygundur?</p>
                 </Link>
               </li>
               <li>
-                <Link href="/sikca-sorulan-sorular#kis-lastik" className="group">
-                  <p className="text-gray-400 group-hover:text-primary transition-colors">Kış lastiği ne zaman takılmalıdır?</p>
+                <Link href="/sss" className="group">
+                  <p className="text-gray-400 group-hover:text-primary transition-colors">Siparişimi nasıl verebilirim?</p>
                 </Link>
               </li>
               <li>
-                <Link href="/sikca-sorulan-sorular#kullanilmis-lastik" className="group">
-                  <p className="text-gray-400 group-hover:text-primary transition-colors">Kullanılmış lastik alırken nelere dikkat etmeliyim?</p>
+                <Link href="/sss" className="group">
+                  <p className="text-gray-400 group-hover:text-primary transition-colors">Kargom kaç günde gelir?</p>
                 </Link>
               </li>
               <li>
-                <Link href="/sikca-sorulan-sorular" className="group">
+                <Link href="/sss" className="group">
                   <p className="text-primary group-hover:text-primary-dark transition-colors font-medium text-sm mt-2">Tüm Sorular</p>
                 </Link>
               </li>
