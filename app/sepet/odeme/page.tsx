@@ -32,6 +32,7 @@ interface SepetUrunu {
   fiyat: number;
   adet: number;
   resim: string;
+  stok_id: number;
 }
 
 interface TeslimatBilgileri {
@@ -268,7 +269,7 @@ const OdemePage = () => {
         montajBilgisi: sepetVerisi.teslimatBilgileri.montajBilgisi,
         magazaId: sepetVerisi.teslimatBilgileri.magaza?.id,
         urunler: sepetVerisi.urunler.map(urun => ({
-          stok_id: urun.id,
+          stok_id: urun.stok_id,
           adet: urun.adet,
           fiyat: urun.fiyat
         })),
@@ -294,6 +295,16 @@ const OdemePage = () => {
       try {
         const accessToken = session.access_token;
         
+        if (!accessToken) {
+          console.error('Access token bulunamadı');
+          toast.dismiss(loadingToast);
+          toast.error('Oturum bilginiz eksik. Lütfen tekrar giriş yapın.');
+          router.push('/kullanici/giris');
+          return;
+        }
+        
+        console.log('API isteği gönderiliyor. Token uzunluğu:', accessToken.length);
+        
         const siparisResponse = await fetch(apiUrl, {
           method: 'POST',
           headers: {
@@ -304,35 +315,36 @@ const OdemePage = () => {
           credentials: 'include'
         });
   
+        let responseText = '';
+        try {
+          responseText = await siparisResponse.text();
+        } catch (textError) {
+          console.error('API yanıt metni alınamadı:', textError);
+        }
+  
         if (!siparisResponse.ok) {
           console.error('API yanıtı başarısız:', siparisResponse.status, siparisResponse.statusText);
-          let responseText = '';
+          console.error('API hata yanıtı:', responseText);
+          
+          let errorMessage = 'Sipariş oluşturulurken bir hata oluştu';
+          
           try {
-            responseText = await siparisResponse.text();
-            console.error('API hata yanıtı:', responseText);
-            
-            try {
-              const errorJson = JSON.parse(responseText);
-              if (errorJson && errorJson.error) {
-                toast.dismiss(loadingToast);
-                toast.error(errorJson.error);
-                return;
-              }
-            } catch (jsonError) {
-              console.error('Hata yanıtı JSON olarak ayrıştırılamadı:', jsonError);
+            const errorJson = JSON.parse(responseText);
+            if (errorJson && errorJson.error) {
+              errorMessage = errorJson.error;
             }
-          } catch (textError) {
-            console.error('API yanıt metni alınamadı:', textError);
+          } catch (jsonError) {
+            console.error('Hata yanıtı JSON olarak ayrıştırılamadı:', jsonError);
           }
           
           toast.dismiss(loadingToast);
-          toast.error(`Sipariş oluşturulurken bir hata oluştu: ${siparisResponse.status} ${siparisResponse.statusText}`);
+          toast.error(errorMessage);
           return;
         }
         
         let responseData;
         try {
-          responseData = await siparisResponse.json();
+          responseData = JSON.parse(responseText);
         } catch (jsonError) {
           console.error('JSON ayrıştırma hatası:', jsonError);
           toast.dismiss(loadingToast);

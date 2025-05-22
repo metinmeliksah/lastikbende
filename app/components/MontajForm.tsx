@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MontajBilgisi } from '@/types';
+import { MontajBilgisi } from '../types';
 import { getSupabaseClient } from '@/lib/supabase';
 
 interface MontajFormProps {
@@ -38,7 +38,20 @@ export default function MontajForm({ onSubmit, onCancel }: MontajFormProps) {
         .order('sehir', { ascending: true });
 
       if (error) throw error;
-      setBayiler(data || []);
+      
+      if (data) {
+        const tiplenmisBayiler: Bayi[] = data.map(item => ({
+          id: Number(item.id),
+          isim: String(item.isim || ''),
+          adres: String(item.adres || ''),
+          sehir: String(item.sehir || ''),
+          ilce: String(item.ilce || ''),
+          telefon: String(item.telefon || '')
+        }));
+        setBayiler(tiplenmisBayiler);
+      } else {
+        setBayiler([]);
+      }
     } catch (error) {
       console.error('Bayiler yüklenirken hata:', error);
     } finally {

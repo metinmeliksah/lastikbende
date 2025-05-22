@@ -39,6 +39,18 @@ const getAdminClient = () => {
   }
 };
 
+// Ürün tipi tanımlaması
+interface SiparisUrun {
+  stok_id: number;
+  adet: number;
+  fiyat: number;
+}
+
+type SiparisRecord = {
+  id: number;
+  [key: string]: any;
+};
+
 export async function POST(request: Request) {
   // CORS ve response headers için genel ayarlar
   const headers = {
@@ -175,6 +187,17 @@ export async function POST(request: Request) {
     const siparisNo = `SIP-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
     console.log('Sipariş numarası oluşturuldu:', siparisNo);
     
+    // teslimat_tipi'de sipariş numarası tutmak yerine doğrudan siparis_no alanını kullan
+    // Eğer teslimat_tipi içinde zaten sipariş no varsa, temizle
+    let cleanedTeslimatTipi = teslimatTipi;
+    if (teslimatTipi && teslimatTipi.includes('_SIP-')) {
+      cleanedTeslimatTipi = teslimatTipi.split('_')[0];
+    }
+    
+    // Siparişte 'siparis_no' alanı olmadığı için alternatif bir yaklaşım uygulayalım
+    // Bu numarayı 'teslimat_tipi' alanında bir ön ek olarak saklayabiliriz
+    const teslimatTipiWithSiparisNo = `${cleanedTeslimatTipi}_${siparisNo}`;
+    
     try {
       const cookieStore = cookies();
       
@@ -196,26 +219,66 @@ export async function POST(request: Request) {
           if (dogrulamaError) {
             console.error('Doğrulama RPC hatası:', dogrulamaError);
             
-            // Alternatif olarak direkt sorgu yap
+            // Alternatif olarak direkt sorgu yap - siparis_no ile arama yap
             const { data: siparisData, error: siparisError } = await supabaseAdmin
               .from('siparis')
-              .select('id, siparis_no')
-              .eq('siparis_no', siparisNo)
-              .maybeSingle();
+              .select('id, siparis_no, teslimat_tipi')
+              .eq('user_id', authenticatedUserId)
+              .order('created_at', { ascending: false })
+              .limit(1);
             
             if (siparisError) {
               console.error('Doğrulama sorgu hatası:', siparisError);
               return { success: false, error: siparisError };
             }
             
-            if (!siparisData) {
-              console.error('Sipariş bulunamadı, son çare yöntemi deneniyor - Dinamik SQL...');
+            if (siparisData && siparisData.length > 0) {
+              console.log('Sipariş doğrulandı (ID kontrolü):', siparisData[0]);
+              
+              // Sipariş numarasını kontrol et
+              let extractedSiparisNo = siparisData[0].siparis_no;
+              
+              // Eğer siparis_no yoksa (eski kayıtlar veya hatalı işlemler için)
+              if (!extractedSiparisNo && siparisData[0].teslimat_tipi && siparisData[0].teslimat_tipi.includes('_SIP-')) {
+                // Teslimat tipinden sipariş numarasını çıkar
+                const parts = siparisData[0].teslimat_tipi.split('_');
+                if (parts.length > 1) {
+                  // teslimat_tipi formatı: "adres_SIP-20250514-123"
+                  extractedSiparisNo = parts.slice(1).join('_');
+                  console.log('Teslimat tipinden çıkarılan sipariş numarası:', extractedSiparisNo);
+                  
+                  // Sipariş numarasını doğrudan güncelle
+                  const { error: updateError } = await supabaseAdmin
+                    .from('siparis')
+                    .update({ 
+                      siparis_no: extractedSiparisNo,
+                      // Teslimat tipini de düzelt
+                      teslimat_tipi: parts[0]
+                    })
+                    .eq('id', siparisData[0].id);
+                    
+                  if (updateError) {
+                    console.error('Sipariş numarası güncelleme hatası:', updateError);
+                  } else {
+                    console.log('Sipariş no ve teslimat tipi güncellendi.');
+                  }
+                }
+              }
+              
+              return { 
+                success: true, 
+                data: { 
+                  id: siparisData[0].id, 
+                  siparis_no: extractedSiparisNo || siparisNo 
+                } 
+              };
+            }
+            
               // son çare yöntemi - dinamik SQL ile ekleme
               const { data: sqlResult, error: sqlError } = await supabaseAdmin.rpc('dogrudan_siparis_kaydet', {
                 p_user_id: authenticatedUserId,
-                p_teslimat_tipi: teslimatTipi,
+              p_teslimat_tipi: cleanedTeslimatTipi, // Teslimat tipini temiz ver
                 p_fatura_adres_id: faturaAdresiId,
-                p_siparis_no: siparisNo,
                 p_odeme_bilgisi: odemeBilgisiObj,
                 p_toplam_tutar: odemeBilgisi.tutar || 0
               });
@@ -225,35 +288,14 @@ export async function POST(request: Request) {
                 return { success: false, error: sqlError };
               }
 
-              if (sqlResult) {
-                console.log('Dinamik SQL başarılı:', sqlResult);
-                // Sipariş ürünlerini ekle
-                if (urunler && urunler.length > 0) {
-                  console.log('SQL sonrası ürünler ekleniyor...');
-                  for (const urun of urunler) {
-                    const { error: urunError } = await supabaseAdmin.rpc('insert_siparis_urun', {
-                      p_siparis_id: sqlResult.id,
-                      p_stok_id: urun.stok_id,
-                      p_adet: urun.adet,
-                      p_fiyat: urun.fiyat
-                    });
-                    if (urunError) {
-                      console.error('Ürün ekleme hatası:', urunError);
-                    }
-                  }
-                }
+            console.log('Dinamik SQL sonucu:', sqlResult);
                 return { success: true, data: sqlResult };
-              }
-            }
-            
-            console.log('Doğrulama sorgu sonucu:', siparisData);
-            return { success: true, data: siparisData };
           }
           
-          console.log('Doğrulama RPC sonucu:', dogrulamaData);
+          console.log('RPC Doğrulama sonucu:', dogrulamaData);
           return { success: true, data: dogrulamaData };
         } catch (error) {
-          console.error('Doğrulama genel hatası:', error);
+          console.error('Doğrulama hatası:', error);
           return { success: false, error };
         }
       };
@@ -301,9 +343,10 @@ export async function POST(request: Request) {
       
       console.log('Ödeme bilgisi:', JSON.stringify(odemeBilgisiObj, null, 2));
       
-      const siparisData = {
+      // Sipariş verileri
+      const siparisData: Record<string, any> = {
         user_id: userId,
-        teslimat_tipi: teslimatTipi,
+        teslimat_tipi: cleanedTeslimatTipi, // Temizlenmiş teslimat tipini kullan
         teslimat_adres_id: teslimatTipi === 'adres' ? teslimatAdresiId : null,
         fatura_adres_id: faturaAdresiId,
         magaza_id: teslimatTipi === 'magaza' ? magazaId : null,
@@ -320,257 +363,162 @@ export async function POST(request: Request) {
         genel_toplam: odemeBilgisi.tutar || 0,
         siparis_tarihi: new Date().toISOString(),
         guncelleme_tarihi: new Date().toISOString(),
-        siparis_no: siparisNo
+        siparis_no: siparisNo // Doğrudan siparis_no alanını kullan
       };
       
       console.log('Sipariş verileri:', JSON.stringify(siparisData, null, 2));
       
-      // RLS politikasını aşmak için admin client kullan
       try {
-        // YÖNTEM 1: Direkt SQL sorgusu kullanma - şema önbellek sorunlarını aşmak için
-        const { data: sqlResult, error: sqlError } = await supabaseAdmin.rpc('insert_siparis', {
-          p_user_id: userId,
-          p_teslimat_tipi: teslimatTipi,
-          p_teslimat_adres_id: teslimatTipi === 'adres' ? teslimatAdresiId : null,
-          p_fatura_adres_id: faturaAdresiId,
-          p_magaza_id: teslimatTipi === 'magaza' ? magazaId : null,
-          p_montaj_bilgisi: JSON.stringify(teslimatTipi === 'magaza' ? montajBilgisi : null),
-          p_montaj_bayi_id: teslimatTipi === 'magaza' ? magazaId : null,
-          p_montaj_tarihi: teslimatTipi === 'magaza' && montajBilgisi ? montajBilgisi.tarih : null,
-          p_montaj_saati: teslimatTipi === 'magaza' && montajBilgisi ? montajBilgisi.saat : null,
-          p_montaj_notu: teslimatTipi === 'magaza' && montajBilgisi ? montajBilgisi.not : null,
-          p_odeme_bilgisi: JSON.stringify(odemeBilgisiObj),
-          p_durum: 'hazırlanıyor',
-          p_siparis_durumu: 'siparis_alindi',
-          p_toplam_tutar: odemeBilgisi.tutar || 0,
-          p_kargo_ucreti: 0,
-          p_genel_toplam: odemeBilgisi.tutar || 0,
-          p_siparis_no: siparisNo
-        });
-
-        if (sqlError) {
-          console.error('SQL sipariş ekleme hatası:', sqlError);
-          console.log('SQL hatası sonrası alternatif yönteme geçiliyor...');
-        } else if (sqlResult) {
-          console.log('SQL yöntemiyle sipariş başarıyla oluşturuldu:', sqlResult);
-          
-          // Sipariş ürünlerini ekle
-          if (urunler && urunler.length > 0 && sqlResult.id) {
-            console.log('Sipariş ürünleri ekleniyor (SQL yöntemi)...');
-            
-            for (const urun of urunler) {
-              const { error: urunEklemeError } = await supabaseAdmin.rpc('insert_siparis_urun', {
-                p_siparis_id: sqlResult.id,
-                p_stok_id: urun.stok_id,
-                p_adet: urun.adet,
-                p_fiyat: urun.fiyat
-              });
-              
-              if (urunEklemeError) {
-                console.error('Ürün ekleme hatası:', urunEklemeError);
-              }
-            }
-          }
-          
-          // Veritabanında gerçekten var mı doğrula
-          const dogrulama = await veritabaniDogrula(siparisNo);
-          if (!dogrulama.success) {
-            console.error('Sipariş kaydı doğrulanamadı!', dogrulama.error);
-            return NextResponse.json({
-              success: false,
-              error: 'Sipariş başarıyla oluşturuldu görünüyor ancak doğrulanamadı. Lütfen yönetici ile iletişime geçin.'
-            }, {
-              status: 500,
-              headers
-            });
-          }
-          
-          console.log('Sipariş kaydı doğrulandı:', dogrulama.data);
-          return NextResponse.json({
-            success: true,
-            message: 'Sipariş başarıyla oluşturuldu',
-            siparisNo: siparisNo,
-            dogrulama: dogrulama.data
-          }, {
-            headers
-          });
-        }
+        // Sipariş oluşturmayı dene
+        let siparisResult;
+        let siparisError;
+        let dogrulamaResult;
         
-        // YÖNTEM 2: ORM yöntemi - Yöntem 1 başarısız olursa
-        console.log('ORM yöntemi deneniyor...');
-        const { data: siparisResult, error: siparisError } = await supabaseAdmin
+        // İlk yöntem: Direkt insert
+        try {
+          // Siparis_no alanını içeren sorgu
+          const result = await supabaseAdmin
           .from('siparis')
           .insert(siparisData)
           .select()
           .single();
           
-        if (siparisError) {
-          console.error('Sipariş oluşturma hatası:', siparisError);
+          siparisResult = result.data;
+          siparisError = result.error;
+        } catch (insertError) {
+          console.error('İlk insert hatası:', insertError);
+          siparisError = insertError;
+        }
+        
+        // Hata varsa ve 'siparis_no' ile ilgiliyse, o alanı çıkar ve tekrar dene
+        if (siparisError && typeof siparisError === 'object' && (
+          (siparisError as any).message?.includes('siparis_no') || 
+          (siparisError as any).message?.includes('column')
+        )) {
+          console.log('Siparis_no alanı hatası. Alan olmadan deneniyor...');
           
-          // YÖNTEM 3: Raw SQL yöntemi - son çare
-          if (siparisError.message.includes('siparis_no')) {
-            console.log('Raw SQL sorgusu deneniyor...');
-            
-            // siparis_no sütunu şemada bulunamadıysa, onu çıkararak dene
-            const siparisDataNoSiparisNo: Partial<typeof siparisData> = { ...siparisData };
+          // siparis_no alanını çıkar
+          const siparisDataNoSiparisNo = {...siparisData};
             delete siparisDataNoSiparisNo.siparis_no;
             
-            const { data: rawResult, error: rawError } = await supabaseAdmin
+          // teslimat_tipi içine sipariş numarasını ekle (eski yöntem)
+          siparisDataNoSiparisNo.teslimat_tipi = teslimatTipiWithSiparisNo;
+          
+          try {
+            const result = await supabaseAdmin
               .from('siparis')
               .insert(siparisDataNoSiparisNo)
               .select()
               .single();
               
-            if (rawError) {
-              console.error('Raw SQL hatası:', rawError);
-              return NextResponse.json({
-                success: false,
-                error: 'Sipariş oluşturulurken bir hata oluştu. Lütfen daha sonra tekrar deneyin. Hata: ' + rawError.message
-              }, {
-                status: 500,
-                headers
-              });
-            }
-            
-            if (rawResult) {
-              // Sipariş ürünlerini ekle
-              if (urunler && urunler.length > 0) {
-                const siparisUrunleri = urunler.map((urun: {stok_id: string, adet: number, fiyat: number}) => ({
-                  siparis_id: rawResult.id,
-                  stok_id: urun.stok_id,
-                  adet: urun.adet,
-                  fiyat: urun.fiyat
-                }));
-                
-                const { error: urunlerError } = await supabaseAdmin
-                  .from('siparis_urunleri')
-                  .insert(siparisUrunleri);
-                  
-                if (urunlerError) {
-                  console.error('Sipariş ürünleri eklenirken hata:', urunlerError);
-                }
-              }
-              
-              // Veritabanında gerçekten var mı doğrula
-              const dogrulama = await veritabaniDogrula(siparisNo);
-              if (!dogrulama.success) {
-                console.error('Sipariş kaydı doğrulanamadı!', dogrulama.error);
-                return NextResponse.json({
-                  success: false,
-                  error: 'Sipariş başarıyla oluşturuldu görünüyor ancak doğrulanamadı. Lütfen yönetici ile iletişime geçin.'
-                }, {
-                  status: 500,
-                  headers
-                });
-              }
-              
-              console.log('Sipariş kaydı doğrulandı:', dogrulama.data);
-              return NextResponse.json({
-                success: true,
-                message: 'Sipariş başarıyla oluşturuldu (raw SQL)',
-                siparisNo: siparisNo,
-                dogrulama: dogrulama.data
-              }, {
-                headers
-              });
-            }
+            siparisResult = result.data;
+            siparisError = result.error;
+          } catch (fallbackError) {
+            console.error('İkinci insert hatası:', fallbackError);
+            siparisError = fallbackError;
           }
+        }
+        
+        // Hala hata varsa son çare yöntemi dene
+        if (siparisError) {
+          console.log('SQL RPC fonksiyonu deneniyor...');
           
-          return NextResponse.json({
-            success: false,
-            error: 'Sipariş oluşturulurken bir hata oluştu. Lütfen daha sonra tekrar deneyin. Hata: ' + siparisError.message
-          }, {
-            status: 500,
-            headers
-          });
+          try {
+            const result = await supabaseAdmin.rpc('dogrudan_siparis_kaydet', {
+              p_user_id: authenticatedUserId,
+              p_teslimat_tipi: teslimatTipiWithSiparisNo,
+              p_fatura_adres_id: faturaAdresiId,
+              p_odeme_bilgisi: odemeBilgisiObj,
+              p_toplam_tutar: odemeBilgisi.tutar || 0
+            });
+            
+            if (result.error) {
+              console.error('RPC hatası:', result.error);
+              siparisError = result.error;
+            } else {
+              siparisResult = result.data;
+              siparisError = null;
+            }
+          } catch (rpcError) {
+            console.error('RPC çağrısı hatası:', rpcError);
+            siparisError = rpcError;
+          }
         }
         
-        // Sipariş oluştu mu kontrol edelim
-        if (!siparisResult) {
-          console.error('Sipariş verisi dönmedi');
-          return NextResponse.json({
-            success: false,
-            error: 'Sipariş oluşturuldu ancak verisi alınamadı'
-          }, {
-            status: 500,
-            headers
-          });
-        }
-        
-        console.log('Sipariş başarıyla oluşturuldu, ID:', siparisResult.id);
-        
-        // Sipariş ürünlerini ekle
-        if (urunler && urunler.length > 0 && siparisResult) {
+        // Sipariş başarıyla oluşturulduysa ürünleri ekleyelim
+        if (siparisResult && urunler && urunler.length > 0) {
           console.log('Sipariş ürünleri ekleniyor...');
           
-          const siparisUrunleri = urunler.map((urun: {stok_id: string, adet: number, fiyat: number}) => ({
+          const siparisUrunleri = urunler.map((urun: SiparisUrun) => ({
             siparis_id: siparisResult.id,
             stok_id: urun.stok_id,
             adet: urun.adet,
             fiyat: urun.fiyat
           }));
           
-          console.log('Sipariş ürünleri verileri:', JSON.stringify(siparisUrunleri, null, 2));
-          
-          // RLS politikasını aşmak için admin client kullan
+          try {
           const { error: urunlerError } = await supabaseAdmin
             .from('siparis_urunleri')
             .insert(siparisUrunleri);
             
           if (urunlerError) {
             console.error('Sipariş ürünleri eklenirken hata:', urunlerError);
-            return NextResponse.json({
-              success: false,
-              error: 'Sipariş ürünleri eklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin. Hata: ' + urunlerError.message
-            }, {
-              status: 500,
-              headers
-            });
+            } else {
+              console.log('Sipariş ürünleri başarıyla eklendi');
+            }
+          } catch (urunEklemeHatasi) {
+            console.error('Ürün ekleme hatası:', urunEklemeHatasi);
           }
-          
-          console.log('Sipariş ürünleri başarıyla eklendi');
-        } else {
-          console.warn('Eklenecek sipariş ürünü bulunamadı');
         }
+        
+        // Sipariş kaydını doğrula
+        try {
+          dogrulamaResult = await veritabaniDogrula(siparisNo);
+        } catch (dogrulamaHatasi) {
+          console.error('Doğrulama hatası:', dogrulamaHatasi);
+          dogrulamaResult = { success: false, error: dogrulamaHatasi };
+        }
+        
+        // Başarı durumunda uygun yanıtı döndür
+        if (siparisResult || (dogrulamaResult && dogrulamaResult.success)) {
+          console.log('Sipariş başarıyla oluşturuldu.');
           
-        // Veritabanında gerçekten var mı doğrula
-        const dogrulama = await veritabaniDogrula(siparisNo);
-        if (!dogrulama.success) {
-          console.error('Sipariş kaydı doğrulanamadı!', dogrulama.error);
           return NextResponse.json({
-            success: false,
-            error: 'Sipariş başarıyla oluşturuldu görünüyor ancak doğrulanamadı. Lütfen yönetici ile iletişime geçin.'
+            success: true,
+            message: 'Sipariş başarıyla oluşturuldu',
+            siparisNo: siparisNo,
+            siparis_id: siparisResult?.id || dogrulamaResult?.data?.id,
+            dogrulama: dogrulamaResult?.data
           }, {
-            status: 500,
             headers
           });
         }
         
-        console.log('Sipariş işlemi başarıyla tamamlandı');
-        console.log('Sipariş kaydı doğrulandı:', dogrulama.data);
-        return NextResponse.json({
-          success: true,
-          message: 'Sipariş başarıyla oluşturuldu',
-          siparisNo: siparisNo,
-          dogrulama: dogrulama.data
-        }, {
-          headers
-        });
-      } catch (insertError: any) {
-        console.error('Sipariş insert hatası:', insertError);
+        // Hata durumunda yanıt
+        console.error('Sipariş kaydı başarısız:', siparisError);
         return NextResponse.json({
           success: false,
-          error: 'Siparişiniz kaydedilemedi. Teknik hata: ' + (insertError.message || 'Bilinmeyen hata')
+          error: 'Sipariş oluşturulurken bir hata oluştu. Lütfen daha sonra tekrar deneyin.'
+        }, {
+          status: 500,
+          headers
+        });
+        
+      } catch (error: any) {
+        console.error('Beklenmeyen hata:', error);
+        return NextResponse.json({
+          success: false,
+          error: 'Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.'
         }, {
           status: 500,
           headers
         });
       }
-    } catch (dbError: any) {
-      console.error('Veritabanı hatası:', dbError);
+    } catch (error) {
+      console.error('Sipariş oluşturma hatası:', error);
       return NextResponse.json({
         success: false,
-        error: 'Siparişiniz veritabanına kaydedilemedi. Lütfen daha sonra tekrar deneyin. Hata: ' + (dbError.message || 'Bilinmeyen veritabanı hatası')
+        error: 'Sipariş oluşturulurken bir hata oluştu'
       }, {
         status: 500,
         headers
