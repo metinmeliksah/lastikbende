@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
-import { Search, Phone, Mail, Calendar, Eye, Edit, Ban, CheckCircle, X } from 'lucide-react';
+import { Search, Phone, Mail, Calendar, Eye, Edit, Ban, CheckCircle, X, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import { toast, Toaster } from 'sonner';
 
@@ -22,7 +22,7 @@ export default function Uyeler() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'passive'>('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -134,21 +134,46 @@ export default function Uyeler() {
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
       `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (user.phone && user.phone.includes(searchTerm));
 
     if (statusFilter === 'all') return matchesSearch;
-    if (statusFilter === 'active') return matchesSearch && user.durum;
-    if (statusFilter === 'passive') return matchesSearch && !user.durum;
-
-    return matchesSearch;
+    return matchesSearch && user.durum === (statusFilter === 'active');
   });
 
   return (
     <div className="space-y-6">
       <Toaster position="top-right" expand={true} richColors />
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Üyeler</h1>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <h1 className="text-2xl font-semibold text-gray-900">Üyeler</h1>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Üye ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full md:w-64 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
+            />
+          </div>
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full md:w-40 pl-3 pr-10 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg appearance-none focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
+            >
+              <option value="all">Tüm Üyeler</option>
+              <option value="active">Aktif</option>
+              <option value="inactive">Pasif</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+              <ChevronDown className="h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Özet Kartları */}
@@ -171,204 +196,160 @@ export default function Uyeler() {
         </div>
       </div>
 
-      {/* Arama ve Filtreler */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Üye ara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setStatusFilter('all')}
-              className={`px-4 py-2 rounded-lg ${
-                statusFilter === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              Tümü
-            </button>
-            <button
-              onClick={() => setStatusFilter('active')}
-              className={`px-4 py-2 rounded-lg ${
-                statusFilter === 'active'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              Aktif
-            </button>
-            <button
-              onClick={() => setStatusFilter('passive')}
-              className={`px-4 py-2 rounded-lg ${
-                statusFilter === 'passive'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              Pasif
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Üyeler Tablosu */}
-      <div className="bg-white rounded-xl shadow-sm">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Profil
-              </th>
-              <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ad Soyad
-              </th>
-              <th className="w-[25%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                İletişim
-              </th>
-              <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Kayıt Tarihi
-              </th>
-              <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Son Giriş
-              </th>
-              <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Durum
-              </th>
-              <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                İşlemler
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-gray-500">
-                  Yükleniyor...
-                </td>
+                <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Profil
+                </th>
+                <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ad Soyad
+                </th>
+                <th className="w-[25%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  İletişim
+                </th>
+                <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Kayıt Tarihi
+                </th>
+                <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Son Giriş
+                </th>
+                <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Durum
+                </th>
+                <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  İşlemler
+                </th>
               </tr>
-            ) : filteredUsers.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-gray-500">
-                  Üye bulunamadı
-                </td>
-              </tr>
-            ) : (
-              filteredUsers.map((user, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-3 py-4">
-                    {user.profile_image_url ? (
-                      <Image
-                        src={user.profile_image_url}
-                        alt={`${user.first_name} ${user.last_name}`}
-                        width={32}
-                        height={32}
-                        className="rounded-full"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-                        {getInitials(user.first_name, user.last_name)}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
-                      {user.first_name} {user.last_name}
-                    </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Phone className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{formatPhoneNumber(user.phone)}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Mail className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{user.email}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <Calendar className="w-3 h-3 flex-shrink-0" />
-                      <span className="whitespace-nowrap">{formatDate(user.created_at)}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <Calendar className="w-3 h-3 flex-shrink-0" />
-                      <span className="whitespace-nowrap">{formatDate(user.last_login)}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      user.durum ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {user.durum ? 'Aktif' : 'Pasif'}
-                    </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setIsViewModalOpen(true);
-                        }}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group relative"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                          Görüntüle
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setEditForm(user);
-                          setIsEditModalOpen(true);
-                        }}
-                        className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors group relative"
-                      >
-                        <Edit className="w-4 h-4" />
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                          Düzenle
-                        </span>
-                      </button>
-                      {user.durum ? (
-                        <button
-                          onClick={() => handleStatusChange(user.id, false)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors group relative"
-                        >
-                          <Ban className="w-4 h-4" />
-                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                            Askıya Al
-                          </span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleStatusChange(user.id, true)}
-                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors group relative"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
-                            Aktifleştir
-                          </span>
-                        </button>
-                      )}
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-3 py-4 text-center text-gray-500">
+                    <div className="flex justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-3 py-4 text-center text-gray-500">
+                    Üye bulunamadı
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((user, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-3 py-4">
+                      {user.profile_image_url ? (
+                        <Image
+                          src={user.profile_image_url}
+                          alt={`${user.first_name} ${user.last_name}`}
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                          {getInitials(user.first_name, user.last_name)}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
+                        {user.first_name} {user.last_name}
+                      </div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <Phone className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{formatPhoneNumber(user.phone)}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <Mail className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{user.email}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <Calendar className="w-3 h-3 flex-shrink-0" />
+                        <span className="whitespace-nowrap">{formatDate(user.created_at)}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <Calendar className="w-3 h-3 flex-shrink-0" />
+                        <span className="whitespace-nowrap">{formatDate(user.last_login)}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        user.durum ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {user.durum ? 'Aktif' : 'Pasif'}
+                      </div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsViewModalOpen(true);
+                          }}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group relative"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
+                            Görüntüle
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setEditForm(user);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors group relative"
+                        >
+                          <Edit className="w-4 h-4" />
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
+                            Düzenle
+                          </span>
+                        </button>
+                        {user.durum ? (
+                          <button
+                            onClick={() => handleStatusChange(user.id, false)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors group relative"
+                          >
+                            <Ban className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
+                              Askıya Al
+                            </span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleStatusChange(user.id, true)}
+                            className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors group relative"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-2">
+                              Aktifleştir
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Görüntüleme Modalı */}

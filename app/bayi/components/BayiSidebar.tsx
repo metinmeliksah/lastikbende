@@ -26,46 +26,40 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   {
-    title: 'Dashboard',
+    title: 'Ana Sayfa',
     path: '/bayi',
     icon: <LayoutDashboard className="w-5 h-5" />,
-    section: 'HOME'
+    section: 'ANA MENÜ'
   },
   {
     title: 'Gelir Takibi',
     path: '/bayi/gelir',
     icon: <CircleDollarSign className="w-5 h-5" />,
-    section: 'HOME'
+    section: 'ANA MENÜ'
   },
   {
     title: 'Lastik Tablosu',
     path: '/bayi/lastikler',
     icon: <Table2 className="w-5 h-5" />,
-    section: 'UTILITIES'
+    section: 'ÜRÜN YÖNETİMİ'
   },
   {
     title: 'Lastik Ekle',
     path: '/bayi/lastik-ekle',
     icon: <FormInput className="w-5 h-5" />,
-    section: 'UTILITIES'
+    section: 'ÜRÜN YÖNETİMİ'
   },
   {
     title: 'Stok Yönetimi',
     path: '/bayi/stok',
     icon: <Box className="w-5 h-5" />,
-    section: 'UTILITIES'
+    section: 'ÜRÜN YÖNETİMİ'
   },
   {
     title: 'Siparişler',
     path: '/bayi/siparisler',
     icon: <ShoppingCart className="w-5 h-5" />,
-    section: 'MANAGEMENT'
-  },
-  {
-    title: 'Raporlar',
-    path: '/bayi/raporlar',
-    icon: <BarChart3 className="w-5 h-5" />,
-    section: 'MANAGEMENT'
+    section: 'SİPARİŞ YÖNETİMİ'
   }
 ];
 

@@ -288,7 +288,7 @@ export default function Bayiler() {
               placeholder="Bayi ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 w-full px-4 py-2.5 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
             />
           </div>
           <div className="flex gap-2">

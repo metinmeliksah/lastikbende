@@ -9,9 +9,16 @@ import { ShoppingCartIcon, MagnifyingGlassIcon, Bars3Icon, XMarkIcon, UserIcon, 
 import { createClient } from '@supabase/supabase-js'
 
 // Supabase client oluştur
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('Supabase URL veya Anon Key eksik. Lütfen .env.local dosyasını kontrol edin.')
+}
+
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  supabaseUrl || 'https://your-project.supabase.co',
+  supabaseAnonKey || 'your-anon-key'
 )
 
 export default function Navbar() {

@@ -1,476 +1,412 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Plus, X } from 'lucide-react';
-import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+import { PhotoIcon } from '@heroicons/react/24/outline';
 
-interface FormData {
-  marka: string;
-  model: string;
-  ebat: string;
-  yil: string;
-  mevsim: string;
-  hizIndeksi: string;
-  yukIndeksi: string;
-  stok: string;
-  fiyat: string;
-  indirimli: string;
-  ozellikler: string[];
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+);
 
-export default function LastikEkleSayfasi() {
-  const [formData, setFormData] = useState<FormData>({
+export default function LastikEklePage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [stokEkle, setStokEkle] = useState(false);
+  const [formData, setFormData] = useState({
     marka: '',
     model: '',
-    ebat: '',
-    yil: '',
+    genislik_mm: '',
+    profil: '',
+    yapi: '',
+    cap_inch: '',
+    yuk_endeksi: '',
+    hiz_endeksi: '',
     mevsim: 'Yaz',
-    hizIndeksi: '',
-    yukIndeksi: '',
-    stok: '',
+    aciklama: '',
+    stok_adet: '',
     fiyat: '',
-    indirimli: '',
-    ozellikler: []
+    indirimli_fiyat: '',
+    saglik_durumu: '100'
   });
-
-  const [yeniOzellik, setYeniOzellik] = useState('');
   const [resimler, setResimler] = useState<File[]>([]);
-  const [onizlemeUrller, setOnizlemeUrller] = useState<string[]>([]);
 
-  // Form değişiklik fonksiyonu
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleResimSecimi = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setResimler(prev => [...prev, ...files].slice(0, 4));
   };
 
-  // Özellik ekleme
-  const handleOzellikEkle = () => {
-    if (yeniOzellik.trim() !== '') {
-      setFormData(prev => ({
-        ...prev,
-        ozellikler: [...prev.ozellikler, yeniOzellik.trim()]
-      }));
-      setYeniOzellik('');
-    }
+  const handleResimKaldir = (index: number) => {
+    setResimler(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Özellik silme
-  const handleOzellikSil = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      ozellikler: prev.ozellikler.filter((_, i) => i !== index)
-    }));
-  };
-
-  // Resim yükleme
-  const handleResimYukle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      // Dosyaları diziye çevir
-      const yeniResimler = Array.from(e.target.files);
-      
-      // Önce state güncelle
-      setResimler(prev => [...prev, ...yeniResimler]);
-      
-      // Önizleme URL'leri oluştur
-      const yeniUrller = yeniResimler.map(file => URL.createObjectURL(file));
-      setOnizlemeUrller(prev => [...prev, ...yeniUrller]);
-      
-      // Input'u sıfırla (aynı dosyayı tekrar seçebilmek için)
-      e.target.value = '';
-    }
-  };
-
-  // Resim silme
-  const handleResimSil = (index: number) => {
-    try {
-      // İlgili URL'yi al
-      const urlToRevoke = onizlemeUrller[index];
-      
-      // State'lerin kopyasını oluştur
-      const yeniResimler = [...resimler];
-      const yeniUrller = [...onizlemeUrller];
-      
-      // Kopyalardan ilgili öğeleri kaldır
-      yeniResimler.splice(index, 1);
-      yeniUrller.splice(index, 1);
-      
-      // State'leri güncelle
-      setResimler(yeniResimler);
-      setOnizlemeUrller(yeniUrller);
-      
-      // URL'yi güvenli bir şekilde serbest bırak
-      if (urlToRevoke) {
-        setTimeout(() => {
-          try {
-            URL.revokeObjectURL(urlToRevoke);
-          } catch (err) {
-            console.error("URL revokeObject hatası:", err);
-          }
-        }, 100);
-      }
-    } catch (err) {
-      console.error("Resim silme işlemi sırasında hata:", err);
-    }
-  };
-
-  // URL'leri temizle (component unmount olduğunda)
-  useEffect(() => {
-    return () => {
-      // Tüm URL'leri temizle
-      onizlemeUrller.forEach(url => {
-        try {
-          URL.revokeObjectURL(url);
-        } catch (err) {
-          console.error("Cleanup URL error:", err);
-        }
-      });
-    };
-  }, [onizlemeUrller]);
-
-  // Form gönderme
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Gönderilen veri:', formData);
-    console.log('Yüklenen resimler:', resimler);
-    
-    // Burada API'ye gönderme işlemi yapılacak
-    alert('Lastik başarıyla eklendi!');
-    
-    // Formu sıfırla
-    setFormData({
-      marka: '',
-      model: '',
-      ebat: '',
-      yil: '',
-      mevsim: 'Yaz',
-      hizIndeksi: '',
-      yukIndeksi: '',
-      stok: '',
-      fiyat: '',
-      indirimli: '',
-      ozellikler: []
-    });
-    setResimler([]);
-    setOnizlemeUrller([]);
+    setLoading(true);
+
+    try {
+      // Resimleri yükle
+      const resimUrlleri = await Promise.all(
+        resimler.map(async (resim) => {
+          const dosyaAdi = `${Date.now()}-${resim.name}`;
+          const { data, error } = await supabase.storage
+            .from('urun-resimleri')
+            .upload(dosyaAdi, resim);
+
+          if (error) throw error;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('urun-resimleri')
+            .getPublicUrl(dosyaAdi);
+
+          return publicUrl;
+        })
+      );
+
+      // Ürün detaylarını kaydet
+      const { data: urunData, error: urunError } = await supabase
+        .from('urundetay')
+        .insert([{
+          marka: formData.marka,
+          model: formData.model,
+          genislik_mm: parseInt(formData.genislik_mm),
+          profil: parseInt(formData.profil),
+          yapi: formData.yapi,
+          cap_inch: parseInt(formData.cap_inch),
+          yuk_endeksi: formData.yuk_endeksi,
+          hiz_endeksi: formData.hiz_endeksi,
+          mevsim: formData.mevsim,
+          aciklama: formData.aciklama || null,
+          urun_resmi_0: resimUrlleri[0] || null,
+          urun_resmi_1: resimUrlleri[1] || null,
+          urun_resmi_2: resimUrlleri[2] || null,
+          urun_resmi_3: resimUrlleri[3] || null
+        }])
+        .select()
+        .single();
+
+      if (urunError) throw urunError;
+
+      // Stok bilgisi girilmişse kaydet
+      if (stokEkle && formData.stok_adet && formData.fiyat) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Kullanıcı bulunamadı');
+
+        const { data: sellerData } = await supabase
+          .from('sellers')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!sellerData) throw new Error('Bayi bulunamadı');
+
+        const { error: stokError } = await supabase
+          .from('stok')
+          .insert([{
+            urun_id: urunData.urun_id,
+            magaza_id: sellerData.id,
+            stok_adet: parseInt(formData.stok_adet),
+            fiyat: parseFloat(formData.fiyat),
+            indirimli_fiyat: formData.indirimli_fiyat ? parseFloat(formData.indirimli_fiyat) : null,
+            saglik_durumu: parseInt(formData.saglik_durumu),
+            guncellenme_tarihi: new Date().toISOString()
+          }]);
+
+        if (stokError) throw stokError;
+      }
+
+      router.push('/bayi/lastikler');
+      router.refresh();
+    } catch (error) {
+      console.error('Lastik eklenirken hata:', error);
+      alert('Lastik eklenirken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Başlık */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link 
-            href="/bayi/lastikler" 
-            className="p-2 text-gray-500 hover:text-gray-700 bg-white rounded-lg border border-gray-200"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-800">Yeni Lastik Ekle</h1>
-        </div>
-        <button
-          type="submit"
-          form="lastik-form"
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-        >
-          <Save className="w-4 h-4" />
-          <span>Kaydet</span>
-        </button>
-      </div>
+    <div className="p-6">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Yeni Lastik Ekle</h1>
 
-      {/* Form */}
-      <form id="lastik-form" onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Sol Kolon */}
-          <div className="space-y-6">
-            <h2 className="text-lg font-semibold text-gray-800 border-b pb-3">Temel Bilgiler</h2>
-            
-            {/* Marka */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Temel Bilgiler</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="marka" className="block text-sm font-medium text-gray-700 mb-1">
-                Marka <span className="text-red-500">*</span>
+                  Marka
               </label>
               <input
                 type="text"
                 id="marka"
-                name="marka"
                 value={formData.marka}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  onChange={(e) => setFormData(prev => ({ ...prev, marka: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               />
             </div>
-            
-            {/* Model */}
             <div>
               <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-1">
-                Model <span className="text-red-500">*</span>
+                  Model
               </label>
               <input
                 type="text"
                 id="model"
-                name="model"
                 value={formData.model}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               />
             </div>
-            
-            {/* Ebat */}
             <div>
-              <label htmlFor="ebat" className="block text-sm font-medium text-gray-700 mb-1">
-                Ebat <span className="text-red-500">*</span>
+                <label htmlFor="genislik_mm" className="block text-sm font-medium text-gray-700 mb-1">
+                  Genişlik (mm)
               </label>
               <input
-                type="text"
-                id="ebat"
-                name="ebat"
-                value={formData.ebat}
-                onChange={handleChange}
-                placeholder="Örn: 205/55 R16"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  type="number"
+                  id="genislik_mm"
+                  value={formData.genislik_mm}
+                  onChange={(e) => setFormData(prev => ({ ...prev, genislik_mm: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               />
             </div>
-            
-            {/* Yıl */}
             <div>
-              <label htmlFor="yil" className="block text-sm font-medium text-gray-700 mb-1">
-                Üretim Yılı <span className="text-red-500">*</span>
+                <label htmlFor="profil" className="block text-sm font-medium text-gray-700 mb-1">
+                  Profil
               </label>
               <input
                 type="number"
-                id="yil"
-                name="yil"
-                value={formData.yil}
-                onChange={handleChange}
-                min="2018"
-                max="2023"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  id="profil"
+                  value={formData.profil}
+                  onChange={(e) => setFormData(prev => ({ ...prev, profil: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               />
             </div>
-            
-            {/* Mevsim */}
             <div>
-              <label htmlFor="mevsim" className="block text-sm font-medium text-gray-700 mb-1">
-                Mevsim <span className="text-red-500">*</span>
+                <label htmlFor="yapi" className="block text-sm font-medium text-gray-700 mb-1">
+                  Yapı
               </label>
-              <select
-                id="mevsim"
-                name="mevsim"
-                value={formData.mevsim}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              <input
+                type="text"
+                  id="yapi"
+                  value={formData.yapi}
+                  onChange={(e) => setFormData(prev => ({ ...prev, yapi: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+              />
+            </div>
+            <div>
+                <label htmlFor="cap_inch" className="block text-sm font-medium text-gray-700 mb-1">
+                  Çap (inch)
+              </label>
+              <input
+                  type="number"
+                  id="cap_inch"
+                  value={formData.cap_inch}
+                  onChange={(e) => setFormData(prev => ({ ...prev, cap_inch: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+              />
+            </div>
+            <div>
+                <label htmlFor="yuk_endeksi" className="block text-sm font-medium text-gray-700 mb-1">
+                  Yük Endeksi
+              </label>
+              <input
+                  type="text"
+                  id="yuk_endeksi"
+                  value={formData.yuk_endeksi}
+                  onChange={(e) => setFormData(prev => ({ ...prev, yuk_endeksi: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
-              >
-                <option value="Yaz">Yaz</option>
-                <option value="Kış">Kış</option>
-                <option value="Dört Mevsim">Dört Mevsim</option>
-              </select>
-            </div>
-            
-            {/* Hız İndeksi */}
-            <div>
-              <label htmlFor="hizIndeksi" className="block text-sm font-medium text-gray-700 mb-1">
-                Hız İndeksi
-              </label>
-              <input
-                type="text"
-                id="hizIndeksi"
-                name="hizIndeksi"
-                value={formData.hizIndeksi}
-                onChange={handleChange}
-                placeholder="Örn: V, W, Y"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            
-            {/* Yük İndeksi */}
             <div>
-              <label htmlFor="yukIndeksi" className="block text-sm font-medium text-gray-700 mb-1">
-                Yük İndeksi
+                <label htmlFor="hiz_endeksi" className="block text-sm font-medium text-gray-700 mb-1">
+                  Hız Endeksi
               </label>
               <input
-                type="text"
-                id="yukIndeksi"
-                name="yukIndeksi"
-                value={formData.yukIndeksi}
-                onChange={handleChange}
-                placeholder="Örn: 91, 95"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  type="text"
+                  id="hiz_endeksi"
+                  value={formData.hiz_endeksi}
+                  onChange={(e) => setFormData(prev => ({ ...prev, hiz_endeksi: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                required
               />
             </div>
+            <div>
+                <label htmlFor="mevsim" className="block text-sm font-medium text-gray-700 mb-1">
+                  Mevsim
+              </label>
+                <select
+                  id="mevsim"
+                  value={formData.mevsim}
+                  onChange={(e) => setFormData(prev => ({ ...prev, mevsim: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                >
+                  <option value="Yaz">Yaz</option>
+                  <option value="Kış">Kış</option>
+                  <option value="4 Mevsim">4 Mevsim</option>
+                </select>
+              </div>
+            </div>
+            </div>
+            
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Açıklama</h2>
+            <textarea
+              id="aciklama"
+              value={formData.aciklama}
+              onChange={(e) => setFormData(prev => ({ ...prev, aciklama: e.target.value }))}
+              rows={6}
+              className="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Ürün açıklaması..."
+            />
           </div>
-          
-          {/* Sağ Kolon */}
-          <div className="space-y-6">
-            <h2 className="text-lg font-semibold text-gray-800 border-b pb-3">Stok ve Fiyat Bilgileri</h2>
-            
-            {/* Stok */}
-            <div>
-              <label htmlFor="stok" className="block text-sm font-medium text-gray-700 mb-1">
-                Stok Adedi <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                id="stok"
-                name="stok"
-                value={formData.stok}
-                onChange={handleChange}
-                min="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                required
-              />
-            </div>
-            
-            {/* Fiyat */}
-            <div>
-              <label htmlFor="fiyat" className="block text-sm font-medium text-gray-700 mb-1">
-                Fiyat (₺) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                id="fiyat"
-                name="fiyat"
-                value={formData.fiyat}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                required
-              />
-            </div>
-            
-            {/* İndirimli Fiyat */}
-            <div>
-              <label htmlFor="indirimli" className="block text-sm font-medium text-gray-700 mb-1">
-                İndirimli Fiyat (₺)
-              </label>
-              <input
-                type="number"
-                id="indirimli"
-                name="indirimli"
-                value={formData.indirimli}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-            
-            {/* Lastik Özellikleri */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Lastik Özellikleri
-              </label>
-              
-              <div className="mb-3">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={yeniOzellik}
-                    onChange={(e) => setYeniOzellik(e.target.value)}
-                    placeholder="Özellik yazın..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Ürün Resimleri</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4">
+              {resimler.map((resim, index) => (
+                <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                  <img
+                    src={URL.createObjectURL(resim)}
+                    alt={`Resim ${index + 1}`}
+                    className="w-full h-full object-cover"
                   />
                   <button
                     type="button"
-                    onClick={handleOzellikEkle}
-                    className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                    onClick={() => handleResimKaldir(index)}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                   >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {formData.ozellikler.map((ozellik, index) => (
-                  <div key={index} className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-3 py-1 rounded-full">
-                    <span className="text-sm">{ozellik}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleOzellikSil(index)}
-                      className="text-purple-700 hover:text-purple-900"
-                    >
-                      <X className="w-4 h-4" />
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                     </button>
                   </div>
                 ))}
-                {formData.ozellikler.length === 0 && (
-                  <p className="text-sm text-gray-500 italic">Henüz özellik eklenmedi</p>
-                )}
-              </div>
-            </div>
-            
-            {/* Ürün Görselleri */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Ürün Görselleri
-              </label>
-              
-              <div className="mb-3">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Plus className="w-8 h-8 text-gray-400 mb-2" />
-                    <p className="mb-2 text-sm text-gray-500">
-                      <span className="font-semibold">Resim yüklemek için tıklayın</span>
-                    </p>
-                    <p className="text-xs text-gray-500">PNG, JPG (MAX. 2MB)</p>
-                  </div>
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*" 
-                    multiple 
-                    onChange={handleResimYukle}
+              {resimler.length < 4 && (
+                <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-purple-500">
+                  <PhotoIcon className="w-8 h-8 text-gray-400" />
+                  <span className="mt-2 text-sm text-gray-500">Resim Ekle</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleResimSecimi}
+                    className="hidden"
                   />
                 </label>
+                )}
               </div>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {onizlemeUrller.map((url, index) => (
-                  <div key={index} className="relative">
-                    <div className="h-24 w-full border rounded-lg overflow-hidden">
-                      <img 
-                        src={url} 
-                        alt={`Önizleme ${index}`} 
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleResimSil(index)}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <p className="text-sm text-gray-500">En fazla 4 adet resim yükleyebilirsiniz.</p>
           </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-800">Stok Bilgisi</h2>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={stokEkle}
+                  onChange={(e) => setStokEkle(e.target.checked)}
+                  className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                />
+                <span className="ml-2 text-sm text-gray-600">Stok bilgisi ekle</span>
+              </label>
+            </div>
+            
+            {stokEkle && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+                  <label htmlFor="stok_adet" className="block text-sm font-medium text-gray-700 mb-2">
+                    Stok Adedi
+              </label>
+                  <input 
+                    type="number"
+                    id="stok_adet"
+                    value={formData.stok_adet}
+                    onChange={(e) => setFormData(prev => ({ ...prev, stok_adet: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    required={stokEkle}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="fiyat" className="block text-sm font-medium text-gray-700 mb-2">
+                    Fiyat
+                </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      id="fiyat"
+                      value={formData.fiyat}
+                      onChange={(e) => setFormData(prev => ({ ...prev, fiyat: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required={stokEkle}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">₺</span>
+                  </div>
+              </div>
+                <div>
+                  <label htmlFor="indirimli_fiyat" className="block text-sm font-medium text-gray-700 mb-2">
+                    İndirimli Fiyat (Opsiyonel)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      id="indirimli_fiyat"
+                      value={formData.indirimli_fiyat}
+                      onChange={(e) => setFormData(prev => ({ ...prev, indirimli_fiyat: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">₺</span>
+                  </div>
+                    </div>
+                <div>
+                  <label htmlFor="saglik_durumu" className="block text-sm font-medium text-gray-700 mb-2">
+                    Sağlık Durumu (0-100)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      id="saglik_durumu"
+                      min="0"
+                      max="100"
+                      value={formData.saglik_durumu}
+                      onChange={(e) => setFormData(prev => ({ ...prev, saglik_durumu: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required={stokEkle}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                  </div>
+                </div>
+              </div>
+            )}
         </div>
         
-        {/* Alt Butonlar */}
-        <div className="px-6 py-4 bg-gray-50 border-t flex justify-end gap-3">
-          <Link 
-            href="/bayi/lastikler" 
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
+          <div className="flex justify-end gap-4">
+            <button
+              type="button"
+              onClick={() => router.push('/bayi/lastikler')}
+              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
           >
             İptal
-          </Link>
+            </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              disabled={loading}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
           >
-            Lastik Ekle
+              {loading ? 'Kaydediliyor...' : 'Kaydet'}
           </button>
         </div>
       </form>
+      </div>
     </div>
   );
 } 
