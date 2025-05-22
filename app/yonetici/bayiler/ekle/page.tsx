@@ -172,9 +172,11 @@ export default function BayiEkle() {
                 </div>
                 <input
                   type="text"
+                  id="isim"
+                  name="isim"
                   value={bayiForm.isim}
                   onChange={(e) => setBayiForm({ ...bayiForm, isim: e.target.value })}
-                  className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-10 mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                   required
                 />
               </div>
@@ -189,9 +191,11 @@ export default function BayiEkle() {
                 </div>
                 <input
                   type="text"
+                  id="vergi_no"
+                  name="vergi_no"
                   value={bayiForm.vergi_no}
                   onChange={(e) => setBayiForm({ ...bayiForm, vergi_no: e.target.value })}
-                  className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-10 mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                   required
                 />
               </div>
@@ -206,9 +210,11 @@ export default function BayiEkle() {
                 </div>
                 <input
                   type="text"
+                  id="vergi_dairesi"
+                  name="vergi_dairesi"
                   value={bayiForm.vergi_dairesi}
                   onChange={(e) => setBayiForm({ ...bayiForm, vergi_dairesi: e.target.value })}
-                  className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-10 mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                   required
                 />
               </div>
@@ -224,7 +230,7 @@ export default function BayiEkle() {
                 <select
                   value={bayiForm.durum ? 'true' : 'false'}
                   onChange={(e) => setBayiForm({ ...bayiForm, durum: e.target.value === 'true' })}
-                  className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-10 mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                   required
                 >
                   <option value="true">Aktif</option>
@@ -252,6 +258,8 @@ export default function BayiEkle() {
                 </div>
                 <input
                   type="text"
+                  id="telefon"
+                  name="telefon"
                   value={formatPhoneInput(bayiForm.telefon.replace(/^90/, ''))}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, '');
@@ -260,7 +268,7 @@ export default function BayiEkle() {
                     }
                   }}
                   placeholder="XXX XXX XXXX"
-                  className="pl-20 block w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-20 mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                   required
                 />
               </div>
@@ -276,13 +284,11 @@ export default function BayiEkle() {
                 </div>
                 <input
                   type="email"
+                  id="email"
+                  name="email"
                   value={bayiForm.email}
                   onChange={(e) => setBayiForm({ ...bayiForm, email: e.target.value })}
-                  className={`pl-10 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-                    bayiForm.email && !isValidEmail(bayiForm.email)
-                      ? 'border-red-300'
-                      : 'border-gray-300'
-                  }`}
+                  className="pl-10 mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                   required
                 />
               </div>
@@ -299,10 +305,12 @@ export default function BayiEkle() {
                   </svg>
                 </div>
                 <textarea
+                  id="adres"
+                  name="adres"
                   value={bayiForm.adres}
                   onChange={(e) => setBayiForm({ ...bayiForm, adres: e.target.value })}
                   rows={3}
-                  className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-10 mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                   required
                 />
               </div>
@@ -317,9 +325,11 @@ export default function BayiEkle() {
                 </div>
                 <input
                   type="text"
+                  id="sehir"
+                  name="sehir"
                   value={bayiForm.sehir}
                   onChange={(e) => setBayiForm({ ...bayiForm, sehir: e.target.value })}
-                  className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-10 mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                   required
                 />
               </div>
@@ -334,9 +344,11 @@ export default function BayiEkle() {
                 </div>
                 <input
                   type="text"
+                  id="ilce"
+                  name="ilce"
                   value={bayiForm.ilce}
                   onChange={(e) => setBayiForm({ ...bayiForm, ilce: e.target.value })}
-                  className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-10 mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                   required
                 />
               </div>
@@ -352,9 +364,11 @@ export default function BayiEkle() {
               <label className="block text-sm font-medium text-gray-700">Ad</label>
               <input
                 type="text"
+                id="ad"
+                name="ad"
                 value={yetkiliForm.ad}
                 onChange={(e) => setYetkiliForm({ ...yetkiliForm, ad: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                 required
               />
             </div>
@@ -362,9 +376,11 @@ export default function BayiEkle() {
               <label className="block text-sm font-medium text-gray-700">Soyad</label>
               <input
                 type="text"
+                id="soyad"
+                name="soyad"
                 value={yetkiliForm.soyad}
                 onChange={(e) => setYetkiliForm({ ...yetkiliForm, soyad: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                 required
               />
             </div>
@@ -376,6 +392,8 @@ export default function BayiEkle() {
                 </span>
                 <input
                   type="text"
+                  id="telefon"
+                  name="telefon"
                   value={formatPhoneInput(yetkiliForm.telefon.replace(/^90/, ''))}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, '');
@@ -393,13 +411,11 @@ export default function BayiEkle() {
               <label className="block text-sm font-medium text-gray-700">Email Adresi</label>
               <input
                 type="email"
+                id="email"
+                name="email"
                 value={yetkiliForm.email}
                 onChange={(e) => setYetkiliForm({ ...yetkiliForm, email: e.target.value })}
-                className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-                  yetkiliForm.email && !isValidEmail(yetkiliForm.email)
-                    ? 'border-red-300'
-                    : 'border-gray-300'
-                }`}
+                className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-200 focus:border-purple-500 transition-colors"
                 required
               />
             </div>
@@ -408,9 +424,11 @@ export default function BayiEkle() {
               <div className="mt-1 relative rounded-md shadow-sm">
                 <input
                   type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
                   value={yetkiliForm.password}
                   onChange={(e) => setYetkiliForm({ ...yetkiliForm, password: e.target.value })}
-                  className="block w-full rounded-md border-gray-300 pr-10 focus:border-blue-500 focus:ring-blue-500"
+                  className="block w-full rounded-lg border-gray-300 pr-10 focus:border-blue-500 focus:ring-blue-500"
                   required
                   minLength={6}
                 />
