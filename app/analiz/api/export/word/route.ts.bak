@@ -951,4 +951,19 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Make sure there's a default export
+export { GET, POST } from './route.handlers';
+
+// This empty export will be removed once we implement the actual handlers
+export async function GET() {
+  return new Response('Word export API is available. Use POST method to generate reports.', { 
+    status: 200,
+    headers: { 'Content-Type': 'text/plain' }
+  });
+}
+
+export async function POST() {
+  return new Response('Word export API endpoint', { status: 200 });
 } 

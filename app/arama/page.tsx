@@ -64,7 +64,9 @@ export default function SearchPage() {
   const handleFilterChange = (newFilters: SearchFilters) => {
     setFilters(newFilters);
     // Filtreleri uygulayarak yeni arama yapılacak
-    handleSearch(new Event('submit'));
+    if (searchQuery.trim()) {
+      router.push(`/arama?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
   return (
