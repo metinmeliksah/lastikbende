@@ -42,7 +42,7 @@ export function SiparisProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setSiparisler(data || []);
+      setSiparisler((data || []) as unknown as Siparis[]);
     } catch (error) {
       console.error('Siparişler yüklenirken hata:', error);
     } finally {
@@ -96,8 +96,9 @@ export function SiparisProvider({ children }: { children: ReactNode }) {
       }
       if (!data) throw new Error('Sipariş oluşturulamadı');
 
-      setSiparisler([data, ...siparisler]);
-      return data.id;
+      const typedData = data as unknown as Siparis;
+      setSiparisler([typedData, ...siparisler]);
+      return typedData.id as number;
     } catch (error) {
       console.error('Sipariş oluşturulurken hata:', error);
       throw error;
@@ -166,7 +167,7 @@ export function SiparisProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as unknown as Siparis;
     } catch (error) {
       console.error('Sipariş getirilirken hata:', error);
       return null;
@@ -181,7 +182,7 @@ export function SiparisProvider({ children }: { children: ReactNode }) {
         .eq('siparis_id', siparisId);
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as unknown as SiparisUrun[];
     } catch (error) {
       console.error('Sipariş ürünleri getirilirken hata:', error);
       return [];
