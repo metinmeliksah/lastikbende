@@ -255,16 +255,17 @@ export default function SepetPage() {
   }, [sepetUrunler, supabase]);
 
   // Adet güncelleme işlemi - stok kontrolü ile
-  const adetGuncelle = (urunId: number, yeniAdet: number) => {
-    const urun = sepetUrunler.find(u => u.id === urunId);
+  const handleAdetGuncelle = (stokId: number, yeniAdet: number) => {
+    const urun = sepetUrunler.find(u => u.stok_id === stokId);
     if (!urun) return;
     
-    const stokLimiti = stokBilgileri[urun.stok_id] || 0;
+    const stokLimiti = stokBilgileri[stokId] || 0;
     
     // Stok limitini aşmayacak şekilde güncelle
     const guncellenecekAdet = Math.min(Math.max(1, yeniAdet), stokLimiti);
     
-    sepetAdetGuncelle(urunId, guncellenecekAdet);
+    // CartContext'teki adetGuncelle fonksiyonunu çağır
+    sepetAdetGuncelle(stokId, guncellenecekAdet);
     
     if (yeniAdet > stokLimiti) {
       toast.error(`Maksimum stok miktarı ${stokLimiti} adettir`);
@@ -371,10 +372,10 @@ export default function SepetPage() {
     }
   };
 
-  const urunSil = (urunId: number) => {
-    const urun = sepetUrunler.find(u => u.id === urunId);
+  const urunSil = (stokId: number) => {
+    const urun = sepetUrunler.find(u => u.stok_id === stokId);
     if (urun) {
-      sepettenCikar(urunId);
+      sepettenCikar(stokId);
     }
   };
 
@@ -863,7 +864,7 @@ export default function SepetPage() {
                       {/* Miktar */}
                       <div className="w-full md:w-1/5 flex items-center justify-center mb-4 md:mb-0">
                           <button
-                            onClick={() => adetGuncelle(urun.id, urun.adet - 1)}
+                            onClick={() => handleAdetGuncelle(urun.stok_id, urun.adet - 1)}
                           className="bg-dark-400 text-white px-3 py-1 rounded-l-md hover:bg-dark-200 transition-colors"
                           disabled={yukleniyor || urun.adet <= 1}
                           >
@@ -871,7 +872,7 @@ export default function SepetPage() {
                           </button>
                         <span className="w-12 text-center bg-dark-400 text-white py-1 border-x border-gray-700">{urun.adet}</span>
                           <button
-                            onClick={() => adetGuncelle(urun.id, urun.adet + 1)}
+                            onClick={() => handleAdetGuncelle(urun.stok_id, urun.adet + 1)}
                           className={`bg-dark-400 text-white px-3 py-1 rounded-r-md transition-colors ${
                             adetStokLimitinde ? 'opacity-50 cursor-not-allowed' : 'hover:bg-dark-200'
                           }`}
@@ -890,7 +891,7 @@ export default function SepetPage() {
                       {/* Kaldır */}
                       <div className="w-full md:w-10 flex justify-center">
                         <button
-                          onClick={() => sepettenCikar(urun.id)}
+                          onClick={() => sepettenCikar(urun.stok_id)}
                           className="text-red-500 hover:text-red-400 transition-colors p-1 rounded-full hover:bg-dark-400"
                           disabled={yukleniyor}
                         >

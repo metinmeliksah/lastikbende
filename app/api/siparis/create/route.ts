@@ -457,14 +457,55 @@ export async function POST(request: Request) {
           }));
           
           try {
-          const { error: urunlerError } = await supabaseAdmin
-            .from('siparis_urunleri')
-            .insert(siparisUrunleri);
-            
-          if (urunlerError) {
-            console.error('Sipariş ürünleri eklenirken hata:', urunlerError);
+            const { error: urunlerError } = await supabaseAdmin
+              .from('siparis_urunleri')
+              .insert(siparisUrunleri);
+              
+            if (urunlerError) {
+              console.error('Sipariş ürünleri eklenirken hata:', urunlerError);
             } else {
               console.log('Sipariş ürünleri başarıyla eklendi');
+              
+              // Sipariş ürünleri başarıyla eklendikten sonra stok düşme işlemi
+              console.log('Stok adetleri güncelleniyor...');
+              
+              for (const urun of urunler) {
+                try {
+                  // Mevcut stok adetini al
+                  const { data: stokData, error: stokError } = await supabaseAdmin
+                    .from('stok')
+                    .select('stok_adet')
+                    .eq('stok_id', urun.stok_id)
+                    .single();
+                  
+                  if (stokError || !stokData) {
+                    console.error(`Stok bilgisi alınamadı (stok_id: ${urun.stok_id}):`, stokError);
+                    continue;
+                  }
+                  
+                  // Yeni stok adetini hesapla (negatif olmayacak şekilde)
+                  const yeniStokAdet = Math.max(0, stokData.stok_adet - urun.adet);
+                  
+                  // Stok adetini güncelle
+                  const { error: updateError } = await supabaseAdmin
+                    .from('stok')
+                    .update({ 
+                      stok_adet: yeniStokAdet,
+                      guncellenme_tarihi: new Date().toISOString()
+                    })
+                    .eq('stok_id', urun.stok_id);
+                  
+                  if (updateError) {
+                    console.error(`Stok güncellenemedi (stok_id: ${urun.stok_id}):`, updateError);
+                  } else {
+                    console.log(`Stok güncellendi: stok_id=${urun.stok_id}, eski=${stokData.stok_adet}, yeni=${yeniStokAdet}, düşülen=${urun.adet}`);
+                  }
+                } catch (error) {
+                  console.error(`Stok güncelleme hatası (stok_id: ${urun.stok_id}):`, error);
+                }
+              }
+              
+              console.log('Stok güncelleme işlemi tamamlandı');
             }
           } catch (urunEklemeHatasi) {
             console.error('Ürün ekleme hatası:', urunEklemeHatasi);
