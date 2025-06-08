@@ -68,7 +68,6 @@ export default function Navbar() {
             email: session.user.email || ''
           }
           
-          console.log('Navbar - Kullanıcı verileri:', userData)
           setUserData(userData)
         } else {
           setUserData(null)
@@ -83,7 +82,6 @@ export default function Navbar() {
 
     // Auth state değişikliklerini dinle
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email)
       if (event === 'SIGNED_OUT') {
         setUserData(null)
         setLoading(false)
@@ -130,21 +128,14 @@ export default function Navbar() {
 
   // Kullanıcı adını formatla
   const getUserDisplayName = () => {
-    console.log('getUserDisplayName - userData:', userData)
-    
     if (!userData) return 'Hesabım'
     
     if (userData.name && userData.surname) {
-      const fullName = `${userData.name} ${userData.surname}`
-      console.log('Full name:', fullName)
-      return fullName
+      return `${userData.name} ${userData.surname}`
     } else if (userData.name) {
-      console.log('Only name:', userData.name)
       return userData.name
     } else if (userData.email) {
-      const emailName = userData.email.split('@')[0]
-      console.log('Email name:', emailName)
-      return emailName
+      return userData.email.split('@')[0]
     }
     
     return 'Hesabım'

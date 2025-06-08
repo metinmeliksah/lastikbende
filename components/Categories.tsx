@@ -9,21 +9,21 @@ const categories = [
   {
     id: 1,
     name: 'Yaz Lastikleri',
-    image: '/categories/summer-tyres.jpg',
+    image: '/images/categories/summer-tyres.svg',
     description: 'Yüksek performanslı yaz lastikleri',
     link: '/urunler?mevsim=Yaz',
   },
   {
     id: 2,
     name: 'Kış Lastikleri',
-    image: '/categories/winter-tyres.jpg',
+    image: '/images/categories/winter-tyres.svg',
     description: 'Güvenli kış sürüşü için özel lastikler',
     link: '/urunler?mevsim=Kış',
   },
   {
     id: 3,
     name: '4 Mevsim Lastikleri',
-    image: '/categories/all-season-tyres.jpg',
+    image: '/images/categories/all-season-tyres.svg',
     description: 'Her mevsim kullanılabilen çok yönlü lastikler',
     link: '/urunler?mevsim=4 Mevsim',
   },
@@ -54,6 +54,10 @@ export default function Categories() {
                     alt={category.name}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-110"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/images/placeholder-category.svg";
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6">
