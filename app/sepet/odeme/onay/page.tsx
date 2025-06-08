@@ -7,6 +7,7 @@ import { CheckCircle, FileText, ShoppingBag, Truck, ArrowRight, AlertCircle } fr
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { useCart } from '@/app/contexts/CartContext';
 
 const OdemeOnayPage = () => {
   const router = useRouter();
@@ -17,6 +18,7 @@ const OdemeOnayPage = () => {
   const [siparisDetay, setSiparisDetay] = useState<any>(null);
   const [hata, setHata] = useState<string | null>(null);
   const { user } = useAuth();
+  const { sepetiYenile } = useCart();
 
   useEffect(() => {
     if (!siparisNo) {
@@ -29,6 +31,14 @@ const OdemeOnayPage = () => {
       try {
         setLoading(true);
         setHata(null);
+        
+        // Sipariş başarılıysa sepeti yenile
+        try {
+          await sepetiYenile();
+          console.log('Sepet yenilendi');
+        } catch (error) {
+          console.error('Sepet yenileme hatası:', error);
+        }
         
         console.log('Sipariş bilgileri getiriliyor:', siparisNo);
         

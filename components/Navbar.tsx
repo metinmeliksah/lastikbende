@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ShoppingCartIcon, MagnifyingGlassIcon, Bars3Icon, XMarkIcon, UserIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 import { createClient } from '@supabase/supabase-js'
+import { useCart } from '@/app/contexts/CartContext'
 
 // Supabase client oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -27,8 +28,12 @@ export default function Navbar() {
   const [logoUrl, setLogoUrl] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [cartItemCount, setCartItemCount] = useState(3)
   const [userData, setUserData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  // CartContext'i kullan
+  const { sepetUrunler } = useCart();
+  const cartItemCount = sepetUrunler?.length || 0;
 
   useEffect(() => {
     const fetchLogo = async () => {
@@ -43,19 +48,57 @@ export default function Navbar() {
     }
 
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-        setUserData(userData)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          // Kullanıcı oturum açmış, profil bilgilerini al
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (error) {
+            console.error('Profil bilgileri alınamadı:', error)
+          }
+          
+          const userData = {
+            name: profileData?.first_name || '',
+            surname: profileData?.last_name || '',
+            email: session.user.email || ''
+          }
+          
+          console.log('Navbar - Kullanıcı verileri:', userData)
+          setUserData(userData)
+        } else {
+          setUserData(null)
+        }
+      } catch (error) {
+        console.error('Kullanıcı kontrolü hatası:', error)
+        setUserData(null)
+      } finally {
+        setLoading(false)
       }
     }
 
+    // Auth state değişikliklerini dinle
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email)
+      if (event === 'SIGNED_OUT') {
+        setUserData(null)
+        setLoading(false)
+      } else if (event === 'SIGNED_IN' && session) {
+        await checkUser()
+      } else if (event === 'TOKEN_REFRESHED' && session) {
+        await checkUser()
+      }
+    })
+
     fetchLogo()
     checkUser()
+
+    // Cleanup subscription
+    return () => subscription.unsubscribe()
   }, [])
 
   const handleLinkClick = () => {
@@ -64,9 +107,16 @@ export default function Navbar() {
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setUserData(null)
-    window.location.href = '/'
+    try {
+      setLoading(true)
+      await supabase.auth.signOut()
+      setUserData(null)
+      // Sayfayı yenile ve ana sayfaya yönlendir
+      window.location.href = '/'
+    } catch (error) {
+      console.error('Çıkış hatası:', error)
+      setLoading(false)
+    }
   }
 
   const handleSearch = (e: React.FormEvent) => {
@@ -76,6 +126,28 @@ export default function Navbar() {
       setIsSearchOpen(false)
       setSearchQuery('')
     }
+  }
+
+  // Kullanıcı adını formatla
+  const getUserDisplayName = () => {
+    console.log('getUserDisplayName - userData:', userData)
+    
+    if (!userData) return 'Hesabım'
+    
+    if (userData.name && userData.surname) {
+      const fullName = `${userData.name} ${userData.surname}`
+      console.log('Full name:', fullName)
+      return fullName
+    } else if (userData.name) {
+      console.log('Only name:', userData.name)
+      return userData.name
+    } else if (userData.email) {
+      const emailName = userData.email.split('@')[0]
+      console.log('Email name:', emailName)
+      return emailName
+    }
+    
+    return 'Hesabım'
   }
 
   return (
@@ -149,26 +221,34 @@ export default function Navbar() {
                 className="flex items-center space-x-1 bg-dark-200 hover:bg-dark-100 text-gray-300 hover:text-primary px-4 py-2 rounded-lg transition-colors duration-200"
               >
                 <UserIcon className="h-5 w-5" />
-                <span className="text-sm font-medium">
-                  {userData ? userData.name || 'Hesabım' : 'Hesabım'}
+                <span className="text-sm font-medium max-w-32 truncate">
+                  {loading ? 'Yükleniyor...' : getUserDisplayName()}
                 </span>
               </button>
               
               {/* Dropdown Menu */}
               <div className="absolute right-0 w-48 bg-dark-200 rounded-lg shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
                    style={{ top: 'calc(100% + 4px)' }}>
-                {userData ? (
+                {!loading && userData ? (
                   <>
-                    <Link href="/kullanici/ayarlar" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-primary hover:bg-dark-100">
+                    <div className="px-4 py-2 border-b border-dark-100">
+                      <p className="text-sm text-gray-300 truncate">{userData.email}</p>
+                    </div>
+                    <Link href="/kullanici" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-primary hover:bg-dark-100">
+                      <UserIcon className="h-5 w-5 mr-2" />
+                      <span>Hesabım</span>
+                    </Link>
+                    <Link href="/kullanici" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-primary hover:bg-dark-100">
                       <Cog6ToothIcon className="h-5 w-5 mr-2" />
-                      <span>Ayarlar</span>
+                      <span>Hesap Ayarları</span>
                     </Link>
                     <button 
                       onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:text-primary hover:bg-dark-100"
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:text-red-400 hover:bg-dark-100"
+                      disabled={loading}
                     >
                       <ArrowRightOnRectangleIcon className="h-5 w-5 mr-2" />
-                      <span>Çıkış Yap</span>
+                      <span>{loading ? 'Çıkış yapılıyor...' : 'Çıkış Yap'}</span>
                     </button>
                   </>
                 ) : (
@@ -189,7 +269,7 @@ export default function Navbar() {
             {/* Cart */}
             <Link 
               href="/sepet" 
-              className="flex items-center space-x-1 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              className="flex items-center space-x-1 bg-primary hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
             >
               <ShoppingCartIcon className="h-5 w-5" />
               <span className="text-sm font-medium">Sepetim</span>
@@ -222,25 +302,9 @@ export default function Navbar() {
         initial={{ opacity: 0, y: -100 }}
         animate={{ opacity: isMenuOpen ? 1 : 0, y: isMenuOpen ? 0 : -100 }}
         transition={{ duration: 0.3 }}
-        className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'} bg-dark-200 w-full`}
+        className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'} bg-dark-300 border-t border-dark-100`}
       >
-        <div className="px-4 pt-2 pb-3 space-y-1">
-          {/* Search in Mobile */}
-          <form onSubmit={handleSearch} className="mb-2">
-            <div className="flex items-center bg-dark-300 rounded-lg p-2">
-              <button type="submit" className="text-gray-300 hover:text-primary">
-                <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
-              </button>
-              <input
-                type="text"
-                placeholder="Arama yapın..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent border-none text-gray-300 placeholder-gray-500 focus:outline-none"
-              />
-            </div>
-          </form>
-
+        <div className="px-2 pt-2 pb-3 space-y-1">
           <Link 
             href="/" 
             className="text-gray-300 hover:text-primary block px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:outline-none"
@@ -293,42 +357,37 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            {userData ? (
+            
+            {/* Mobile User Menu */}
+            {!loading && userData ? (
               <>
-                <Link 
-                  href="/kullanici/ayarlar" 
-                  className="flex items-center text-gray-300 hover:text-primary px-3 py-2 text-base font-medium"
-                  onClick={handleLinkClick}
-                >
-                  <Cog6ToothIcon className="h-5 w-5 mr-2" />
-                  <span>Ayarlar</span>
+                <div className="px-3 py-2 border-b border-dark-100">
+                  <p className="text-sm text-gray-400">Hoş geldin,</p>
+                  <p className="text-sm text-gray-300 font-medium truncate">{getUserDisplayName()}</p>
+                </div>
+                <Link href="/kullanici" className="flex items-center px-3 py-2 text-base font-medium text-gray-300 hover:text-primary" onClick={handleLinkClick}>
+                  <UserIcon className="h-5 w-5 mr-2" />
+                  <span>Hesabım</span>
                 </Link>
                 <button 
-                  onClick={() => {
-                    handleLogout()
-                    handleLinkClick()
+                  onClick={async () => { 
+                    handleLinkClick(); 
+                    await handleLogout(); 
                   }}
-                  className="flex items-center w-full text-gray-300 hover:text-primary px-3 py-2 text-base font-medium"
+                  className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-300 hover:text-red-400"
+                  disabled={loading}
                 >
                   <ArrowRightOnRectangleIcon className="h-5 w-5 mr-2" />
-                  <span>Çıkış Yap</span>
+                  <span>{loading ? 'Çıkış yapılıyor...' : 'Çıkış Yap'}</span>
                 </button>
               </>
             ) : (
               <>
-                <Link 
-                  href="/kullanici/giris" 
-                  className="flex items-center text-gray-300 hover:text-primary px-3 py-2 text-base font-medium"
-                  onClick={handleLinkClick}
-                >
+                <Link href="/kullanici/giris" className="flex items-center px-3 py-2 text-base font-medium text-gray-300 hover:text-primary" onClick={handleLinkClick}>
                   <UserIcon className="h-5 w-5 mr-2" />
                   <span>Giriş Yap</span>
                 </Link>
-                <Link 
-                  href="/kullanici/kayit" 
-                  className="flex items-center text-gray-300 hover:text-primary px-3 py-2 text-base font-medium"
-                  onClick={handleLinkClick}
-                >
+                <Link href="/kullanici/kayit" className="flex items-center px-3 py-2 text-base font-medium text-gray-300 hover:text-primary" onClick={handleLinkClick}>
                   <ArrowRightOnRectangleIcon className="h-5 w-5 mr-2" />
                   <span>Kayıt Ol</span>
                 </Link>

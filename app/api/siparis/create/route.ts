@@ -479,9 +479,28 @@ export async function POST(request: Request) {
           dogrulamaResult = { success: false, error: dogrulamaHatasi };
         }
         
-        // Başarı durumunda uygun yanıtı döndür
+        // Başarı durumunda sepeti temizle ve uygun yanıtı döndür
         if (siparisResult || (dogrulamaResult && dogrulamaResult.success)) {
           console.log('Sipariş başarıyla oluşturuldu.');
+          
+          // Sipariş başarılıysa kullanıcının sepetini temizle
+          try {
+            console.log('Kullanıcının sepeti temizleniyor...');
+            const { error: sepetTemizleHata } = await supabaseAdmin
+              .from('sepet')
+              .delete()
+              .eq('user_id', authenticatedUserId);
+            
+            if (sepetTemizleHata) {
+              console.error('Sepet temizlenirken hata:', sepetTemizleHata);
+              // Sepet temizleme hatası sipariş başarısını etkilemez
+            } else {
+              console.log('Kullanıcının sepeti başarıyla temizlendi');
+            }
+          } catch (sepetHata) {
+            console.error('Sepet temizleme işlemi sırasında hata:', sepetHata);
+            // Sepet temizleme hatası sipariş başarısını etkilemez
+          }
           
           return NextResponse.json({
             success: true,

@@ -68,6 +68,7 @@ interface CartContextType {
   sepettenCikar: (urunId: number) => Promise<void>;
   adetGuncelle: (urunId: number, yeniAdet: number) => Promise<void>;
   sepetiTemizle: () => Promise<void>;
+  sepetiYenile: () => Promise<void>;
   toplamTutar: number;
   yukleniyor: boolean;
 }
@@ -321,6 +322,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Sepeti yenileme fonksiyonu (sipariş sonrası kullanım için)
+  const sepetiYenile = async () => {
+    await sepetVerileriniYukle();
+  };
+
   return (
     <CartContext.Provider value={{
       sepetUrunler,
@@ -328,6 +334,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       sepettenCikar,
       adetGuncelle,
       sepetiTemizle,
+      sepetiYenile,
       toplamTutar,
       yukleniyor
     }}>
