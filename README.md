@@ -25,55 +25,55 @@ LastikBende, lastik analizi ve yönetimi için geliştirilmiş, Azure Computer V
 - Markdown formatında zengin metin desteği
 
 ### 🛒 Gelişmiş E-Ticaret Sistemi
-Geniş Ürün Kataloğu: Binlerce lastik ve jant çeşidi
-Akıllı Filtreleme: Araç tipine göre uyumlu ürün önerisi
-Karşılaştırma Sistemi: Ürünleri yan yana karşılaştırma
-Güvenli Ödeme: Kredi kartı ve online ödeme seçenekleri
-Montaj Hizmeti: Yetkili servis ağı ile montaj koordinasyonu
-Kargo Takibi: Gerçek zamanlı teslimat takibi
+- Geniş Ürün Kataloğu: Binlerce lastik ve jant çeşidi
+- Akıllı Filtreleme: Araç tipine göre uyumlu ürün önerisi
+- Karşılaştırma Sistemi: Ürünleri yan yana karşılaştırma
+- Güvenli Ödeme: Kredi kartı ve online ödeme seçenekleri
+- Montaj Hizmeti: Yetkili servis ağı ile montaj koordinasyonu
+- Kargo Takibi: Gerçek zamanlı teslimat takibi
 
 ### 👥 Çok Seviyeli Kullanıcı Yönetimi
 ### 🏠 Kullanıcı Paneli
-Kişisel profil yönetimi
-Analiz geçmişi ve raporlar
-Sipariş takibi
-Favoriler ve istek listesi
-Adres defteri yönetimi
+- Kişisel profil yönetimi
+- Analiz geçmişi ve raporlar
+- Sipariş takibi
+- Favoriler ve istek listesi
+- Adres defteri yönetimi
 ### 🏪 Bayi Paneli
-Dashboard: Satış istatistikleri ve performans metrikleri
-Stok Yönetimi: Ürün ekleme, güncelleme ve stok takibi
-Sipariş Yönetimi: Gelen siparişleri görüntüleme ve işleme
-Gelir Raporları: Detaylı satış analizleri ve kar marjları
-Lastik Ekleme: Yeni ürün kataloguna ekleme
-Kritik Stok Uyarıları: Otomatik stok azalma bildirimleri
+- Dashboard: Satış istatistikleri ve performans metrikleri
+- Stok Yönetimi: Ürün ekleme, güncelleme ve stok takibi
+- Sipariş Yönetimi: Gelen siparişleri görüntüleme ve işleme
+- Gelir Raporları: Detaylı satış analizleri ve kar marjları
+- Lastik Ekleme: Yeni ürün kataloguna ekleme
+- Kritik Stok Uyarıları: Otomatik stok azalma bildirimleri
 ### ⚙️ Yönetici Paneli
-Sistem Dashboard: Genel platform istatistikleri
-Bayi Yönetimi: Bayi başvurularını onaylama ve yönetme
-Üye Yönetimi: Kullanıcı hesaplarını yönetme
-Sipariş Yönetimi: Tüm siparişleri görüntüleme ve yönetme
-Destek Sistemi: Kullanıcı destek taleplerini yönetme
-Sistem Ayarları: Platform geneli yapılandırma
+- Sistem Dashboard: Genel platform istatistikleri
+- Bayi Yönetimi: Bayi başvurularını onaylama ve yönetme
+- Üye Yönetimi: Kullanıcı hesaplarını yönetme
+- Sipariş Yönetimi: Tüm siparişleri görüntüleme ve yönetme
+- Destek Sistemi: Kullanıcı destek taleplerini yönetme
+- Sistem Ayarları: Platform geneli yapılandırma
 
 ## 🌟 Kullanıcı Deneyimi Akışları
 ### 🔍 Lastik Analiz Süreci
-Görüntü Yükleme: Lastik fotoğrafını sisteme yükleme
-AI Analizi: Azure Vision API ile otomatik analiz
-Sonuç Değerlendirmesi: GPT-4o ile detaylı değerlendirme
-Rapor Oluşturma: PDF/Excel/Word formatında rapor
-Uzman Tavsiyesi: AI chat ile ek danışmanlık
+- Görüntü Yükleme: Lastik fotoğrafını sisteme yükleme
+- AI Analizi: Azure Vision API ile otomatik analiz
+- Sonuç Değerlendirmesi: GPT-4o ile detaylı değerlendirme
+- Rapor Oluşturma: PDF/Excel/Word formatında rapor
+- Uzman Tavsiyesi: AI chat ile ek danışmanlık
 ### 🛒 Alışveriş Süreci
-Ürün Keşfi: Kategoriler veya arama ile ürün bulma
-Karşılaştırma: Ürünleri yan yana karşılaştırma
-Sepete Ekleme: İstenilen ürünleri sepete ekleme
-Montaj Seçimi: Montaj bayi seçimi ve randevu
-Ödeme: Güvenli ödeme işlemi
-Takip: Sipariş ve kargo takibi
+- Ürün Keşfi: Kategoriler veya arama ile ürün bulma
+- Karşılaştırma: Ürünleri yan yana karşılaştırma
+- Sepete Ekleme: İstenilen ürünleri sepete ekleme
+- Montaj Seçimi: Montaj bayi seçimi ve randevu
+- Ödeme: Güvenli ödeme işlemi
+- Takip: Sipariş ve kargo takibi
 ### 👨‍💼 Bayi İş Akışı
-Dashboard İnceleme: Günlük/aylık performans görüntüleme
-Sipariş Yönetimi: Gelen siparişleri işleme alma
-Stok Güncellemesi: Ürün stoklarını güncelleme
-Yeni Ürün Ekleme: Kataloga ürün ekleme
-Rapor İnceleme: Satış ve gelir raporlarını analiz etme
+- Dashboard İnceleme: Günlük/aylık performans görüntüleme
+- Sipariş Yönetimi: Gelen siparişleri işleme alma
+- Stok Güncellemesi: Ürün stoklarını güncelleme
+- Yeni Ürün Ekleme: Kataloga ürün ekleme
+- Rapor İnceleme: Satış ve gelir raporlarını analiz etme
 
 ## 🛠️ Teknolojiler
 
