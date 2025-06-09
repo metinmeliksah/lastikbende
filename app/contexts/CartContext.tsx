@@ -65,9 +65,10 @@ type UrunDetayRow = {
 interface CartContextType {
   sepetUrunler: CartProduct[];
   sepeteEkle: (urun: CartProduct) => Promise<void>;
-  sepettenCikar: (urunId: number) => Promise<void>;
-  adetGuncelle: (urunId: number, yeniAdet: number) => Promise<void>;
+  sepettenCikar: (stokId: number) => Promise<void>;
+  adetGuncelle: (stokId: number, yeniAdet: number) => Promise<void>;
   sepetiTemizle: () => Promise<void>;
+  sepetiYenile: () => Promise<void>;
   toplamTutar: number;
   yukleniyor: boolean;
 }
@@ -267,10 +268,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const sepettenCikar = async (urunId: number) => {
+  const sepettenCikar = async (stokId: number) => {
     setYukleniyor(true);
     try {
-      const yeniSepet = sepetUrunler.filter(urun => urun.id !== urunId);
+      const yeniSepet = sepetUrunler.filter(urun => urun.stok_id !== stokId);
       setSepetUrunler(yeniSepet);
       await sepetKaydet(yeniSepet);
       toast.success('Ürün sepetten çıkarıldı');
@@ -282,22 +283,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const adetGuncelle = async (urunId: number, yeniAdet: number) => {
+  const adetGuncelle = async (stokId: number, yeniAdet: number) => {
     setYukleniyor(true);
     try {
       if (yeniAdet <= 0) {
-        await sepettenCikar(urunId);
+        await sepettenCikar(stokId);
         return;
       }
 
       const yeniSepet = [...sepetUrunler];
-      const urunIndex = yeniSepet.findIndex(urun => urun.id === urunId);
+      const urunIndex = yeniSepet.findIndex(urun => urun.stok_id === stokId);
       
       if (urunIndex !== -1) {
         yeniSepet[urunIndex].adet = yeniAdet;
         setSepetUrunler(yeniSepet);
         await sepetKaydet(yeniSepet);
         toast.success('Ürün adedi güncellendi');
+      } else {
+        console.error('Güncellenecek ürün bulunamadı, stok_id:', stokId);
+        toast.error('Güncellenecek ürün bulunamadı');
       }
     } catch (error) {
       console.error('Adet güncellenirken hata:', error);
@@ -321,6 +325,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Sepeti yenileme fonksiyonu (sipariş sonrası kullanım için)
+  const sepetiYenile = async () => {
+    await sepetVerileriniYukle();
+  };
+
   return (
     <CartContext.Provider value={{
       sepetUrunler,
@@ -328,6 +337,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       sepettenCikar,
       adetGuncelle,
       sepetiTemizle,
+      sepetiYenile,
       toplamTutar,
       yukleniyor
     }}>

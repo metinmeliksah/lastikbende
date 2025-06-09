@@ -457,14 +457,55 @@ export async function POST(request: Request) {
           }));
           
           try {
-          const { error: urunlerError } = await supabaseAdmin
-            .from('siparis_urunleri')
-            .insert(siparisUrunleri);
-            
-          if (urunlerError) {
-            console.error('Sipariş ürünleri eklenirken hata:', urunlerError);
+            const { error: urunlerError } = await supabaseAdmin
+              .from('siparis_urunleri')
+              .insert(siparisUrunleri);
+              
+            if (urunlerError) {
+              console.error('Sipariş ürünleri eklenirken hata:', urunlerError);
             } else {
               console.log('Sipariş ürünleri başarıyla eklendi');
+              
+              // Sipariş ürünleri başarıyla eklendikten sonra stok düşme işlemi
+              console.log('Stok adetleri güncelleniyor...');
+              
+              for (const urun of urunler) {
+                try {
+                  // Mevcut stok adetini al
+                  const { data: stokData, error: stokError } = await supabaseAdmin
+                    .from('stok')
+                    .select('stok_adet')
+                    .eq('stok_id', urun.stok_id)
+                    .single();
+                  
+                  if (stokError || !stokData) {
+                    console.error(`Stok bilgisi alınamadı (stok_id: ${urun.stok_id}):`, stokError);
+                    continue;
+                  }
+                  
+                  // Yeni stok adetini hesapla (negatif olmayacak şekilde)
+                  const yeniStokAdet = Math.max(0, stokData.stok_adet - urun.adet);
+                  
+                  // Stok adetini güncelle
+                  const { error: updateError } = await supabaseAdmin
+                    .from('stok')
+                    .update({ 
+                      stok_adet: yeniStokAdet,
+                      guncellenme_tarihi: new Date().toISOString()
+                    })
+                    .eq('stok_id', urun.stok_id);
+                  
+                  if (updateError) {
+                    console.error(`Stok güncellenemedi (stok_id: ${urun.stok_id}):`, updateError);
+                  } else {
+                    console.log(`Stok güncellendi: stok_id=${urun.stok_id}, eski=${stokData.stok_adet}, yeni=${yeniStokAdet}, düşülen=${urun.adet}`);
+                  }
+                } catch (error) {
+                  console.error(`Stok güncelleme hatası (stok_id: ${urun.stok_id}):`, error);
+                }
+              }
+              
+              console.log('Stok güncelleme işlemi tamamlandı');
             }
           } catch (urunEklemeHatasi) {
             console.error('Ürün ekleme hatası:', urunEklemeHatasi);
@@ -479,9 +520,28 @@ export async function POST(request: Request) {
           dogrulamaResult = { success: false, error: dogrulamaHatasi };
         }
         
-        // Başarı durumunda uygun yanıtı döndür
+        // Başarı durumunda sepeti temizle ve uygun yanıtı döndür
         if (siparisResult || (dogrulamaResult && dogrulamaResult.success)) {
           console.log('Sipariş başarıyla oluşturuldu.');
+          
+          // Sipariş başarılıysa kullanıcının sepetini temizle
+          try {
+            console.log('Kullanıcının sepeti temizleniyor...');
+            const { error: sepetTemizleHata } = await supabaseAdmin
+              .from('sepet')
+              .delete()
+              .eq('user_id', authenticatedUserId);
+            
+            if (sepetTemizleHata) {
+              console.error('Sepet temizlenirken hata:', sepetTemizleHata);
+              // Sepet temizleme hatası sipariş başarısını etkilemez
+            } else {
+              console.log('Kullanıcının sepeti başarıyla temizlendi');
+            }
+          } catch (sepetHata) {
+            console.error('Sepet temizleme işlemi sırasında hata:', sepetHata);
+            // Sepet temizleme hatası sipariş başarısını etkilemez
+          }
           
           return NextResponse.json({
             success: true,

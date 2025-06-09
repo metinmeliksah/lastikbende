@@ -33,72 +33,79 @@ interface Product {
 export default function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Verileri Supabase'den çek
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       setLoading(true);
+      setError(null);
+      
       try {
-        // Stok tablosundan tüm ürünleri çek
+        // ✅ DÜZELTME 1: Tek sorguda tüm verileri çek (N+1 sorgu problemini çöz)
         const { data: stokData, error: stokError } = await supabase
           .from('stok')
-          .select('*, urundetay(*)')
-          .order('created_at', { ascending: false })
+          .select(`
+            stok_id,
+            urun_id,
+            magaza_id,
+            stok_adet,
+            fiyat,
+            indirimli_fiyat,
+            saglik_durumu,
+            guncellenme_tarihi,
+            urundetay!inner (
+              model,
+              marka,
+              cap_inch,
+              mevsim,
+              urun_resmi_0
+            ),
+            sellers!inner (
+              id,
+              isim,
+              sehir
+            )
+          `)
+          .order('guncellenme_tarihi', { ascending: false })
           .limit(4);
 
         if (stokError) {
           console.error('Stok verisi çekilirken hata oluştu:', stokError);
-          throw stokError;
+          setError('Ürünler yüklenirken bir hata oluştu.');
+          return;
         }
         
         if (!stokData || stokData.length === 0) {
           console.log('Ürün verisi bulunamadı');
-          setLoading(false);
+          setProducts([]);
           return;
         }
 
-        // Mağaza bilgilerini çek
-        const productDataPromises = stokData.map(async (stok) => {
-          try {
-            const { data: magazaData, error: magazaError } = await supabase
-              .from('sellers')
-              .select('id, isim, sehir')
-              .eq('id', stok.magaza_id)
-              .single();
-
-            if (magazaError || !magazaData) {
-              return null;
-            }
-
-            return {
-              urun_id: stok.urun_id,
-              stok_id: stok.stok_id,
-              model: stok.urundetay.model || "İsimsiz Ürün",
-              marka: stok.urundetay.marka || "Bilinmiyor",
-              cap_inch: stok.urundetay.cap_inch || "",
-              mevsim: stok.urundetay.mevsim || "Belirtilmemiş",
-              saglik_durumu: stok.saglik_durumu || 0,
-              urun_resmi_0: stok.urundetay.urun_resmi_0 || "/placeholder-tire.jpg",
-              stok: stok.stok_adet || 0,
-              magaza_id: stok.magaza_id,
-              magaza_isim: magazaData.isim || "Bilinmiyor",
-              magaza_sehir: magazaData.sehir || "Belirtilmemiş",
-              fiyat: stok.fiyat || 0,
-              indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat || 0
-            };
-          } catch (err) {
-            console.error(`Ürün işlenirken hata:`, err);
-            return null;
-          }
-        });
-
-        const productData = (await Promise.all(productDataPromises)).filter(
-          (product): product is Product => product !== null
-        );
+        // ✅ DÜZELTME 2: Veri işleme ve null kontrolleri
+        const productData: Product[] = stokData
+          .filter(stok => stok.urundetay && stok.sellers) // Null kontrolleri
+          .map(stok => ({
+            urun_id: stok.urun_id,
+            stok_id: stok.stok_id,
+            model: (stok.urundetay as any)?.model || "İsimsiz Ürün",
+            marka: (stok.urundetay as any)?.marka || "Bilinmiyor",
+            cap_inch: (stok.urundetay as any)?.cap_inch || "",
+            mevsim: (stok.urundetay as any)?.mevsim || "Belirtilmemiş",
+            saglik_durumu: stok.saglik_durumu || 0,
+            urun_resmi_0: (stok.urundetay as any)?.urun_resmi_0 || "/images/placeholder-tire.svg",
+            stok: stok.stok_adet || 0,
+            magaza_id: stok.magaza_id,
+            magaza_isim: (stok.sellers as any)?.isim || "Bilinmiyor",
+            magaza_sehir: (stok.sellers as any)?.sehir || "Belirtilmemiş",
+            fiyat: stok.fiyat || 0,
+            indirimli_fiyat: stok.indirimli_fiyat || stok.fiyat || 0
+          }));
 
         setProducts(productData);
       } catch (error) {
         console.error('Öne çıkan ürünler çekilirken hata oluştu:', error);
+        setError('Ürünler yüklenirken beklenmeyen bir hata oluştu.');
       } finally {
         setLoading(false);
       }
@@ -109,29 +116,16 @@ export default function FeaturedProducts() {
 
   // Sepete ekleme işlemi
   const handleAddToCart = (product: Product) => {
+    // TODO: Gerçek sepet entegrasyonu yapılacak
     alert(`${product.model} sepete eklendi.`);
   };
 
   // Lastik sağlık durumu renklendirmesi
   const getHealthColor = (health: number) => {
-    if (health === 100) return 'bg-green-500 text-white'; // Sıfır için yeşil
-    if (health >= 70) return 'bg-green-500 text-white'; // İyi durum için yeşil
-    if (health >= 40) return 'bg-yellow-500 text-white'; // Orta durum için sarı
-    return 'bg-red-500 text-white'; // Kötü durum için kırmızı
-  };
-
-  // Satıcı adı ve şehir ayrı gösterilecek
-  const renderShopAndCity = (product: Product) => {
-    return (
-      <div className="flex flex-col mb-3">
-        <div className="text-gray-300 text-sm truncate">
-          {product.magaza_isim}
-        </div>
-        <div className="text-gray-400 text-xs">
-          {product.magaza_sehir}
-        </div>
-      </div>
-    );
+    if (health === 100) return 'bg-green-500 text-white';
+    if (health >= 70) return 'bg-green-500 text-white';
+    if (health >= 40) return 'bg-yellow-500 text-white';
+    return 'bg-red-500 text-white';
   };
 
   return (
@@ -145,22 +139,29 @@ export default function FeaturedProducts() {
         {loading ? (
           <div className="bg-dark-300 rounded-lg p-6 text-center border border-dark-100">
             <h3 className="text-xl text-gray-200 mb-2">Ürünler Yükleniyor...</h3>
-            <p className="text-gray-400">
-              Lütfen bekleyin, ürünler yükleniyor.
-            </p>
+            <p className="text-gray-400">Lütfen bekleyin, ürünler yükleniyor.</p>
+          </div>
+        ) : error ? (
+          <div className="bg-red-900/20 border border-red-500 rounded-lg p-6 text-center">
+            <h3 className="text-xl text-red-400 mb-2">Hata Oluştu</h3>
+            <p className="text-red-300">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
+            >
+              Tekrar Dene
+            </button>
           </div>
         ) : products.length === 0 ? (
           <div className="bg-dark-300 rounded-lg p-6 text-center border border-dark-100">
             <h3 className="text-xl text-gray-200 mb-2">Ürün Bulunamadı</h3>
-            <p className="text-gray-400">
-              Şu anda öne çıkan ürün bulunmamaktadır.
-            </p>
+            <p className="text-gray-400">Şu anda öne çıkan ürün bulunmamaktadır.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {products.map((product, index) => (
               <motion.div
-                key={product.urun_id}
+                key={`${product.stok_id}-${product.urun_id}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -174,8 +175,11 @@ export default function FeaturedProducts() {
                         alt={product.model}
                         width={200}
                         height={200}
-                        className="object-contain w-full h-full"
-                        style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                        className="object-contain max-w-full max-h-full"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/images/placeholder-tire.svg";
+                        }}
                       />
                     </div>
                   </Link>
@@ -183,6 +187,7 @@ export default function FeaturedProducts() {
                     {product.saglik_durumu === 100 ? 'Sıfır' : `%${product.saglik_durumu}`}
                   </div>
                 </div>
+                
                 <div className="p-4 flex flex-col flex-grow">
                   <div className="flex justify-between items-start mb-2">
                     <Link href={`/urun-detay/${product.urun_id}`}>
@@ -195,12 +200,10 @@ export default function FeaturedProducts() {
                     </span>
                   </div>
                   
-                  {/* Sabit İnç ve Mevsim Bilgisi */}
                   <div className="mb-2 text-sm text-gray-400 h-6">
                     {product.cap_inch} inç | {product.mevsim}
                   </div>
                   
-                  {/* Sabit Mağaza Bilgileri */}
                   <div className="mb-3 h-14">
                     <div className="text-gray-300 text-sm truncate">
                       {product.magaza_isim}
@@ -227,7 +230,6 @@ export default function FeaturedProducts() {
                     )}
                   </div>
                   
-                  {/* Sabit Alt Kısım */}
                   <div className="mt-auto">
                     <div className="flex items-center justify-between">
                       <span className={`text-sm ${product.stok > 0 ? 'text-green-500' : 'text-red-500'}`}>
