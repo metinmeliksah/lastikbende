@@ -153,36 +153,7 @@ export default function KullaniciPage() {
     };
   }, [authChecked]);
 
-  const orders = [
-    {
-      id: 1,
-      date: '12 Mart 2024',
-      status: 'Tamamlandı',
-      total: '₺1,299.99',
-      items: [
-        { name: 'Lastik 1', quantity: 2, price: '₺599.99' },
-        { name: 'Jant 1', quantity: 1, price: '₺100.00' }
-      ]
-    },
-    {
-      id: 2,
-      date: '10 Mart 2024',
-      status: 'Kargoda',
-      total: '₺899.99',
-      items: [
-        { name: 'Lastik 2', quantity: 1, price: '₺899.99' }
-      ]
-    },
-    {
-      id: 3,
-      date: '5 Mart 2024',
-      status: 'İşleme Alındı',
-      total: '₺1,599.99',
-      items: [
-        { name: 'Lastik 3', quantity: 4, price: '₺399.99' }
-      ]
-    }
-  ];
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleSaveSettings = async (data: { 
     name: string; 
@@ -503,7 +474,8 @@ export default function KullaniciPage() {
           type="success" 
         />
       ));
-      router.replace('/kullanici/giris');
+      // Sayfayı yenile ve ana sayfaya yönlendir
+      window.location.href = '/';
     } catch (error) {
       console.error('Çıkış yapılırken hata:', error);
       toast.custom((t) => (
@@ -512,7 +484,6 @@ export default function KullaniciPage() {
           type="error" 
         />
       ));
-    } finally {
       setIsLoading(false);
     }
   };
@@ -556,9 +527,8 @@ export default function KullaniciPage() {
           <div className="space-y-6">
             <div className={activeTab === 'orders' ? '' : 'hidden'}>
               <div className="space-y-4">
-                <div className="bg-dark-200 p-4 rounded-lg border border-dark-100">
-                  <h3 className="font-semibold mb-4 text-gray-100">Siparişlerim</h3>
-                  <OrderList orders={orders} />
+                <div className="bg-dark-200 p-4 rounded-lg border border-dark-100 shadow-sm">
+                  <OrderList refreshTrigger={refreshTrigger} />
                 </div>
               </div>
             </div>

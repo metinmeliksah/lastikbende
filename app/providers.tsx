@@ -15,11 +15,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <CartProvider>
         <AdresProvider>
           <SiparisProvider>
-            <Navbar />
-            <main className="bg-dark-400 text-gray-100">
-              {children}
-            </main>
-            <Footer />
+            <div>
+              <Navbar />
+              <main className="bg-dark-400 text-gray-100">
+                {children}
+              </main>
+              <Footer />
+            </div>
           </SiparisProvider>
         </AdresProvider>
       </CartProvider>
