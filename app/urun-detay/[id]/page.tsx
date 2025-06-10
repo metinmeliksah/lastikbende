@@ -5,13 +5,19 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FaShoppingCart, FaTruck, FaTools, FaStore, FaMapMarkerAlt, FaCheckCircle, FaStar, FaChevronLeft, FaChevronRight, FaInfoCircle, FaBox } from 'react-icons/fa';
 import { createClient } from '@supabase/supabase-js';
+import { useCart } from '../../contexts/CartContext';
+import { toast } from 'react-hot-toast';
+import { CheckCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
 // Supabase client oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Ürün veri tipi tanımla
+interface Params {
+  id: string;
+}
+
 interface ProductData {
   urun_id: number;
   model: string;
@@ -25,7 +31,7 @@ interface ProductData {
   yapi: string;
   yuk_endeksi: string;
   hiz_endeksi: string;
-  features?: string[];
+  features: string[];
   urun_resmi_0: string;
   urun_resmi_1?: string;
   urun_resmi_2?: string;
@@ -61,12 +67,36 @@ interface CreditCardInstallment {
   }[];
 }
 
+// Stok veri tipi tanımla
+interface StockProduct {
+  stok_id: number;
+  urun_id: number;
+  saglik_durumu: number;
+  fiyat: number;
+  indirimli_fiyat: number | null;
+  stok_adet: number;
+  magaza_id: number;
+  urundetay: {
+    model: string;
+    marka: string;
+    cap_inch: string;
+    mevsim: string;
+    urun_resmi_0: string | null;
+  } | null;
+  sellers: {
+    id: number;
+    isim: string;
+    sehir: string;
+  } | null;
+}
+
 // Tam ürün veri tipi tanımla
 interface FullProduct {
   product: ProductData;
   shops: Shop[];
   creditCardInstallments: CreditCardInstallment[];
   similarProducts: SimilarProduct[];
+  features: string[] | string;
 }
 
 // Benzer ürün tipi
@@ -145,7 +175,8 @@ const dummyProducts = [
   },
 ];
 
-export default function UrunDetayPage({ params }: { params: { id: string } }) {
+export default function UrunDetayPage({ params }: { params: Params }) {
+  const { sepeteEkle, sepetUrunler } = useCart();
   const [fullProduct, setFullProduct] = useState<FullProduct | null>(null);
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -159,6 +190,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null);
   const [similarProducts, setSimilarProducts] = useState<SimilarProduct[]>([]);
   const [shopSortOption, setShopSortOption] = useState('price-asc');
+  const [productData, setProductData] = useState<ProductData | null>(null);
 
   // Bütün resim URL'lerini alıp geçerli olanları filtrele
   const getProductImages = (product: ProductData | null | undefined) => {
@@ -170,6 +202,147 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
       product.urun_resmi_2, 
       product.urun_resmi_3
     ].filter((img): img is string => Boolean(img));
+  };
+
+  // Benzer ürünleri çek
+  const fetchSimilarProducts = async (): Promise<SimilarProduct[]> => {
+    try {
+      if (!productData?.cap_inch || !productData?.mevsim) {
+        console.log("Ürün verisi eksik, benzer ürünler getirilemedi");
+        return [];
+      }
+
+      // Öncelikle tam olarak aynı inç (çap) olan ürünleri çek
+      const { data: sameSizeProducts, error: sizeError } = await supabase
+        .from('stok')
+        .select(`
+          stok_id,
+          urun_id,
+          saglik_durumu,
+          fiyat,
+          indirimli_fiyat,
+          stok_adet,
+          magaza_id,
+          urundetay:urundetay (
+            model,
+            marka,
+            cap_inch,
+            mevsim,
+            urun_resmi_0
+          ),
+          sellers:magaza_id (
+            id,
+            isim,
+            sehir
+          )
+        `)
+        .eq('urundetay.cap_inch', productData.cap_inch)
+        .neq('urun_id', productData.urun_id)
+        .limit(8) as { data: StockProduct[] | null; error: any };
+
+      if (sizeError) {
+        console.error("Aynı boyuttaki ürünler çekilirken hata:", sizeError);
+        return [];
+      }
+
+      // Aynı mevsim olan ürünleri çek
+      const { data: sameSeasonProducts, error: seasonError } = await supabase
+        .from('stok')
+        .select(`
+          stok_id,
+          urun_id,
+          saglik_durumu,
+          fiyat,
+          indirimli_fiyat,
+          stok_adet,
+          magaza_id,
+          urundetay:urundetay (
+            model,
+            marka,
+            cap_inch,
+            mevsim,
+            urun_resmi_0
+          ),
+          sellers:magaza_id (
+            id,
+            isim,
+            sehir
+          )
+        `)
+        .eq('urundetay.mevsim', productData.mevsim)
+        .neq('urun_id', productData.urun_id)
+        .limit(8) as { data: StockProduct[] | null; error: any };
+
+      if (seasonError) {
+        console.error("Aynı mevsim ürünleri çekilirken hata:", seasonError);
+        return [];
+      }
+
+      // Benzer ürünler dizisini hazırla
+      let sameCapAndSeasonProducts: StockProduct[] = [];
+      let sameCapProducts: StockProduct[] = [];
+      let sameSeasonProducts1: StockProduct[] = [];
+
+      if (sameSizeProducts && sameSizeProducts.length > 0) {
+        // Aynı çap ve mevsime sahip olanları ayır
+        sameCapAndSeasonProducts = sameSizeProducts.filter(
+          (item): item is StockProduct => item?.urundetay?.mevsim === productData.mevsim
+        );
+
+        // Aynı çapa sahip ama farklı mevsim olanları ayır
+        sameCapProducts = sameSizeProducts.filter(
+          (item): item is StockProduct => item?.urundetay?.mevsim !== productData.mevsim
+        );
+      }
+
+      if (sameSeasonProducts && sameSeasonProducts.length > 0) {
+        // Aynı mevsime sahip ama çapı farklı olanları ayır
+        sameSeasonProducts1 = sameSeasonProducts.filter(
+          (item): item is StockProduct => item?.urundetay?.cap_inch !== productData.cap_inch
+        );
+      }
+
+      // Öncelik sırasıyla ürünleri ekle (en fazla 4 ürün)
+      let combinedProducts = [
+        ...sameCapAndSeasonProducts,
+        ...sameCapProducts,
+        ...sameSeasonProducts1
+      ].filter((item): item is StockProduct => Boolean(item?.urundetay) && Boolean(item?.sellers)); // Filter out items with missing data
+
+      // Benzersiz ürünleri filtrele (aynı ürün farklı mağaza olabilir)
+      const uniqueProductIds = new Set<number>();
+      combinedProducts = combinedProducts.filter(item => {
+        if (!item?.urun_id || uniqueProductIds.has(item.urun_id)) {
+          return false;
+        }
+        uniqueProductIds.add(item.urun_id);
+        return true;
+      });
+
+      // En fazla 4 ürün olacak şekilde kes
+      combinedProducts = combinedProducts.slice(0, 4);
+
+      // Ürün bilgilerini düzenle
+      const processedProducts = combinedProducts.map(item => ({
+        urun_id: item.urun_id,
+        model: item.urundetay?.model || 'Bilinmiyor',
+        marka: item.urundetay?.marka || 'Bilinmiyor',
+        cap_inch: item.urundetay?.cap_inch || '',
+        mevsim: item.urundetay?.mevsim || 'Belirtilmemiş',
+        saglik_durumu: item.saglik_durumu || 0,
+        urun_resmi_0: item.urundetay?.urun_resmi_0 || "/placeholder-tire.jpg",
+        fiyat: item.fiyat || 0,
+        indirimli_fiyat: item.indirimli_fiyat || item.fiyat || 0,
+        stok: item.stok_adet || 0,
+        magaza_isim: item.sellers?.isim || "Bilinmiyor",
+        magaza_sehir: item.sellers?.sehir || "Belirtilmemiş"
+      }));
+
+      return processedProducts;
+    } catch (err) {
+      console.error("Benzer ürünler çekilirken hata:", err);
+      return [];
+    }
   };
 
   // Ürün verilerini Supabase'den çek
@@ -184,7 +357,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
         const stokIdParam = urlParams.get('stok_id');
         
         // Ürün detaylarını çek
-        const { data: productData, error: productError } = await supabase
+        const { data: productDataResponse, error: productError } = await supabase
           .from('urundetay')
           .select('*')
           .eq('urun_id', params.id)
@@ -195,13 +368,13 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
           throw productError;
         }
         
-        if (!productData) {
+        if (!productDataResponse) {
           console.error("Ürün bulunamadı");
           throw new Error('Ürün bulunamadı');
         }
-        
-        console.log("Ürün verisi başarıyla çekildi:", productData.model);
 
+        setProductData(productDataResponse);
+        
         // Ürün için stok bilgilerini çek
         const { data: stockData, error: stockError } = await supabase
           .from('stok')
@@ -226,7 +399,12 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
             // Mağaza bilgisini çek
             const { data: sellerData, error: sellerError } = await supabase
               .from('sellers')
-              .select('*')
+              .select(`
+                id,
+                isim,
+                sehir,
+                adres
+              `)
               .eq('id', stock.magaza_id)
               .single();
 
@@ -276,7 +454,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
               stock: stock.stok_adet,
               hasMontage: hasMontage,
               shippingCompanies: shippingCompanies.length > 0 ? shippingCompanies : ['Belirtilmemiş'],
-              rating: sellerData.rating || 4.5,
+              rating: 4.5,
               saglik_durumu: stock.saglik_durumu
             };
           } catch (err) {
@@ -297,102 +475,17 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
         // Ürün özelliklerini parse et (string'den array'e)
         let features: string[] = [];
         try {
-          if (productData.features && typeof productData.features === 'string') {
-            features = JSON.parse(productData.features);
-          } else if (Array.isArray(productData.features)) {
-            features = productData.features;
+          if (productDataResponse.features) {
+            if (typeof productDataResponse.features === 'string') {
+              features = JSON.parse(productDataResponse.features);
+            } else if (Array.isArray(productDataResponse.features)) {
+              features = productDataResponse.features;
+            }
           }
         } catch (e) {
           console.error("Ürün özellikleri ayrıştırılırken hata:", e);
           features = [];
         }
-
-        // Benzer ürünleri çek
-        const fetchSimilarProducts = async () => {
-          try {
-            // Öncelikle tam olarak aynı inç (çap) olan ürünleri çek
-            const { data: sameSizeProducts, error: sizeError } = await supabase
-              .from('stok')
-              .select('*, urundetay(*), sellers(*)')
-              .eq('urundetay.cap_inch', productData.cap_inch)
-              .neq('urun_id', productData.urun_id)
-              .limit(8);
-              
-            // Aynı mevsim olan ürünleri çek
-            const { data: sameSeasonProducts, error: seasonError } = await supabase
-              .from('stok')
-              .select('*, urundetay(*), sellers(*)')
-              .eq('urundetay.mevsim', productData.mevsim)
-              .neq('urun_id', productData.urun_id)
-              .limit(8);
-              
-            // Benzer ürünler dizisini hazırla
-            let sameCapAndSeasonProducts: any[] = [];
-            let sameCapProducts: any[] = [];
-            let sameSeasonProducts1: any[] = [];
-            let otherProducts: any[] = [];
-            
-            if (sameSizeProducts && sameSizeProducts.length > 0) {
-              // Aynı çap ve mevsime sahip olanları ayır
-              sameCapAndSeasonProducts = sameSizeProducts.filter(
-                item => item.urundetay.mevsim === productData.mevsim
-              );
-              
-              // Aynı çapa sahip ama farklı mevsim olanları ayır
-              sameCapProducts = sameSizeProducts.filter(
-                item => item.urundetay.mevsim !== productData.mevsim
-              );
-            }
-            
-            if (sameSeasonProducts && sameSeasonProducts.length > 0) {
-              // Aynı mevsime sahip ama çapı farklı olanları ayır
-              sameSeasonProducts1 = sameSeasonProducts.filter(
-                item => item.urundetay.cap_inch !== productData.cap_inch
-              );
-            }
-            
-            // Öncelik sırasıyla ürünleri ekle (en fazla 4 ürün)
-            let combinedProducts = [
-              ...sameCapAndSeasonProducts,
-              ...sameCapProducts,
-              ...sameSeasonProducts1
-            ];
-            
-            // Benzersiz ürünleri filtrele (aynı ürün farklı mağaza olabilir)
-            const uniqueProductIds = new Set<number>();
-            combinedProducts = combinedProducts.filter(item => {
-              if (uniqueProductIds.has(item.urun_id)) {
-                return false;
-              }
-              uniqueProductIds.add(item.urun_id);
-              return true;
-            });
-            
-            // En fazla 4 ürün olacak şekilde kes
-            combinedProducts = combinedProducts.slice(0, 4);
-            
-            // Ürün bilgilerini düzenle
-            const processedProducts = combinedProducts.map(item => ({
-              urun_id: item.urun_id,
-              model: item.urundetay.model,
-              marka: item.urundetay.marka,
-              cap_inch: item.urundetay.cap_inch,
-              mevsim: item.urundetay.mevsim,
-              saglik_durumu: item.saglik_durumu,
-              urun_resmi_0: item.urundetay.urun_resmi_0 || "/placeholder-tire.jpg",
-              fiyat: item.fiyat,
-              indirimli_fiyat: item.indirimli_fiyat || item.fiyat,
-              stok: item.stok_adet,
-              magaza_isim: item.sellers?.isim || "Bilinmiyor",
-              magaza_sehir: item.sellers?.sehir || "Belirtilmemiş"
-            }));
-            
-            return processedProducts;
-          } catch (err) {
-            console.error("Benzer ürünler çekilirken hata:", err);
-            return [];
-          }
-        };
 
         // Benzer ürünleri çek
         const similarProductsData = await fetchSimilarProducts();
@@ -401,24 +494,28 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
         console.log(`${similarProductsData.length} adet benzer ürün bulundu`);
 
         // Daha sonra kredi kartı taksit bilgisini çek
-        const { data: installmentsData, error: installmentsError } = await supabase
+        const { data: installmentData, error: installmentError } = await supabase
           .from('kredi_karti_taksit')
           .select('*')
           .eq('urun_id', params.id);
 
-        if (installmentsError) {
-          console.error("Taksit bilgisi çekilirken hata:", installmentsError);
+        if (installmentError) {
+          console.error("Taksit bilgisi çekilirken hata:", installmentError);
         }
 
-        // Varsayılan taksit bilgisini oluştur, eğer veri yoksa
-        const creditCardInstallments: CreditCardInstallment[] = installmentsData || [];
+        // Taksit bilgilerini düzenle
+        const processedInstallments = installmentData?.map(item => ({
+          bank: item.bank,
+          rates: item.rates || []
+        })) || [];
 
         // Tam ürün verisi oluştur
         const fullProductData: FullProduct = {
-          product: productData,
+          product: productDataResponse as ProductData,
           shops,
-          creditCardInstallments,
-          similarProducts: similarProductsData
+          creditCardInstallments: processedInstallments,
+          similarProducts: similarProductsData,
+          features
         };
 
         setFullProduct(fullProductData);
@@ -485,8 +582,29 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
   };
 
   const handleAddToCart = () => {
-    // Sepete ekleme işlemi
-    alert(`${quantity} adet ${fullProduct?.product.model} sepete eklendi. Mağaza: ${selectedShop?.name} (${selectedShop?.city})`);
+    if (!selectedShop || !fullProduct) return;
+
+    // Sepette aynı ürün var mı kontrol et
+    const existingItem = sepetUrunler.find(item => item.stok_id === selectedShop.stok_id);
+    const sepettekiAdet = existingItem ? existingItem.adet : 0;
+    
+    // Eğer sepetteki adet + eklenecek miktar stok limitini aşıyorsa
+    if (sepettekiAdet + quantity > selectedShop.stock) {
+      toast.error(`Bu üründen maksimum ${selectedShop.stock} adet ekleyebilirsiniz. Sepetinizde zaten ${sepettekiAdet} adet var.`);
+      return;
+    }
+
+    sepeteEkle({
+      id: 0, // Backend tarafında otomatik üretilecek
+      isim: fullProduct.product.model,
+      ebat: `${fullProduct.product.cap_inch} inç`,
+      fiyat: Number(selectedShop.indirimli_fiyat),
+      adet: quantity,
+      resim: fullProduct.product.urun_resmi_0,
+      stok_id: selectedShop.stok_id
+    });
+    
+    toast.success('Ürün sepete eklendi');
   };
 
   const getHealthColor = (health: number) => {
@@ -569,6 +687,7 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                     src={getProductImages(fullProduct?.product)[activeImageIndex] || '/placeholder-tire.jpg'}
                     alt={fullProduct?.product?.model || 'Ürün görseli'} 
                     fill
+                    priority
                     style={{ objectFit: 'contain' }}
                     className="w-full h-full"
                   />
@@ -811,12 +930,19 @@ export default function UrunDetayPage({ params }: { params: { id: string } }) {
                   </p>
 
                   <ul className="list-disc list-inside text-gray-300 space-y-1 ml-2">
-                    {fullProduct?.product.features?.map((feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <FaCheckCircle className="text-primary mt-1 mr-2 flex-shrink-0" />
-                        <span>{feature}</span>
+                    {fullProduct?.product?.features && fullProduct.product.features.length > 0 ? (
+                      fullProduct.product.features.map((feature: string, index: number) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                          <span>{feature}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="flex items-center gap-2">
+                        <InformationCircleIcon className="h-5 w-5 text-gray-500" />
+                        <span>Özellik bilgisi bulunmuyor</span>
                       </li>
-                    ))}
+                    )}
                   </ul>
                 </div>
 
