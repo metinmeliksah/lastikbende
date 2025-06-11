@@ -38,22 +38,45 @@ export default function YoneticiLayout({
   useEffect(() => {
     if (!isMounted) return;
 
+    // Giriş sayfasındaysak auth kontrolü yapma
+    if (pathname?.startsWith('/yonetici/giris')) {
+      return;
+    }
+
     const storedData = localStorage.getItem('managerData');
-    if (!storedData && !pathname?.startsWith('/yonetici/giris')) {
+    
+    if (!storedData) {
+      // Manager data yoksa giriş sayfasına yönlendir
+      console.log('No manager data found, redirecting to login');
       router.push('/yonetici/giris');
       return;
     }
 
-    if (storedData) {
-      try {
-        const data = JSON.parse(storedData);
-        setManagerData(data);
-      } catch (error) {
+    try {
+      const data = JSON.parse(storedData);
+      
+      // Data geçerli mi kontrol et
+      if (!data || !data.id || !data.email) {
+        console.log('Invalid manager data, redirecting to login');
         localStorage.removeItem('managerData');
-        if (!pathname?.startsWith('/yonetici/giris')) {
-          router.push('/yonetici/giris');
-        }
+        router.push('/yonetici/giris');
+        return;
       }
+
+      // Durum kontrolü
+      if (!data.durum) {
+        console.log('Manager account suspended');
+        localStorage.removeItem('managerData');
+        router.push('/yonetici/giris');
+        return;
+      }
+
+      setManagerData(data);
+      console.log('Manager authenticated:', data.email);
+    } catch (error) {
+      console.error('Error parsing manager data:', error);
+      localStorage.removeItem('managerData');
+      router.push('/yonetici/giris');
     }
   }, [isMounted, pathname, router]);
 
