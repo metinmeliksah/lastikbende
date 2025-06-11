@@ -34,6 +34,22 @@ export default function YoneticiGiris() {
     fetchLogo();
   }, [supabase]);
 
+  // Zaten giriş yapmışsa yönetici paneline yönlendir
+  useEffect(() => {
+    const managerData = localStorage.getItem('managerData');
+    if (managerData) {
+      try {
+        const data = JSON.parse(managerData);
+        if (data && data.id) {
+          router.push('/yonetici');
+          return;
+        }
+      } catch (error) {
+        localStorage.removeItem('managerData');
+      }
+    }
+  }, [router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -42,14 +58,39 @@ export default function YoneticiGiris() {
     try {
       const result = await signInManager(email, password);
       
-      if (result.success) {
-        localStorage.setItem('managerData', JSON.stringify(result.data));
+      // signInManager'ın yeni formatını kontrol et
+      if (result.data && !result.error) {
+        // Başarılı giriş
+        const managerData = {
+          id: result.data.id,
+          email: result.data.email,
+          first_name: result.data.first_name,
+          last_name: result.data.last_name,
+          ad: result.data.ad,
+          soyad: result.data.soyad,
+          durum: result.data.durum,
+          position: result.data.position,
+          created_at: result.data.created_at,
+          updated_at: result.data.updated_at
+        };
+        
+        localStorage.setItem('managerData', JSON.stringify(managerData));
+        
+        // Remember me seçeneği
+        if (rememberMe) {
+          localStorage.setItem('rememberManager', 'true');
+        }
+        
+        // Yönlendirme
         router.push('/yonetici');
+        router.refresh(); // Sayfayı yenile
       } else {
-        setError(result.error);
+        // Hatalı giriş
+        setError(result.error || 'Giriş yapılırken bir hata oluştu');
       }
     } catch (error: any) {
-      setError(error.message || 'Giriş yapılırken bir hata oluştu');
+      console.error('Giriş hatası:', error);
+      setError('Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setIsLoading(false);
     }
@@ -99,6 +140,7 @@ export default function YoneticiGiris() {
               placeholder="admin@lastikbende.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -121,11 +163,13 @@ export default function YoneticiGiris() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              disabled={isLoading}
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
@@ -145,6 +189,7 @@ export default function YoneticiGiris() {
               className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
+              disabled={isLoading}
             />
             <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer">
               Beni Hatırla
