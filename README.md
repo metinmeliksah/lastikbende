@@ -24,6 +24,57 @@ LastikBende, lastik analizi ve yönetimi için geliştirilmiş, Azure Computer V
 - Kişiselleştirilmiş bakım önerileri
 - Markdown formatında zengin metin desteği
 
+### 🛒 Gelişmiş E-Ticaret Sistemi
+- Geniş Ürün Kataloğu: Binlerce lastik ve jant çeşidi
+- Akıllı Filtreleme: Araç tipine göre uyumlu ürün önerisi
+- Karşılaştırma Sistemi: Ürünleri yan yana karşılaştırma
+- Güvenli Ödeme: Kredi kartı ve online ödeme seçenekleri
+- Montaj Hizmeti: Yetkili servis ağı ile montaj koordinasyonu
+- Kargo Takibi: Gerçek zamanlı teslimat takibi
+
+### 👥 Çok Seviyeli Kullanıcı Yönetimi
+### 🏠 Kullanıcı Paneli
+- Kişisel profil yönetimi
+- Analiz geçmişi ve raporlar
+- Sipariş takibi
+- Favoriler ve istek listesi
+- Adres defteri yönetimi
+### 🏪 Bayi Paneli
+- Dashboard: Satış istatistikleri ve performans metrikleri
+- Stok Yönetimi: Ürün ekleme, güncelleme ve stok takibi
+- Sipariş Yönetimi: Gelen siparişleri görüntüleme ve işleme
+- Gelir Raporları: Detaylı satış analizleri ve kar marjları
+- Lastik Ekleme: Yeni ürün kataloguna ekleme
+- Kritik Stok Uyarıları: Otomatik stok azalma bildirimleri
+### ⚙️ Yönetici Paneli
+- Sistem Dashboard: Genel platform istatistikleri
+- Bayi Yönetimi: Bayi başvurularını onaylama ve yönetme
+- Üye Yönetimi: Kullanıcı hesaplarını yönetme
+- Sipariş Yönetimi: Tüm siparişleri görüntüleme ve yönetme
+- Destek Sistemi: Kullanıcı destek taleplerini yönetme
+- Sistem Ayarları: Platform geneli yapılandırma
+
+## 🌟 Kullanıcı Deneyimi Akışları
+### 🔍 Lastik Analiz Süreci
+- Görüntü Yükleme: Lastik fotoğrafını sisteme yükleme
+- AI Analizi: Azure Vision API ile otomatik analiz
+- Sonuç Değerlendirmesi: GPT-4o ile detaylı değerlendirme
+- Rapor Oluşturma: PDF/Excel/Word formatında rapor
+- Uzman Tavsiyesi: AI chat ile ek danışmanlık
+### 🛒 Alışveriş Süreci
+- Ürün Keşfi: Kategoriler veya arama ile ürün bulma
+- Karşılaştırma: Ürünleri yan yana karşılaştırma
+- Sepete Ekleme: İstenilen ürünleri sepete ekleme
+- Montaj Seçimi: Montaj bayi seçimi ve randevu
+- Ödeme: Güvenli ödeme işlemi
+- Takip: Sipariş ve kargo takibi
+### 👨‍💼 Bayi İş Akışı
+- Dashboard İnceleme: Günlük/aylık performans görüntüleme
+- Sipariş Yönetimi: Gelen siparişleri işleme alma
+- Stok Güncellemesi: Ürün stoklarını güncelleme
+- Yeni Ürün Ekleme: Kataloga ürün ekleme
+- Rapor İnceleme: Satış ve gelir raporlarını analiz etme
+
 ## 🛠️ Teknolojiler
 
 ### Frontend
@@ -54,34 +105,119 @@ LastikBende, lastik analizi ve yönetimi için geliştirilmiş, Azure Computer V
 
 ```
 lastikbende/
-├── app/                    # Next.js uygulama dizini
-│   ├── analiz/            # Lastik analiz modülü
-│   │   ├── api/           # API endpoint'leri
-│   │   ├── components/    # UI bileşenleri
-│   │   ├── services/      # Servis modülleri
-│   │   ├── config/        # Yapılandırma
-│   │   ├── lib/           # Yardımcı fonksiyonlar
-│   │   └── translations/  # Çeviri dosyaları
-│   ├── i18n/              # Uluslararasılaştırma
-│   └── globals.css        # Global stiller
+├── app/                           # Next.js App Router
+│   ├── analiz/                   # Lastik Analiz Modülü
+│   │   ├── api/                  # Analiz API endpoints
+│   │   ├── components/           # Analiz UI bileşenleri
+│   │   ├── services/             # Azure Vision, OpenAI servisleri
+│   │   ├── config/               # Analiz yapılandırmaları
+│   │   ├── lib/                  # Yardımcı fonksiyonlar
+│   │   ├── translations/         # Çeviri dosyaları
+│   │   ├── types.ts              # TypeScript tip tanımları
+│   │   └── page.tsx              # Ana analiz sayfası
+│   │
+│   ├── yonetici/                 # Yönetici Paneli
+│   │   ├── bayiler/              # Bayi yönetimi
+│   │   ├── siparisler/           # Sipariş yönetimi
+│   │   ├── uyeler/               # Üye yönetimi
+│   │   ├── destek/               # Destek talebi yönetimi
+│   │   ├── ayarlar/              # Sistem ayarları
+│   │   ├── profil/               # Yönetici profili
+│   │   ├── components/           # Yönetici panel bileşenleri
+│   │   ├── layout.tsx            # Yönetici panel layout'u
+│   │   └── page.tsx              # Yönetici dashboard
+│   │
+│   ├── bayi/                     # Bayi Paneli
+│   │   ├── siparisler/           # Sipariş yönetimi
+│   │   ├── stok/                 # Stok durumu
+│   │   ├── stok-ekle/            # Stok ekleme
+│   │   ├── lastikler/            # Lastik kataloğu
+│   │   ├── lastik-ekle/          # Yeni lastik ekleme
+│   │   ├── raporlar/             # Satış raporları
+│   │   ├── gelir/                # Gelir analizi
+│   │   ├── ayarlar/              # Bayi ayarları
+│   │   ├── components/           # Bayi panel bileşenleri
+│   │   ├── layout.tsx            # Bayi panel layout'u
+│   │   └── page.tsx              # Bayi dashboard
+│   │
+│   ├── kullanici/                # Kullanıcı Paneli
+│   │   ├── giris/                # Giriş sayfası
+│   │   ├── kayit/                # Kayıt sayfası
+│   │   ├── components/           # Kullanıcı panel bileşenleri
+│   │   ├── types.ts              # Kullanıcı tip tanımları
+│   │   └── page.tsx              # Kullanıcı profili
+│   │
+│   ├── urunler/                  # Ürün Katalog Sayfası
+│   │   └── page.tsx              # Filtreleme, arama, listeleme
+│   │
+│   ├── urun-detay/               # Ürün Detay Sayfası
+│   │   └── [id]/                 # Dinamik ürün detay sayfası
+│   │       └── page.tsx          # Ürün özellikleri, yorumlar, satın alma
+│   │
+│   ├── sepet/                    # Alışveriş Sepeti
+│   ├── karsilastir/              # Ürün Karşılaştırma
+│   ├── arama/                    # Gelişmiş Arama
+│   ├── analizlerim/              # Kullanıcı Analiz Geçmişi
+│   ├── iletisim/                 # İletişim Sayfası
+│   ├── hakkimizda/               # Hakkımızda
+│   ├── sss/                      # Sıkça Sorulan Sorular
+│   ├── sozlesmeler/              # Yasal Metinler
+│   │
+│   ├── api/                      # API Routes
+│   │   ├── auth/                 # Kimlik doğrulama
+│   │   ├── user/                 # Kullanıcı işlemleri
+│   │   └── agreement/            # Sözleşme işlemleri
+│   │
+│   ├── contexts/                 # React Context'ler
+│   ├── components/               # Paylaşılan bileşenler
+│   ├── lib/                      # Yardımcı kütüphaneler
+│   ├── i18n/                     # Çok dil desteği
+│   ├── globals.css               # Global stiller
+│   ├── layout.tsx                # Ana layout
+│   ├── page.tsx                  # Ana sayfa
+│   ├── loading.tsx               # Yükleme sayfası
+│   ├── not-found.tsx             # 404 sayfası
+│   └── error.tsx                 # Hata sayfası
 │
-├── components/            # Genel UI bileşenleri
-│   ├── Navbar.tsx        # Navigasyon çubuğu
-│   ├── Footer.tsx        # Alt bilgi
-│   ├── Hero.tsx          # Ana sayfa hero bölümü
-│   ├── Services.tsx      # Hizmetler bölümü
-│   ├── FeaturedProducts.tsx  # Öne çıkan ürünler
-│   └── Categories.tsx    # Kategori listesi
+├── components/                    # Genel UI Bileşenleri
+│   ├── ui/                       # Temel UI bileşenleri
+│   ├── Navbar.tsx                # Navigasyon çubuğu
+│   ├── Footer.tsx                # Alt bilgi
+│   ├── Hero.tsx                  # Ana sayfa hero bölümü
+│   ├── Services.tsx              # Hizmetler bölümü
+│   ├── FeaturedProducts.tsx      # Öne çıkan ürünler
+│   └── Categories.tsx            # Kategori listesi
 │
-├── docs/                 # Dokümantasyon
-│   ├── diagrams/         # Sistem diyagramları
-│   ├── ARCHITECTURE.md   # Mimari dokümantasyon
-│   ├── DEPLOYMENT.md     # Deployment kılavuzu
-│   ├── TESTING.md        # Test stratejisi
-│   ├── SECURITY.md       # Güvenlik politikaları
-│   └── CONTRIBUTING.md   # Katkıda bulunma rehberi
+├── lib/                          # Yardımcı Kütüphaneler
+│   ├── utils.ts                  # Genel yardımcı fonksiyonlar
+│   ├── cloudinary.ts             # Cloudinary entegrasyonu
+│   └── supabase.ts               # Supabase client
 │
-└── public/              # Statik dosyalar
+├── docs/                         # Dokümantasyon
+│   ├── diagrams/                 # Sistem diyagramları
+│   │   ├── system-architecture.md
+│   │   ├── data-flow.md
+│   │   ├── deployment.md
+│   │   └── testing-strategy.md
+│   ├── README.md                 # Dokümantasyon ana sayfa
+│   ├── ARCHITECTURE.md           # Mimari dokümantasyon
+│   ├── FRONTEND.md               # Frontend rehberi
+│   ├── BACKEND.md                # Backend rehberi
+│   ├── DATABASE.md               # Veritabanı şeması
+│   ├── API.md                    # API dokümantasyonu
+│   ├── DEPLOYMENT.md             # Deployment kılavuzu
+│   ├── TESTING.md                # Test stratejisi
+│   ├── SECURITY.md               # Güvenlik politikaları
+│   ├── DEVELOPMENT.md            # Geliştirme rehberi
+│   ├── REQUIREMENTS.md           # Gereksinimler analizi
+│   ├── ECOMMERCE.md              # E-ticaret modülü
+│   ├── CONTRIBUTING.md           # Katkıda bulunma rehberi
+│   └── CHANGELOG.md              # Değişiklik günlüğü
+│
+└── public/                       # Statik Dosyalar
+    ├── images/                   # Görseller
+    ├── icons/                    # İkonlar
+    └── docs/                     # Dokümantasyon dosyaları
 ```
 
 ## 🚀 Başlangıç
