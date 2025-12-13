@@ -93,7 +93,6 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](../L
 
 ## 📸 Ekran Alıntıları
 
-Ana Sayfa
 ### Ana Sayfa
 ![Ana Sayfa](screenshot/lastikbende1.png)
 
