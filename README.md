@@ -277,28 +277,28 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 Ana Sayfa
 ![Ana Sayfa](docs/screenshot/lastikbende1.png)
 
-Lastik Analiz Ekranı
+### Lastik Analiz Ekranı
 ![Lastik Analiz Ekranı](docs/screenshot/lastikbende-2.png)
 
-Lastik Analiz Sonucu
+### Lastik Analiz Sonucu
 ![Lastik Analiz Sonucu](docs/screenshot/lastikbende-3.png)
 
-Ürünler Sayfası
+### Ürünler Sayfası
 ![Ürünler Sayfası](docs/screenshot/lastikbende-4.png)
 
-Ürün Detay Sayfası
+### Ürün Detay Sayfası
 ![Ürün Detay Sayfası](docs/screenshot/lastikbende-5.png)
 
-Sepet ve Sipariş Oluşturma Ekranı
+### Sepet ve Sipariş Oluşturma Ekranı
 ![Sepet ve Sipariş Oluşturma Ekranı](docs/screenshot/lastikbende-6.png)
 
-Sipariş Takip Ekranı
+### Sipariş Takip Ekranı
 ![Sipariş Takip Ekranı](docs/screenshot/lastikbende-7.png)
 
-Bayi Paneli
+### Bayi Paneli
 ![Bayi Paneli](docs/screenshot/lastikbende-8.png)
 
-Yönetici Paneli
+### Yönetici Paneli
 ![Yönetici Paneli](docs/screenshot/lastikbende-9.png)
 
 ## 📞 İletişim
