@@ -274,7 +274,7 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 
 ## 📸 Ekran Alıntıları
 
-Ana Sayfa
+### Ana Sayfa
 ![Ana Sayfa](docs/screenshot/lastikbende1.png)
 
 ### Lastik Analiz Ekranı
