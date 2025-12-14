@@ -13,16 +13,22 @@ interface YoneticiHeaderProps {
 }
 
 export default function YoneticiHeader({ notifications, isSidebarOpen, setIsSidebarOpen, managerData }: YoneticiHeaderProps) {
-  // Yönetici adını oluştur
-  const managerFullName = managerData ? `${managerData.first_name} ${managerData.last_name}` : 'Yönetici';
+  // Yönetici adını oluştur - önce first_name/last_name, sonra ad/soyad'ı dene
+  const firstName = managerData?.first_name || managerData?.ad || '';
+  const lastName = managerData?.last_name || managerData?.soyad || '';
+  const managerFullName = (firstName && lastName) ? `${firstName} ${lastName}` : 'Yönetici';
   
   // Baş harfleri oluştur
-  const initials = managerData ? 
-    `${managerData.first_name?.charAt(0)}${managerData.last_name?.charAt(0)}` : 
+  const initials = (firstName && lastName) ? 
+    `${firstName.charAt(0)}${lastName.charAt(0)}` : 
     'Y';
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // Debug için
+  console.log('Manager data in header:', managerData);
+  console.log('Calculated name:', managerFullName);
 
   return (
     <header className="bg-white border-b yonetici-header z-30 mt-0 pt-0 sticky top-0">
