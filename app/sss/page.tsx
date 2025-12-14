@@ -76,12 +76,20 @@ export default function FAQPage() {
   };
 
   return (
-    <main className="min-h-screen bg-dark-400">
-      <div className="container mx-auto px-4 py-24">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4 text-white">Sıkça Sorulan Sorular</h1>
-          <p className="text-gray-300 max-w-2xl mx-auto">Lastik Bende hakkında merak ettiğiniz tüm sorular ve cevapları</p>
-        </div>
+
+    <div className="container mx-auto px-4 py-8 faq-container">
+      <h1 className="text-3xl font-bold mb-8">Sıkça Sorulan Sorular</h1>
+      
+      {/* Arama ve Filtreleme */}
+      <div className="mb-8">
+        <Input
+          type="text"
+          placeholder="Sorunuzu arayın..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="mb-4"
+        />
+
         
         {/* Arama ve Filtreleme */}
         <div className="mb-12">
